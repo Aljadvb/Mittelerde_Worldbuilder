@@ -24,4 +24,6 @@ dependencies {
 
 tasks.test {
     useJUnitPlatform()
+    // Example files live at the repository root.
+    systemProperty("repoRoot", rootDir.absolutePath)
 }
