@@ -40,6 +40,8 @@ android {
 
     // Bundle the example campaign and catalog as assets.
     sourceSets["main"].assets.srcDir(rootProject.file("examples"))
+    // Hex map code shared with the desktop editor.
+    sourceSets["main"].java.srcDir(rootProject.file("shared/hexmap/src"))
 }
 
 kotlin {
