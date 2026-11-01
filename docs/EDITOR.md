@@ -2,12 +2,14 @@
 
 ## Installieren
 
-1. Auf GitHub unter **Actions → Build** den neuesten erfolgreichen Lauf öffnen.
-2. Unten unter *Artifacts* **editor-windows-msi** herunterladen und entpacken.
-3. Die `.msi` ausführen. Java ist enthalten, es muss nichts weiter installiert werden.
+1. Auf GitHub rechts unter **Releases** die neueste Version öffnen
+   (https://github.com/Aljadvb/Mittelerde_Worldbuilder/releases).
+2. `Mittelerde-Worldbuilder-Editor-….msi` herunterladen und ausführen. Java ist enthalten.
    Neue Versionen werden einfach darüber installiert.
+3. `Mittelerde-Worldbuilder-App-….apk` ist die App für das Handy.
 
-Im selben Lauf liegt auch **android-app-debug** – die APK für das Handy.
+Ein neues Release entsteht automatisch, wenn ein Versions-Tag wie `v1.1.0` gepusht wird.
+Zwischenstände ohne Release liegen unter **Actions → Build → Lauf → Artifacts** (90 Tage).
 
 > Windows warnt beim ersten Start evtl. vor einer „unbekannten App“, weil das Paket nicht signiert ist:
 > „Weitere Informationen“ → „Trotzdem ausführen“.
