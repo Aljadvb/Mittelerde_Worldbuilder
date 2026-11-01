@@ -2,6 +2,11 @@
 
 Stand: 2026-11-01 · Noch kein Code. Details werden nach den Scans (Pläne und Geländeteile) angepasst.
 
+**Nachtrag nach dem Beispielfoto:** Die Pläne sind nicht fein gerastert, sondern durch Linien in **wenige große Felder
+(Bereiche)** geteilt. Figuren, Standfahnen und runde Geländeteile stehen *in* einem Bereich, **Mauern liegen *auf den
+Kanten*** zwischen zwei Bereichen oder am Rand. Mehrere Pläne werden aneinandergelegt. Der Entwurf unten ist daran
+angepasst (Abschnitte 3 und 4).
+
 ## 1. Ziel
 
 Neben **Reiseabenteuern** auf Sechseck-Kacheln gibt es **Schlachten** auf viereckigen Schlachtspielplänen mit
@@ -37,20 +42,17 @@ Schlacht-Kapitel ersetzt beim Aufbau die Reisekarte. Die App zeigt dann die Anwe
   }
 ],
 "terrainPieces": [
-  {
-    "id": "barrikade", "name": "Barrikade", "expansion": "...",
-    "footprint": [{"x": 0, "y": 0}, {"x": 1, "y": 0}],
-    "image": {"file": "bilder/barrikade.png", "originX": 10, "originY": 10, "cellSize": 212.5},
-    "count": 2
-  }
+  { "id": "felsen",  "name": "Felsen",     "expansion": "...", "placement": "area", "image": {"file": "bilder/felsen.png"},  "count": 2 },
+  { "id": "mauer",   "name": "Steinmauer", "expansion": "...", "placement": "edge", "image": {"file": "bilder/mauer.png"},   "count": 4 }
 ],
 "squareSizeMm": 38.0
 ```
 
 - **Plan:** Größe in Feldern (Breite × Höhe) je Seite, optional Bild mit Lage des Rasters (linke obere Feldecke und
   Feldgröße in Pixeln), dazu Kategorien und Beschreibung wie bei den Kacheln. Die Kategorien helfen der KI bei der Wahl.
-- **Geländeteil:** belegte Felder relativ zum eigenen Ankerfeld (0,0), Bild und **Anzahl im Besitz**. So weiß die App,
-  wie viele Teile dieser Art es gibt.
+- **Feld = Bereich:** `width`/`height` zählen die großen Bereiche eines Plans (z. B. 3 × 2), nicht kleine Quadrate.
+- **Geländeteil:** Art der Platzierung – `area` (liegt *in* einem Bereich, z. B. Felsen, Tümpel) oder `edge` (liegt *auf
+  einer Kante* zwischen zwei Bereichen bzw. am Rand, z. B. Mauer) –, Bild und **Anzahl im Besitz**.
 - Bilder und Werte kommen wie bisher nur in dein privates Katalog-ZIP, nicht ins Repo. Die Scans werte ich wieder
   automatisch aus: Raster erkennen, gerade ausrichten, Felder zählen.
 
@@ -61,7 +63,10 @@ Schlacht-Kapitel ersetzt beim Aufbau die Reisekarte. Die App zeigt dann die Anwe
   "id": "ch_furt", "title": "Kampf an der Furt", "map": "battle",
   "battlefield": {
     "boards": [ {"id": "bp_furt", "board": "s01", "side": "A", "position": {"x": 0, "y": 0}, "rotation": 0} ],
-    "terrain": [ {"id": "gt_barrikade_1", "piece": "barrikade", "position": {"x": 3, "y": 1}, "rotation": 1} ]
+    "terrain": [
+      {"id": "gt_felsen_1", "piece": "felsen", "area": {"x": 2, "y": 0}},
+      {"id": "gt_mauer_1",  "piece": "mauer",  "edge": {"x": 1, "y": 0, "side": "east"}}
+    ]
   },
   "tokens": [ {"id": "tok_fahne", "type": "search", "label": "Zerrissene Fahne", "location": {"square": {"x": 2, "y": 3}}} ]
 }
@@ -69,13 +74,14 @@ Schlacht-Kapitel ersetzt beim Aufbau die Reisekarte. Die App zeigt dann die Anwe
 
 - **Pläne** liegen auf einem gemeinsamen Quadratraster; mehrere Pläne können aneinander liegen. Drehung in 90°-Schritten
   (0–3).
-- **Geländeteile** bekommen Position und Drehung (0–3) auf demselben Raster.
-- **Token und Gegner** stehen in Schlacht-Kapiteln auf einem Feld `{"square": {"x", "y"}}`, statt auf einer
-  Kachel-Platzierung. Die bisherige Angabe `placement + cell` bleibt für Reise-Kapitel.
+- **Geländeteile** in einem Bereich: `area {x, y}`. Auf einer Kante: `edge {x, y, side}` mit `side` = north/east/south/west
+  des Bereichs (x, y) – die Ausrichtung ergibt sich daraus.
+- **Token und Gegner** stehen in Schlacht-Kapiteln in einem Bereich `{"square": {"x", "y"}}`, statt auf einer
+  Kachel-Platzierung. (Mehrere Figuren und Teile dürfen sich einen Bereich teilen.) Die bisherige Angabe `placement + cell` bleibt für Reise-Kapitel.
 
 ### Neue Prüfregeln (Validator)
 - Plan und Seite existieren im Katalog; Pläne überlappen sich nicht.
-- Geländeteile liegen vollständig auf einem Plan und überlappen sich nicht.
+- Geländeteile liegen in einem Bereich bzw. auf einer Kante eines Plans; auf einer Kante höchstens ein Teil.
 - Es werden nicht mehr Geländeteile einer Art verwendet, als im Katalog als Anzahl angegeben sind.
 - Token und Gegner stehen auf einem Feld eines Plans.
 - Reise-Kapitel enthalten keine Schlachtpläne und Schlacht-Kapitel keine Kacheln.
@@ -115,8 +121,8 @@ Schlacht-Kapitel ersetzt beim Aufbau die Reisekarte. Die App zeigt dann die Anwe
 
 ## 9. Offene Fragen (am besten mit den Scans beantworten)
 
-1. Haben die Schlachtpläne ein **aufgedrucktes Quadratraster**? Falls nicht: Wie werden Positionen am Tisch bestimmt?
-2. Gibt es **mehrere Pläne pro Schlacht**, die aneinandergelegt werden, oder immer genau einen?
+1. ~~Aufgedrucktes Raster?~~ → große Bereiche mit Linien (laut Foto). Wie viele Bereiche hat ein Plan (z. B. 3 × 2)?
+2. ~~Mehrere Pläne?~~ → ja, aneinandergelegt (laut Foto). Immer nur an ganzen Kanten, oder auch versetzt?
 3. Sind die Pläne **zweiseitig** (A/B) wie die Kacheln?
-4. Haben die Geländeteile eine **Ausrichtung**, die eine Rolle spielt (z. B. eine Mauer mit Vorder- und Rückseite)?
+4. Gibt es außer „in einem Bereich“ und „auf einer Kante“ noch andere Arten, Geländeteile zu legen (z. B. auf einer Ecke oder über zwei Bereiche)?
 5. Wechselt ein Szenario **innerhalb** zwischen Reise und Schlacht, oder ist ein Szenario entweder das eine oder das andere?
