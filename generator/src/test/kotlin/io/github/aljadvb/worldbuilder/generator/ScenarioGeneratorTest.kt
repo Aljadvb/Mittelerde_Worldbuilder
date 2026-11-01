@@ -110,4 +110,14 @@ class ScenarioGeneratorTest {
         assertEquals(example.id, fresh.startScenario)
         assertTrue(CampaignValidator.validate(fresh, Examples.catalog).isValid)
     }
+
+    @Test
+    fun `a map that does not fit on the table goes back for correction`() {
+        val small = input.copy(table = io.github.aljadvb.worldbuilder.editing.TableSize(10.0, 10.0))
+        val fake = FakeProvider(mutableListOf(asModelOutput(example), asModelOutput(example)))
+        val draft = StoryDraft("T", "I", emptyList(), emptyList(), emptyList(), emptyList())
+        ScenarioGenerator(fake, Examples.catalog, small, maxRepairs = 1).scenario(draft)
+        assertTrue("zu groß für den Tisch" in fake.requests[1].messages.last().text)
+        assertTrue("10 × 10 cm" in fake.requests[0].messages.single().text)
+    }
 }

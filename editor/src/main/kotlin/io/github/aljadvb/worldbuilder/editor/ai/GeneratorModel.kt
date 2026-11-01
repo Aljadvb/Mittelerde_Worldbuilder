@@ -29,6 +29,7 @@ import kotlinx.coroutines.launch
  */
 class GeneratorModel(
     private val catalog: MaterialCatalog,
+    private val table: io.github.aljadvb.worldbuilder.editing.TableSize = io.github.aljadvb.worldbuilder.editing.TableSize.DEFAULT,
     private val scope: CoroutineScope,
     private val providerFactory: () -> LlmProvider?,
     private val worker: CoroutineDispatcher = Dispatchers.IO,
@@ -61,7 +62,7 @@ class GeneratorModel(
     private fun ownedTiles() = catalog.tiles.filter { catalog.expansion(it.expansion)?.owned != false }.map { it.id }.toSet()
     private fun ownedEnemies() = catalog.enemyTypes.filter { catalog.expansion(it.expansion)?.owned != false }.map { it.id }.toSet()
 
-    private fun input() = GenerationInput(source, length, difficulty, allowedTiles, allowedEnemies, wishes)
+    private fun input() = GenerationInput(source, length, difficulty, allowedTiles, allowedEnemies, wishes, table)
 
     val canCreateStory get() = !busy && source.isNotBlank() && allowedTiles.isNotEmpty()
 

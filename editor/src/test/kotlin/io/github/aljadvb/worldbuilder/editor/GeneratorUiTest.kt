@@ -53,13 +53,13 @@ class GeneratorUiTest {
     }
 
     private fun generator(answers: MutableList<String>?) = runBlocking {
-        GeneratorModel(catalog, this, providerFactory = { answers?.let { FakeProvider(it, model = "claude-opus-5-5") } }, worker = Dispatchers.Unconfined)
+        GeneratorModel(catalog, scope = this, providerFactory = { answers?.let { FakeProvider(it, model = "claude-opus-5-5") } }, worker = Dispatchers.Unconfined)
     }
 
     @Test
     fun wholeFlowEndsInTheEditor() = runBlocking {
         val fake = mutableListOf(Json.encodeToString(StoryDraft.serializer(), draft), modelOutput(example))
-        val g = GeneratorModel(catalog, this, providerFactory = { FakeProvider(fake, model = "claude-opus-5-5") }, worker = Dispatchers.Unconfined)
+        val g = GeneratorModel(catalog, scope = this, providerFactory = { FakeProvider(fake, model = "claude-opus-5-5") }, worker = Dispatchers.Unconfined)
         g.source = "Notizen: verschwundener Müller, Nebel."
         assertTrue(g.canCreateStory)
         g.createStory(); g.join()
@@ -90,7 +90,7 @@ class GeneratorUiTest {
 
     @Test
     fun addingToTheOpenCampaignKeepsItsScenarios() = runBlocking {
-        val g = GeneratorModel(catalog, this, providerFactory = { FakeProvider(mutableListOf(modelOutput(example)), model = "claude-opus-5-5") }, worker = Dispatchers.Unconfined)
+        val g = GeneratorModel(catalog, scope = this, providerFactory = { FakeProvider(mutableListOf(modelOutput(example)), model = "claude-opus-5-5") }, worker = Dispatchers.Unconfined)
         g.draft = draft
         g.target = GeneratorModel.Target.CURRENT_CAMPAIGN
         g.createScenario(); g.join()
@@ -118,7 +118,7 @@ class GeneratorUiTest {
 
     @Test
     fun screenshots() = runBlocking {
-        val g = GeneratorModel(catalog, this, providerFactory = { FakeProvider(mutableListOf(modelOutput(example)), model = "claude-opus-5-5") }, worker = Dispatchers.Unconfined)
+        val g = GeneratorModel(catalog, scope = this, providerFactory = { FakeProvider(mutableListOf(modelOutput(example)), model = "claude-opus-5-5") }, worker = Dispatchers.Unconfined)
         g.source = "Seit Tagen steht die Mühle still. Der Müller ist verschwunden, und abends steigt Nebel aus dem Bach."
         g.wishes = "düster, aber mit Hoffnung"
         render("e13_ai_input", g)

@@ -1,5 +1,6 @@
 package io.github.aljadvb.worldbuilder.editor
 
+import io.github.aljadvb.worldbuilder.editing.TableSize
 import java.io.File
 import java.util.prefs.Preferences
 
@@ -7,6 +8,8 @@ import java.util.prefs.Preferences
 interface EditorPrefs {
     var catalogPath: String?
     var recentFiles: List<String>
+    /** Size of the real table the map must fit on. */
+    var table: TableSize
 }
 
 class SystemEditorPrefs : EditorPrefs {
@@ -19,6 +22,14 @@ class SystemEditorPrefs : EditorPrefs {
     override var recentFiles: List<String>
         get() = node.get("recentFiles", "").split('\n').filter { it.isNotBlank() && File(it).isFile }
         set(value) { node.put("recentFiles", value.take(8).joinToString("\n")) }
+
+    override var table: TableSize
+        get() = TableSize(node.getDouble("tableWidthCm", TableSize.DEFAULT.widthCm), node.getDouble("tableHeightCm", TableSize.DEFAULT.heightCm))
+        set(value) { node.putDouble("tableWidthCm", value.widthCm); node.putDouble("tableHeightCm", value.heightCm) }
 }
 
-class InMemoryEditorPrefs(override var catalogPath: String? = null, override var recentFiles: List<String> = emptyList()) : EditorPrefs
+class InMemoryEditorPrefs(
+    override var catalogPath: String? = null,
+    override var recentFiles: List<String> = emptyList(),
+    override var table: TableSize = TableSize.DEFAULT,
+) : EditorPrefs

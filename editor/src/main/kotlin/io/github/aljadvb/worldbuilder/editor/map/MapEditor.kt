@@ -42,6 +42,7 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import io.github.aljadvb.worldbuilder.editing.mapCells
+import io.github.aljadvb.worldbuilder.editing.mapExtent
 import io.github.aljadvb.worldbuilder.editor.EditorModel
 import io.github.aljadvb.worldbuilder.editor.Texts
 import io.github.aljadvb.worldbuilder.hexmap.HexCanvas
@@ -135,6 +136,7 @@ fun MapEditor(model: EditorModel, controller: MapController, modifier: Modifier 
 
     Column(modifier) {
         Toolbar(model, controller, onFit = ::fit)
+        TableInfo(model, controller)
         Text(
             when (controller.tool) {
                 MapTool.Select -> Texts.MAP_HINT_SELECT
@@ -209,6 +211,20 @@ fun MapEditor(model: EditorModel, controller: MapController, modifier: Modifier 
             )
         }
     }
+}
+
+/** Size of the whole scenario map compared with the table. */
+@Composable
+private fun TableInfo(model: EditorModel, controller: MapController) {
+    val scenario = controller.scenario ?: return
+    val extent = scenario.mapExtent(model.catalog)
+    val fits = model.table.fits(extent)
+    Text(
+        Texts.tableInfo(extent.toString(), model.table.toString(), fits),
+        color = if (fits) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error,
+        style = MaterialTheme.typography.labelMedium,
+        modifier = Modifier.padding(horizontal = 4.dp),
+    )
 }
 
 @Composable

@@ -69,6 +69,13 @@ console.anthropic.com eintragen. Er wird verschlüsselt an dein Windows-Konto ge
 
 Oben rechts stehen die bisherigen Kosten. Lange wörtliche Übernahmen aus der Vorlage werden markiert.
 
+## Tischgröße
+
+**Datei → Tischgröße …** (Standard 120 × 80 cm). Alle Kapitel eines Szenarios liegen am Ende gleichzeitig auf dem Tisch:
+Der Karteneditor zeigt über der Karte die Größe der gesamten Karte und warnt, wenn sie nicht passt; der KI-Generator
+ordnet die Kacheln nur so an, dass alles darauf passt. Die Feldgröße der echten Kacheln (22,2 mm Mitte–Ecke) steht im
+Material-Katalog (`hexSizeMm`).
+
 ## Karteneditor
 
 | Aktion | Bedienung |

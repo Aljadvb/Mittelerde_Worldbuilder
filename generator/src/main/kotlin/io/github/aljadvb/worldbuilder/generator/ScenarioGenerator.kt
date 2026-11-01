@@ -73,8 +73,12 @@ class ScenarioGenerator(
             onStatus(GenerationStatus.Checking(round))
 
             val parsed = parse(result.text)
-            val problems = parsed.problems
-            val scenario = parsed.scenario?.let { AutoLayout.layout(it, catalog) }
+            val problems = parsed.problems.toMutableList()
+            val layout = parsed.scenario?.let { AutoLayout.layout(it, catalog, input.table) }
+            val scenario = layout?.scenario
+            if (layout != null && !layout.fits) {
+                problems += "- Die Karte wird mit ${layout.extent} zu groß für den Tisch (${input.table}). Verwende weniger oder kleinere Kacheln (zusammen höchstens etwa ${input.table.cellCapacity(catalog.hexSizeMm)} Felder)."
+            }
             val report = scenario?.let { validate(it) } ?: ValidationReport(emptyList())
 
             val done = scenario != null && problems.isEmpty() && report.isValid

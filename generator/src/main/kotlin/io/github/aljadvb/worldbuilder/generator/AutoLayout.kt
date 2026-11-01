@@ -1,18 +1,25 @@
 package io.github.aljadvb.worldbuilder.generator
 
+import io.github.aljadvb.worldbuilder.editing.MapExtent
+import io.github.aljadvb.worldbuilder.editing.TableSize
 import io.github.aljadvb.worldbuilder.editing.localCells
+import io.github.aljadvb.worldbuilder.editing.mapExtent
 import io.github.aljadvb.worldbuilder.model.HexCoord
 import io.github.aljadvb.worldbuilder.model.MaterialCatalog
 import io.github.aljadvb.worldbuilder.model.Scenario
 import io.github.aljadvb.worldbuilder.model.TilePlacement
 
+/** Result of [AutoLayout.layout]: the laid-out scenario, its size on the table and whether it fits. */
+data class LayoutResult(val scenario: Scenario, val extent: MapExtent, val fits: Boolean)
+
 /**
  * Places the tiles of a scenario on the map without overlaps: chapter by chapter, each
  * tile is attached edge-to-edge to tiles already placed, preferring many shared edges,
- * a compact map and no rotation. Deterministic.
+ * a compact map and no rotation. With a [TableSize], only positions that keep the whole
+ * map (all chapters together) on the table are used. Deterministic.
  */
 object AutoLayout {
-    fun layout(scenario: Scenario, catalog: MaterialCatalog): Scenario {
+    fun layout(scenario: Scenario, catalog: MaterialCatalog, table: TableSize? = null): LayoutResult {
         val occupied = mutableSetOf<HexCoord>()
         val placed = mutableMapOf<String, TilePlacement>()
         var previousChapterCells = emptySet<HexCoord>()
@@ -24,7 +31,9 @@ object AutoLayout {
                 val best = if (occupied.isEmpty()) {
                     p.copy(position = HexCoord.ORIGIN, rotation = 0)
                 } else {
-                    bestPlacement(p, local, occupied, attachTo = chapterCells.ifEmpty { previousChapterCells.ifEmpty { occupied } })
+                    val attachTo = chapterCells.ifEmpty { previousChapterCells.ifEmpty { occupied } }
+                    bestPlacement(p, local, occupied, attachTo, catalog, table)
+                        ?: bestPlacement(p, local, occupied, attachTo, catalog, null)!!
                 }
                 val cells = local.map(best::toMap)
                 occupied += cells; chapterCells += cells
@@ -32,12 +41,20 @@ object AutoLayout {
             }
             if (chapterCells.isNotEmpty()) previousChapterCells = chapterCells
         }
-        return scenario.copy(chapters = scenario.chapters.map { ch -> ch.copy(tiles = ch.tiles.map { placed[it.id] ?: it }) })
+        val laid = scenario.copy(chapters = scenario.chapters.map { ch -> ch.copy(tiles = ch.tiles.map { placed[it.id] ?: it }) })
+        val extent = laid.mapExtent(catalog)
+        return LayoutResult(laid, extent, table?.fits(extent) ?: true)
     }
 
-    private fun bestPlacement(p: TilePlacement, local: List<HexCoord>, occupied: Set<HexCoord>, attachTo: Set<HexCoord>): TilePlacement {
+    private fun bestPlacement(
+        p: TilePlacement,
+        local: List<HexCoord>,
+        occupied: Set<HexCoord>,
+        attachTo: Set<HexCoord>,
+        catalog: MaterialCatalog,
+        table: TableSize?,
+    ): TilePlacement? {
         val center = centroid(occupied)
-        // anchor candidates: around every free neighbour of the cells to attach to
         val frontier = attachTo.flatMap { it.neighbors() }.filter { it !in occupied }.toSet()
         var best: TilePlacement? = null
         var bestScore = Double.NEGATIVE_INFINITY
@@ -49,15 +66,25 @@ object AutoLayout {
                 if (cells.any { it in occupied }) continue
                 val contacts = cells.sumOf { c -> c.neighbors().count { it in attachTo } }
                 if (contacts == 0) continue
-                val spread = cells.sumOf { it.distanceTo(center) }.toDouble() / cells.size
-                val score = contacts * 3.0 - spread - (if (rotation == 0) 0.0 else 2.5)
+                var score = contacts * 3.0 - cells.sumOf { it.distanceTo(center) }.toDouble() / cells.size - (if (rotation == 0) 0.0 else 2.5)
+                if (table != null) {
+                    val extent = MapExtent.of(occupied + cells, catalog.hexOrientation, catalog.hexSizeMm)
+                    if (!table.fits(extent)) continue
+                    // keep room: prefer maps that use a small share of the table
+                    val (a, b) = listOf(table.widthCm, table.heightCm).sorted()
+                    val (x, y) = listOf(extent.widthCm, extent.heightCm).sorted()
+                    score -= 4.0 * maxOf(x / a, y / b)
+                }
                 if (score > bestScore) {
                     bestScore = score
                     best = p.copy(position = position, rotation = rotation)
                 }
             }
         }
-        return best ?: p.copy(position = HexCoord(occupied.maxOf { it.q } + 3, 0), rotation = 0)
+        if (best == null && table == null) {
+            return p.copy(position = HexCoord(occupied.maxOf { it.q } + 3, 0), rotation = 0)
+        }
+        return best
     }
 
     private fun centroid(cells: Set<HexCoord>): HexCoord =

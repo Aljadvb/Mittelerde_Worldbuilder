@@ -20,6 +20,12 @@
       ],
       "default": "flat"
     },
+    "hexSizeMm": {
+      "description": "Größe eines Felds der echten Kacheln: Mitte bis Ecke in Millimetern (Original-Kacheln: 22,2).",
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "default": 22.2
+    },
     "expansions": {
       "type": "array",
       "items": {

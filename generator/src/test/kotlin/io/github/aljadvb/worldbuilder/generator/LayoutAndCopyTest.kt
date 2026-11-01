@@ -14,7 +14,7 @@ class LayoutAndCopyTest {
     fun `layout of the example has no overlaps and keeps it valid`() {
         // throw away the hand-made positions
         val scrambled = scenario.copy(chapters = scenario.chapters.map { ch -> ch.copy(tiles = ch.tiles.map { it.copy(position = HexCoord.ORIGIN, rotation = 0) }) })
-        val laid = AutoLayout.layout(scrambled, Examples.catalog)
+        val laid = AutoLayout.layout(scrambled, Examples.catalog).scenario
         val cells = laid.placements.flatMap { it.mapCells(Examples.catalog) }
         assertEquals(cells.size, cells.toSet().size)
         val report = CampaignValidator.validate(Examples.campaign.copy(scenarios = listOf(laid)), Examples.catalog)
@@ -38,5 +38,20 @@ class LayoutAndCopyTest {
         assertEquals(listOf(scenario.id), findings.map { it.objectId })
         assertTrue(findings.single().words >= 12)
         assertTrue(CopyCheck.check(scenario, "Hainbrück, die Mühle und der Nebel.").isEmpty())
+    }
+
+    @Test
+    fun `layout respects the table size`() {
+        val roomy = AutoLayout.layout(scenario, Examples.catalog, io.github.aljadvb.worldbuilder.editing.TableSize(120.0, 80.0))
+        assertTrue(roomy.fits)
+        // a narrow table forces a different, more compact arrangement – or reports that it does not fit
+        val narrow = io.github.aljadvb.worldbuilder.editing.TableSize(26.0, 40.0)
+        val tight = AutoLayout.layout(scenario, Examples.catalog, narrow)
+        assertTrue(tight.fits, tight.extent.toString())
+        assertTrue(narrow.fits(tight.extent))
+        val cells = tight.scenario.placements.flatMap { it.mapCells(Examples.catalog) }
+        assertEquals(cells.size, cells.toSet().size)
+        val tiny = AutoLayout.layout(scenario, Examples.catalog, io.github.aljadvb.worldbuilder.editing.TableSize(10.0, 10.0))
+        assertTrue(!tiny.fits)
     }
 }

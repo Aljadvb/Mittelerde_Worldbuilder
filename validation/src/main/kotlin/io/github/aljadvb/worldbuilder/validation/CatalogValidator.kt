@@ -13,6 +13,7 @@ object CatalogValidator {
             c.error(IssueCode.UNSUPPORTED_FORMAT_VERSION, "formatVersion", null,
                 "Formatversion ${catalog.formatVersion} wird nicht unterstützt (erwartet: $CURRENT_FORMAT_VERSION).")
         }
+        if (catalog.hexSizeMm <= 0) c.error(IssueCode.INVALID_NUMBER, "hexSizeMm", null, "Die Feldgröße muss größer als 0 mm sein.")
         val expansionIds = catalog.expansions.map { it.id }.toSet()
 
         fun checkIds(ids: List<String>, path: String, what: String) {

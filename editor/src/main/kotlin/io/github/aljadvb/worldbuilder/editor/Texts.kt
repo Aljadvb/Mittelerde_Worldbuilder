@@ -314,6 +314,15 @@ object Texts {
     const val AI_COPY_FINDINGS = "Mögliche wörtliche Übernahmen aus der Vorlage – bitte im Editor umformulieren:"
     fun aiCopyFinding(id: String, field: String, words: Int, excerpt: String) = "• $id ($field, $words Wörter): „$excerpt“"
 
+    // Table
+    const val MENU_TABLE = "Tischgröße …"
+    const val TABLE_TITLE = "Tischgröße"
+    const val TABLE_HINT = "Am Ende liegen alle Kapitel eines Szenarios gleichzeitig auf dem Tisch. Der KI-Generator ordnet die Kacheln so an, dass alles darauf passt; der Karteneditor warnt, wenn die Karte zu groß wird."
+    const val TABLE_WIDTH = "Breite (cm)"
+    const val TABLE_HEIGHT = "Tiefe (cm)"
+    fun tableInfo(map: String, table: String, fits: Boolean) =
+        "Karte (alle Kapitel): $map · Tisch: $table" + if (fits) " ✓" else " – passt nicht auf den Tisch!"
+
     // Placement
     const val TILE = "Kachel"
     const val SIDE = "Seite"

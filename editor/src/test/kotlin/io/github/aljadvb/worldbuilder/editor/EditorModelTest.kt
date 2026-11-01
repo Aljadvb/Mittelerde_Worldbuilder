@@ -112,3 +112,14 @@ class NewStepTest {
         }
     }
 }
+
+class TableSettingTest {
+    @Test
+    fun `table size is remembered`() {
+        val prefs = InMemoryEditorPrefs()
+        val m = EditorModel(prefs)
+        assertEquals(io.github.aljadvb.worldbuilder.editing.TableSize.DEFAULT, m.table)
+        m.changeTable(io.github.aljadvb.worldbuilder.editing.TableSize(100.0, 70.0))
+        assertEquals(100.0, EditorModel(prefs).table.widthCm)
+    }
+}

@@ -11,6 +11,8 @@ import kotlinx.serialization.Serializable
 data class MaterialCatalog(
     val formatVersion: Int,
     val hexOrientation: HexOrientation = HexOrientation.FLAT,
+    /** Size of one hex of the physical tiles: centre to corner in millimetres. */
+    val hexSizeMm: Double = DEFAULT_HEX_SIZE_MM,
     val expansions: List<Expansion> = emptyList(),
     val tiles: List<TileDefinition> = emptyList(),
     val enemyTypes: List<EnemyType> = emptyList(),
@@ -19,6 +21,9 @@ data class MaterialCatalog(
     fun enemyType(id: String): EnemyType? = enemyTypes.firstOrNull { it.id == id }
     fun expansion(id: String): Expansion? = expansions.firstOrNull { it.id == id }
 }
+
+/** Measured on the original tiles (scan at 150 dpi: 131 px centre to corner). */
+const val DEFAULT_HEX_SIZE_MM = 22.2
 
 @Serializable
 enum class HexOrientation {

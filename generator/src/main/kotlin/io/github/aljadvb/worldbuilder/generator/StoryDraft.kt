@@ -14,6 +14,8 @@ data class GenerationInput(
     val allowedEnemies: Set<String> = emptySet(),
     /** Extra wishes in free text (tone, places, characters …). */
     val wishes: String = "",
+    /** The whole map (all chapters) must fit on this table. */
+    val table: io.github.aljadvb.worldbuilder.editing.TableSize = io.github.aljadvb.worldbuilder.editing.TableSize.DEFAULT,
 ) {
     enum class Length(val chapters: Int, val label: String) { SHORT(2, "kurz"), MEDIUM(3, "mittel"), LONG(4, "lang") }
     enum class Difficulty(val label: String) { EASY("leicht"), NORMAL("normal"), HARD("schwer") }

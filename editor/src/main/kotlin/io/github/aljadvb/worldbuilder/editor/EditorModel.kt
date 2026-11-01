@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import io.github.aljadvb.worldbuilder.editing.Definition
 import io.github.aljadvb.worldbuilder.editing.EditException
 import io.github.aljadvb.worldbuilder.editing.History
+import io.github.aljadvb.worldbuilder.editing.TableSize
 import io.github.aljadvb.worldbuilder.editing.definitions
 import io.github.aljadvb.worldbuilder.editing.newCampaign
 import io.github.aljadvb.worldbuilder.model.Campaign
@@ -50,6 +51,14 @@ class EditorModel(private val prefs: EditorPrefs) {
     var message: String? by mutableStateOf(null)
     var recentFiles: List<String> by mutableStateOf(prefs.recentFiles)
         private set
+    /** The real table; the whole map of a scenario should fit on it. */
+    var table: TableSize by mutableStateOf(prefs.table)
+        private set
+
+    fun changeTable(size: TableSize) {
+        table = size
+        prefs.table = size
+    }
 
     init {
         prefs.catalogPath?.let { path -> runCatching { loadCatalog(File(path)) } }

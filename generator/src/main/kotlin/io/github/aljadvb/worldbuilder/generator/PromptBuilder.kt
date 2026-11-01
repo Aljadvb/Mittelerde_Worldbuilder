@@ -95,6 +95,7 @@ class PromptBuilder(private val catalog: MaterialCatalog, private val input: Gen
         appendLine("Vorgaben:")
         appendLine("- Genau ${draft.chapters.size} Kapitel in der Reihenfolge des Entwurfs; pro Kapitel 1–3 Kacheln, deren Landschaft zum Kapitel passt.")
         appendLine("- Jede Kachel höchstens einmal im ganzen Szenario.")
+        appendLine("- Am Ende liegen alle Kapitel gleichzeitig auf einem Tisch von ${input.table}: alle Kacheln zusammen höchstens etwa ${input.table.cellCapacity(catalog.hexSizeMm)} Felder (Felder je Kachel siehe Material).")
         appendLine("- Pro Kapitel 2–5 Token mit eigenen Texten; Proben und Auswahlen sorgen für Abwechslung.")
         appendLine("- Schwierigkeit „${input.difficulty.label}“: ${difficultyHint()}")
         appendLine()

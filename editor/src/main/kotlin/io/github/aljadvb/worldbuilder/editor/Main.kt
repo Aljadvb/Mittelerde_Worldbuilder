@@ -26,6 +26,7 @@ import io.github.aljadvb.worldbuilder.editor.play.PlaytestScreen
 import io.github.aljadvb.worldbuilder.generator.AnthropicProvider
 import androidx.compose.runtime.rememberCoroutineScope
 import io.github.aljadvb.worldbuilder.editor.ui.EditorContent
+import io.github.aljadvb.worldbuilder.editor.ui.TableDialog
 import io.github.aljadvb.worldbuilder.editor.ui.UnsavedChangesDialog
 import java.io.File
 
@@ -36,6 +37,7 @@ fun main() = application {
     val aiSettings = remember { AiSettings() }
     val apiKeys = remember { defaultKeyStore() }
     var aiSettingsOpen by remember { mutableStateOf(false) }
+    var tableOpen by remember { mutableStateOf(false) }
     var generatorOpen by remember { mutableStateOf(false) }
     var playtest by remember { mutableStateOf<io.github.aljadvb.worldbuilder.model.Campaign?>(null) }
     /** Action waiting for the unsaved-changes decision. */
@@ -77,6 +79,7 @@ fun main() = application {
                     FileDialogs.saveJson(window, doc?.file?.name)?.let(model::saveAs)
                 }
                 Separator()
+                Item(Texts.MENU_TABLE) { tableOpen = true }
                 Item(Texts.MENU_CATALOG) { FileDialogs.openCatalog(window)?.let(model::loadCatalog) }
                 Item(Texts.MENU_CATALOG_EDIT) { catalogEditor = CatalogEditorModel(model.catalog, model.catalogFile, model::loadCatalog) }
                 Item(Texts.MENU_CATALOG_NEW) { catalogEditor = CatalogEditorModel(newCatalog(), null, model::loadCatalog) }
@@ -102,6 +105,7 @@ fun main() = application {
         MaterialTheme(colorScheme = lightColorScheme()) {
             EditorContent(model)
             if (aiSettingsOpen) AiSettingsDialog(aiSettings, apiKeys) { aiSettingsOpen = false }
+            if (tableOpen) TableDialog(model.table, onSave = { model.changeTable(it); tableOpen = false }, onDismiss = { tableOpen = false })
             pending?.let { action ->
                 UnsavedChangesDialog(
                     onSave = { if (saveOrAsk()) { pending = null; action() } },
@@ -156,7 +160,7 @@ fun main() = application {
     if (generatorOpen) {
         val scope = rememberCoroutineScope()
         val generator = remember(model.catalog) {
-            GeneratorModel(model.catalog, scope, providerFactory = {
+            GeneratorModel(model.catalog, model.table, scope, providerFactory = {
                 apiKeys.load()?.let { AnthropicProvider(it, aiSettings.model, aiSettings.fallbacks) }
             })
         }
