@@ -36,7 +36,7 @@ Felder je Kachelseite in axialen Koordinaten (q, r), von oben gesehen, (0,0) = A
 ## Bauen & Testen
 
 ```bash
-./gradlew test :app:testDebugUnitTest :app:assembleDebug
+./gradlew test :app:assembleDebug
 ```
 
 Die App-Tests rendern Screenshots nach `app/build/screenshots/`.
