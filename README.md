@@ -15,7 +15,11 @@ einer eigenen Katalog-Datei gepflegt.
 | `:model`      | Kampagnenformat, Material-Katalog, Hex-Mathematik  |
 | `:validation` | Validator mit strukturierter Fehlerliste           |
 | `:engine`     | Spiellogik ohne Android-Abhängigkeit               |
-| `:app`        | Android-App (Jetpack Compose, Material 3)          |
+| `:editing`    | Bearbeitungslogik (Umbenennen mit Verweisen, Kacheln, Katalog, Undo) |
+| `:editor`     | Windows-Editor (Compose Desktop)                   |
+| `:app`        | Android-App / Player (Jetpack Compose, Material 3) |
+
+`shared/hexmap` enthält den Kartencode, den App und Editor gemeinsam einbinden.
 
 ## Stand (Phase 1)
 
@@ -28,10 +32,22 @@ einer eigenen Katalog-Datei gepflegt.
 |---|---|---|
 | ![](docs/screenshots/04_setup_muehle.png) | ![](docs/screenshots/03_idle_dorf.png) | ![](docs/screenshots/05_test_tor.png) |
 
+## Windows-Editor (Phase 2)
+
+Kampagnen und Material-Katalog werden am PC erstellt, gespielt wird mit der Android-App.
+Installation und Bedienung: [`docs/EDITOR.md`](docs/EDITOR.md). Das `.msi` und die APK baut GitHub Actions bei jedem Push.
+
+| Karteneditor | Event-Editor | Katalog | Probespiel |
+|---|---|---|---|
+| ![](docs/screenshots/editor_karte.png) | ![](docs/screenshots/editor_event.png) | ![](docs/screenshots/editor_katalog.png) | ![](docs/screenshots/editor_probespiel.png) |
+
+Editor lokal starten: `./gradlew :editor:run` (ohne Android-SDK: `-PskipAndroid=true`).
+
 ## Eigenen Material-Katalog anlegen
 
 Vorlage: [`examples/beispiel-material.json`](examples/beispiel-material.json), Schema: [`schema/material.schema.json`](schema/material.schema.json).
-Felder je Kachelseite in axialen Koordinaten (q, r), von oben gesehen, (0,0) = Ankerfeld. Import in der App über ⋮ → „Material-Katalog importieren“.
+Am einfachsten im Windows-Editor (Datei → Material-Katalog bearbeiten): Felder anklicken statt Koordinaten tippen.
+Import in der App über ⋮ → „Material-Katalog importieren“.
 
 ## Bauen & Testen
 

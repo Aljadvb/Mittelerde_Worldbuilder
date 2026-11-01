@@ -1,6 +1,8 @@
 # Phase 2 – Editor für Windows: Plan zur Freigabe
 
-Stand: 2026-11-01 (überarbeitet) · Noch kein Code.
+Stand: 2026-11-01 · **Umgesetzt** (Branch `phase2-editor`).
+
+Abweichung bei der Umsetzung: Statt eines eigenen Compose-Multiplatform-Moduls `:hexmap` liegt der gemeinsame Kartencode in `shared/hexmap/` und wird von App und Editor als zusätzlicher Quellordner eingebunden – die verwendeten Compose-APIs sind auf beiden Plattformen identisch, und `:model`/`:engine` mussten so nicht auf Multiplatform umgestellt werden.
 
 **Änderung gegenüber dem ersten Entwurf:** Der Editor läuft als **Desktop-Programm unter Windows**. Die Android-App bleibt der **Player** am Spieltisch. Das Kampagnenformat ändert sich nicht: Der Editor erzeugt dieselben JSON-Dateien, die die App importiert.
 
