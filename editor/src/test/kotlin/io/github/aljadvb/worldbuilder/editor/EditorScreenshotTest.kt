@@ -13,8 +13,8 @@ import kotlin.test.Test
 
 /** Renders the editor window content headlessly to build/screenshots for inspection. */
 class EditorScreenshotTest {
-    private fun render(name: String, model: EditorModel) {
-        val scene = ImageComposeScene(width = 1400, height = 860, density = Density(1f)) {
+    private fun render(name: String, model: EditorModel, height: Int = 860) {
+        val scene = ImageComposeScene(width = 1400, height = height, density = Density(1f)) {
             MaterialTheme(colorScheme = lightColorScheme()) { EditorContent(model) }
         }
         try {
@@ -52,4 +52,10 @@ class EditorScreenshotTest {
 
     @Test
     fun triggerForm() = render("e06_trigger", example("trg_bedrohung_8"))
+
+    @Test
+    fun eventEditor() = render("e07_event", example("evt_dorfbewohnerin"), height = 1000)
+
+    @Test
+    fun testStepEvent() = render("e08_event_test", example("evt_tor"))
 }

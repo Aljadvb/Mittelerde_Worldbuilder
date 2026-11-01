@@ -97,3 +97,18 @@ class EditorModelTest {
         )
     }
 }
+
+class NewStepTest {
+    @Test
+    fun `every step type can be created and serialized`() {
+        val m = EditorModel(InMemoryEditorPrefs())
+        m.openExample()
+        val s = m.campaign!!.scenarios.single()
+        Texts.STEP_TYPES.forEach { (type, _) ->
+            val step = io.github.aljadvb.worldbuilder.editor.ui.newStep(type, s)
+            val c = m.campaign!!.copy(scenarios = listOf(s.copy(events = s.events + io.github.aljadvb.worldbuilder.model.Event("evt_neu", listOf(step)))))
+            val json = io.github.aljadvb.worldbuilder.model.FormatJson.encodeCampaign(c)
+            assertTrue("\"type\": \"$type\"" in json, type)
+        }
+    }
+}

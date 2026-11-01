@@ -141,6 +141,40 @@ object Texts {
         "manual" to "Nur durch Event-Schritt „Trigger auslösen“",
     )
 
+    // Event
+    const val STEPS = "Schritte"
+    const val ADD_STEP = "＋ Schritt"
+    const val STEP_LAST_HINT = "Auswahl, Probe und Szenario-Ende stehen immer am Schluss – danach geht es in einem eigenen Event weiter."
+    const val MOVE_UP = "Nach oben"
+    const val MOVE_DOWN = "Nach unten"
+    const val QUESTION = "Text / Frage"
+    const val OPTIONS = "Optionen"
+    const val OPTION_LABEL = "Beschriftung"
+    const val OPTION_EVENT = "führt zu Event"
+    const val ADD_OPTION = "Option hinzufügen"
+    const val ATTRIBUTE = "Attribut"
+    const val SUCCESSES = "Benötigte Erfolge"
+    const val ON_SUCCESS = "Bei Erfolg"
+    const val ON_FAILURE = "Bei Misserfolg"
+    const val AMOUNT = "Änderung (+/−)"
+    const val CHAPTER = "Kapitel"
+    const val TRIGGER = "Trigger (nur „manual“)"
+    const val RESOLUTION = "Auflösung"
+    val STEP_TYPES = listOf(
+        "text" to "Text anzeigen",
+        "choice" to "Auswahl",
+        "test" to "Probe",
+        "spawnEnemies" to "Gegner erscheinen",
+        "changeThreat" to "Bedrohung ändern",
+        "addToken" to "Token hinzufügen",
+        "removeToken" to "Token entfernen",
+        "unlockChapter" to "Kapitel freischalten",
+        "setObjective" to "Ziel setzen",
+        "fireTrigger" to "Trigger auslösen",
+        "endScenario" to "Szenario beenden",
+    )
+    val ATTRIBUTES = listOf("MIGHT" to "Stärke", "AGILITY" to "Geschick", "WISDOM" to "Weisheit", "SPIRIT" to "Geist", "WIT" to "Verstand")
+
     // Placement
     const val TILE = "Kachel"
     const val SIDE = "Seite"
