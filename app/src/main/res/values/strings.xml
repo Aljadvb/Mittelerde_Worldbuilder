@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Mittelerde Worldbuilder</string>
+
+    <!-- Common -->
+    <string name="ok">OK</string>
+    <string name="cancel">Abbrechen</string>
+    <string name="close">Schließen</string>
+    <string name="delete">Löschen</string>
+    <string name="back">Zurück</string>
+    <string name="more">Mehr</string>
+    <string name="continue_">Weiter</string>
+    <string name="confirm">Bestätigen</string>
+    <string name="loading">Lädt …</string>
+
+    <!-- Home -->
+    <string name="home_title">Eigene Kampagnen</string>
+    <string name="home_saves">Spielstände</string>
+    <string name="home_campaigns">Kampagnen</string>
+    <string name="home_no_campaigns">Noch keine Kampagne vorhanden. Importiere eine Kampagnendatei oder lade die Beispielkampagne.</string>
+    <string name="home_no_saves">Noch keine Spielstände.</string>
+    <string name="home_import_campaign">Kampagne importieren</string>
+    <string name="home_import_catalog">Material-Katalog importieren</string>
+    <string name="home_install_example">Beispielkampagne laden</string>
+    <string name="home_new_game">Neues Spiel</string>
+    <string name="home_resume">Fortsetzen</string>
+    <string name="home_catalog_example">Material-Katalog: Beispielkatalog (erfunden). Importiere deinen eigenen Katalog über das Menü.</string>
+    <string name="home_catalog_own">Material-Katalog: %1$d Kacheln, %2$d Gegnertypen</string>
+    <string name="home_warnings">%1$d Hinweise</string>
+    <string name="home_errors">%1$d Fehler</string>
+    <string name="home_show_report">Prüfbericht</string>
+    <string name="home_save_line">%1$s · Runde %2$d · %3$s</string>
+    <string name="home_save_campaign_over">Kampagne abgeschlossen · %1$s</string>
+    <string name="home_delete_save_title">Spielstand löschen?</string>
+    <string name="home_delete_campaign_title">Kampagne löschen?</string>
+    <string name="home_delete_campaign_text">Die Kampagnendatei wird aus der App entfernt. Spielstände bleiben erhalten, lassen sich ohne die Kampagne aber nicht fortsetzen.</string>
+    <string name="home_missing_campaign">Kampagne fehlt</string>
+
+    <!-- New game -->
+    <string name="new_game_title">Neues Spiel: %1$s</string>
+    <string name="new_game_heroes">Anzahl der Helden</string>
+    <string name="new_game_start">Spiel starten</string>
+
+    <!-- Import / validation -->
+    <string name="import_success">„%1$s“ wurde importiert.</string>
+    <string name="import_catalog_success">Material-Katalog wurde importiert.</string>
+    <string name="import_failed_title">Import fehlgeschlagen</string>
+    <string name="import_parse_error">Die Datei konnte nicht gelesen werden:\n%1$s</string>
+    <string name="import_invalid">Die Datei enthält Fehler und wurde nicht importiert.</string>
+    <string name="report_title">Prüfbericht</string>
+    <string name="report_empty">Keine Befunde.</string>
+    <string name="report_error">Fehler</string>
+    <string name="report_warning">Hinweis</string>
+    <string name="report_location">Ort: %1$s</string>
+
+    <!-- Game -->
+    <string name="game_round">Runde %1$d</string>
+    <string name="game_threat">Bedrohung %1$d / %2$d</string>
+    <string name="game_objectives">Ziele</string>
+    <string name="game_end_round">Runde beenden</string>
+    <string name="game_end_round_confirm_title">Runde %1$d beenden?</string>
+    <string name="game_end_round_confirm_text">Die Bedrohung steigt um %1$d.</string>
+    <string name="game_enemies">Gegner</string>
+    <string name="game_enemy_line">%1$d× %2$s</string>
+    <string name="game_defeated">Besiegt</string>
+    <string name="game_defeat_confirm_title">%1$s besiegt?</string>
+    <string name="game_tokens">Token auf der Karte</string>
+    <string name="game_no_tokens">Keine Token auf der Karte.</string>
+    <string name="game_tap_hint">Tippe auf ein Token, um es zu untersuchen.</string>
+    <string name="game_log">Ereignisprotokoll</string>
+    <string name="game_log_empty">Noch keine Einträge.</string>
+    <string name="game_log_round">Runde %1$d</string>
+    <string name="game_log_answer">→ %1$s</string>
+    <string name="game_to_menu">Zum Hauptmenü</string>
+    <string name="game_saved">Gespeichert</string>
+    <string name="game_load_failed">Spielstand konnte nicht geladen werden.</string>
+    <string name="game_campaign_missing">Die Kampagne „%1$s“ ist nicht mehr vorhanden.</string>
+    <string name="game_campaign_changed">Die Kampagnendatei wurde seit Spielbeginn geändert.</string>
+
+    <!-- Prompts -->
+    <string name="prompt_setup_title">Aufbau: %1$s</string>
+    <string name="prompt_setup_tiles">Kacheln</string>
+    <string name="prompt_setup_tile_line">Kachel %1$s, Seite %2$s</string>
+    <string name="prompt_setup_tokens">Token</string>
+    <string name="prompt_setup_token_line">%1$s (%2$s) auf Kachel %3$s</string>
+    <string name="prompt_setup_hint">Die neuen Kacheln sind auf der Karte hervorgehoben.</string>
+    <string name="prompt_spawn_title">Gegner erscheinen</string>
+    <string name="prompt_spawn_text">Stelle %1$d× %2$s auf Kachel %3$s (markiertes Feld).</string>
+    <string name="prompt_place_token_title">Neues Token</string>
+    <string name="prompt_place_token_text">Lege %1$s (%2$s) auf Kachel %3$s (markiertes Feld).</string>
+    <string name="prompt_remove_token_title">Token entfernen</string>
+    <string name="prompt_remove_token_text">Entferne %1$s von Kachel %2$s.</string>
+    <string name="prompt_threat_up">Die Bedrohung steigt um %1$d auf %2$d.</string>
+    <string name="prompt_threat_down">Die Bedrohung sinkt um %1$d auf %2$d.</string>
+    <string name="prompt_threat_title">Bedrohung</string>
+    <string name="prompt_round_title">Runde %1$d beendet</string>
+    <string name="prompt_round_text">Die Bedrohung steigt um %1$d auf %2$d.</string>
+    <string name="prompt_objective_set_title">Neues Ziel</string>
+    <string name="prompt_objective_done_title">Ziel erfüllt</string>
+    <string name="prompt_test_title">Probe: %1$s</string>
+    <string name="prompt_test_required">Benötigt: %1$d Erfolge</string>
+    <string name="prompt_test_successes">Erzielte Erfolge</string>
+    <string name="prompt_test_decrease">Weniger</string>
+    <string name="prompt_test_increase">Mehr</string>
+
+    <!-- Resolution / campaign -->
+    <string name="resolution_victory">Sieg</string>
+    <string name="resolution_defeat">Niederlage</string>
+    <string name="resolution_neutral">Ende</string>
+    <string name="campaign_over_title">Kampagne abgeschlossen</string>
+    <string name="campaign_over_played">Gespielte Szenarien</string>
+    <string name="campaign_over_line">%1$s – %2$s</string>
+
+    <!-- Model labels -->
+    <string name="token_search">Suche</string>
+    <string name="token_person">Person</string>
+    <string name="token_threat">Bedrohung</string>
+    <string name="token_explore">Erkundung</string>
+    <string name="attribute_might">Stärke</string>
+    <string name="attribute_agility">Geschick</string>
+    <string name="attribute_wisdom">Weisheit</string>
+    <string name="attribute_spirit">Geist</string>
+    <string name="attribute_wit">Verstand</string>
+</resources>
