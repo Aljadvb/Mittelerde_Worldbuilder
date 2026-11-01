@@ -17,6 +17,7 @@ import androidx.compose.ui.window.rememberWindowState
 import io.github.aljadvb.worldbuilder.editing.newCatalog
 import io.github.aljadvb.worldbuilder.editor.catalog.CatalogEditor
 import io.github.aljadvb.worldbuilder.editor.catalog.CatalogEditorModel
+import io.github.aljadvb.worldbuilder.editor.play.PlaytestScreen
 import io.github.aljadvb.worldbuilder.editor.ui.EditorContent
 import io.github.aljadvb.worldbuilder.editor.ui.UnsavedChangesDialog
 import java.io.File
@@ -25,6 +26,7 @@ fun main() = application {
     val model = remember { EditorModel(SystemEditorPrefs()) }
     val windowState = rememberWindowState(placement = WindowPlacement.Maximized, width = 1400.dp, height = 900.dp)
     var catalogEditor by remember { mutableStateOf<CatalogEditorModel?>(null) }
+    var playtest by remember { mutableStateOf<io.github.aljadvb.worldbuilder.model.Campaign?>(null) }
     /** Action waiting for the unsaved-changes decision. */
     var pending by remember { mutableStateOf<(() -> Unit)?>(null) }
 
@@ -72,6 +74,11 @@ fun main() = application {
                 Item(Texts.MENU_CLOSE, enabled = doc != null) { guarded { model.close() } }
                 Item(Texts.MENU_EXIT) { guarded(::exitApplication) }
             }
+            Menu(Texts.PLAYTEST_WINDOW, mnemonic = 'P') {
+                Item(Texts.MENU_PLAYTEST, enabled = doc != null, shortcut = KeyShortcut(Key.F5)) {
+                    if (model.report.isValid) playtest = model.campaign else model.message = Texts.PLAYTEST_HAS_ERRORS
+                }
+            }
             Menu(Texts.MENU_EDIT, mnemonic = 'B') {
                 Item(Texts.MENU_UNDO, enabled = doc?.history?.canUndo == true, shortcut = KeyShortcut(Key.Z, ctrl = true)) { model.undo() }
                 Item(Texts.MENU_REDO, enabled = doc?.history?.canRedo == true, shortcut = KeyShortcut(Key.Y, ctrl = true)) { model.redo() }
@@ -117,6 +124,14 @@ fun main() = application {
                         onCancel = { closing = false },
                     )
                 }
+            }
+        }
+    }
+
+    playtest?.let { campaign ->
+        Window(onCloseRequest = { playtest = null }, title = "${Texts.PLAYTEST_WINDOW} – ${campaign.title}") {
+            MaterialTheme(colorScheme = lightColorScheme()) {
+                PlaytestScreen(campaign, model.catalog)
             }
         }
     }

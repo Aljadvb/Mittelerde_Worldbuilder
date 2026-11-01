@@ -57,6 +57,7 @@ import io.github.aljadvb.worldbuilder.model.Campaign
 import io.github.aljadvb.worldbuilder.model.MaterialCatalog
 import io.github.aljadvb.worldbuilder.model.Scenario
 import io.github.aljadvb.worldbuilder.model.TriggerCondition
+import io.github.aljadvb.worldbuilder.hexmap.highlightFor
 import io.github.aljadvb.worldbuilder.ui.common.outcomeLabel
 import io.github.aljadvb.worldbuilder.ui.common.tokenTypeLabel
 import io.github.aljadvb.worldbuilder.ui.home.ConfirmDialog

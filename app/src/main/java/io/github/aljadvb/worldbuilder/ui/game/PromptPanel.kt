@@ -168,23 +168,3 @@ private fun TestContent(prompt: Prompt.Test, onCommand: (Command) -> Unit) {
         Text(stringResource(R.string.confirm))
     }
 }
-
-/** What to emphasise on the map for a prompt. */
-fun highlightFor(prompt: Prompt?, scenario: Scenario): MapHighlight = when (prompt) {
-    is Prompt.Setup -> scenario.chapter(prompt.chapterId)?.let { ch ->
-        MapHighlight(
-            placements = ch.tiles.map { it.id }.toSet(),
-            cells = ch.tokens.filter { it.initiallyActive }.mapNotNull { scenario.mapCell(it.location) }.toSet(),
-        )
-    } ?: MapHighlight()
-    is Prompt.PlaceToken -> tokenHighlight(scenario, prompt.tokenId)
-    is Prompt.RemoveToken -> tokenHighlight(scenario, prompt.tokenId)
-    is Prompt.Inspect -> tokenHighlight(scenario, prompt.tokenId)
-    is Prompt.SpawnEnemies -> scenario.enemyGroup(prompt.groupId)?.let { g ->
-        MapHighlight(cells = setOfNotNull(scenario.mapCell(g.location)))
-    } ?: MapHighlight()
-    else -> MapHighlight()
-}
-
-private fun tokenHighlight(scenario: Scenario, tokenId: String) =
-    MapHighlight(cells = setOfNotNull(scenario.token(tokenId)?.let { scenario.mapCell(it.location) }))
