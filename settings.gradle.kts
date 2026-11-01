@@ -16,4 +16,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "MittelerdeWorldbuilder"
 
-include(":model", ":validation", ":engine", ":app")
+include(":model", ":validation", ":engine", ":editing", ":app")
