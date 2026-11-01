@@ -175,6 +175,23 @@ object Texts {
     )
     val ATTRIBUTES = listOf("MIGHT" to "Stärke", "AGILITY" to "Geschick", "WISDOM" to "Weisheit", "SPIRIT" to "Geist", "WIT" to "Verstand")
 
+    // Map editor
+    const val MAP_SELECT = "Auswählen"
+    const val MAP_ADD_TILE = "Kachel hinzufügen"
+    const val MAP_ADD_TOKEN = "Token setzen"
+    const val MAP_ADD_ENEMY = "Gegner setzen"
+    const val MAP_ROTATE = "Drehen (R)"
+    const val MAP_FLIP = "Seite wechseln (F)"
+    const val MAP_FIT = "Einpassen"
+    const val MAP_HINT_SELECT = "Ziehen: Kachel/Token verschieben · leere Fläche ziehen: Ansicht verschieben · Mausrad: Zoom · R drehen · F Seite · Entf löschen"
+    const val MAP_HINT_TILE = "Klicken zum Platzieren · R drehen · F Seite wechseln · Esc abbrechen"
+    const val MAP_HINT_PLACE = "Auf ein Feld einer Kachel klicken · Esc abbrechen"
+    const val MAP_OVERLAP = "Die Kachel würde andere Kacheln überlappen."
+    const val MAP_NO_TILE = "An dieser Stelle liegt keine Kachel."
+    const val MAP_EDITING = "Kapitel"
+    const val NEW_TOKEN = "Neues Token"
+    fun flipConflicts(ids: List<String>) = "Seite gewechselt. Diese Objekte liegen jetzt auf Feldern, die es auf der neuen Seite nicht gibt – bitte verschieben: ${ids.joinToString(", ")}"
+
     // Placement
     const val TILE = "Kachel"
     const val SIDE = "Seite"

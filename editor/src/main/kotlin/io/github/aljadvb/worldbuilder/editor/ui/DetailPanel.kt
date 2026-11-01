@@ -34,6 +34,9 @@ import io.github.aljadvb.worldbuilder.editing.scenarioOf
 import io.github.aljadvb.worldbuilder.editing.usages
 import io.github.aljadvb.worldbuilder.editor.EditorModel
 import io.github.aljadvb.worldbuilder.editor.Texts
+import io.github.aljadvb.worldbuilder.editor.map.MapController
+import io.github.aljadvb.worldbuilder.editor.map.MapEditor
+import androidx.compose.foundation.layout.fillMaxWidth
 import io.github.aljadvb.worldbuilder.validation.ObjectKind
 
 /** Centre panel: header (kind, ID, rename, delete) + the form of the selected object + usages. */
@@ -45,10 +48,10 @@ fun DetailPanel(model: EditorModel, modifier: Modifier = Modifier) {
     var renaming by remember(id) { mutableStateOf(false) }
     var deleting by remember(id) { mutableStateOf(false) }
 
-    Column(
-        modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
+    val mapKinds = setOf(ObjectKind.CHAPTER, ObjectKind.PLACEMENT, ObjectKind.TOKEN, ObjectKind.ENEMY_GROUP)
+    val controller = remember(model) { MapController(model) }
+
+    Column(modifier.fillMaxSize().padding(horizontal = 20.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text(def.kind.displayName, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
@@ -61,10 +64,18 @@ fun DetailPanel(model: EditorModel, modifier: Modifier = Modifier) {
                 }
             }
         }
-        Column(Modifier.widthIn(max = 820.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            ObjectForm(model, def)
+        if (def.kind in mapKinds) {
+            MapEditor(model, controller, Modifier.weight(1.8f).fillMaxWidth())
         }
-        UsagesSection(model, id)
+        Column(
+            Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Column(Modifier.widthIn(max = 820.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                ObjectForm(model, def)
+            }
+            UsagesSection(model, id)
+        }
     }
 
     if (renaming) RenameDialog(model, id, onDone = { renaming = false })

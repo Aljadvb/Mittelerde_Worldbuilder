@@ -58,4 +58,10 @@ class EditorScreenshotTest {
 
     @Test
     fun testStepEvent() = render("e08_event_test", example("evt_tor"))
+
+    @Test
+    fun mapEditorChapter() = render("e09_map_chapter", example("ch_muehle"), height = 1000)
+
+    @Test
+    fun mapEditorToken() = render("e10_map_token", example("tok_brunnen"), height = 1000)
 }
