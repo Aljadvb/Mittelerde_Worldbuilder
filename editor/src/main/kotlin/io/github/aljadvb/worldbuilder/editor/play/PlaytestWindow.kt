@@ -41,6 +41,7 @@ import io.github.aljadvb.worldbuilder.engine.GameState
 import io.github.aljadvb.worldbuilder.engine.Prompt
 import io.github.aljadvb.worldbuilder.hexmap.HexCanvas
 import io.github.aljadvb.worldbuilder.hexmap.HexProjection
+import io.github.aljadvb.worldbuilder.hexmap.TileImageCache
 import io.github.aljadvb.worldbuilder.hexmap.highlightFor
 import io.github.aljadvb.worldbuilder.hexmap.playScene
 import io.github.aljadvb.worldbuilder.hexmap.tokenAt
@@ -53,13 +54,13 @@ const val PLAY_MAP_TAG = "playMap"
 
 /** Choose scenario and hero count, then play. */
 @Composable
-fun PlaytestScreen(campaign: Campaign, catalog: MaterialCatalog) {
+fun PlaytestScreen(campaign: Campaign, catalog: MaterialCatalog, images: TileImageCache? = null) {
     var game by remember(campaign) { mutableStateOf<PlaytestModel?>(null) }
     val current = game
     if (current == null) {
         PlaytestSetup(campaign) { scenarioId, heroes -> game = PlaytestModel(campaign, scenarioId, heroes) }
     } else {
-        PlaytestView(current, catalog, onRestart = { game = null })
+        PlaytestView(current, catalog, images, onRestart = { game = null })
     }
 }
 
@@ -86,7 +87,7 @@ private fun PlaytestSetup(campaign: Campaign, onStart: (String, Int) -> Unit) {
 private val LETTERS = mapOf(TokenType.SEARCH to "S", TokenType.PERSON to "P", TokenType.THREAT to "B", TokenType.EXPLORE to "E", TokenType.CUSTOM to "?")
 
 @Composable
-fun PlaytestView(game: PlaytestModel, catalog: MaterialCatalog, onRestart: () -> Unit) {
+fun PlaytestView(game: PlaytestModel, catalog: MaterialCatalog, images: TileImageCache? = null, onRestart: () -> Unit) {
     val state = game.state
     val scenario = game.scenario
     Surface(Modifier.fillMaxSize()) {
@@ -98,7 +99,7 @@ fun PlaytestView(game: PlaytestModel, catalog: MaterialCatalog, onRestart: () ->
             return@Surface
         }
         Row {
-            PlayMap(game, scenario, catalog, state, Modifier.weight(1f).fillMaxHeight())
+            PlayMap(game, scenario, catalog, state, images, Modifier.weight(1f).fillMaxHeight())
             VerticalDivider()
             Column(
                 Modifier.width(440.dp).fillMaxHeight().verticalScroll(rememberScrollState()).padding(16.dp),
@@ -145,9 +146,9 @@ private fun Controls(game: PlaytestModel, onRestart: () -> Unit) {
 }
 
 @Composable
-private fun PlayMap(game: PlaytestModel, scenario: Scenario, catalog: MaterialCatalog, state: GameState, modifier: Modifier) {
+private fun PlayMap(game: PlaytestModel, scenario: Scenario, catalog: MaterialCatalog, state: GameState, images: TileImageCache?, modifier: Modifier) {
     val letters = scenario.tokens.associate { it.id to LETTERS.getValue(it.type) }
-    val scene = playScene(scenario, catalog, state, highlightFor(state.currentPrompt, scenario), letters)
+    val scene = playScene(scenario, catalog, state, highlightFor(state.currentPrompt, scenario), letters, images)
     val projection = remember { arrayOfNulls<HexProjection>(1) }
     HexCanvas(
         scene, MaterialTheme.colorScheme.primary,

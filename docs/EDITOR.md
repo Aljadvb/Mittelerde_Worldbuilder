@@ -33,6 +33,19 @@ Zwischenstände ohne Release liegen unter **Actions → Build → Lauf → Artif
 5. **Probespiel → Probespielen (F5)** durchklicken, mit „Schritt zurück“ Varianten ausprobieren.
 6. **Speichern** (Strg+S) – z. B. in einen Google-Drive-/OneDrive-Ordner – und in der App importieren.
 
+## Eigene Kachelbilder
+
+Ein Material-Katalog kann zu jeder Kachelseite ein Bild enthalten (z. B. deine Scans). Editor und App
+zeichnen die Kacheln dann mit diesem Bild statt einfarbig. Bilder und Katalog werden als **ZIP** weitergegeben:
+`material.json` plus Ordner `bilder/`.
+
+- **Editor:** Datei → *Material-Katalog wählen (.json/.zip) …* – ein ZIP wird nach
+  `%USERPROFILE%\.mittelerde-worldbuilder\kataloge\` entpackt und von dort verwendet.
+- **App:** ⋮ → *Material-Katalog importieren* – `.json` oder `.zip`.
+- Im Katalog-Fenster erzeugt *Datei → Als ZIP für die App exportieren …* ein solches Paket.
+
+Die Bilder gehören dir und kommen nicht ins (öffentliche) Repository.
+
 ## Karteneditor
 
 | Aktion | Bedienung |

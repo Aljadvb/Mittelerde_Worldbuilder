@@ -36,6 +36,10 @@ android {
 
     testOptions {
         unitTests.isIncludeAndroidResources = true
+        unitTests.all { test ->
+            // Optional: local screenshot with the user's own tile pictures (never committed).
+            System.getenv("WB_PRIVATE_CATALOG")?.let { test.environment("WB_PRIVATE_CATALOG", it) }
+        }
     }
 
     // Bundle the example campaign and catalog as assets.
@@ -52,6 +56,7 @@ dependencies {
     implementation(project(":model"))
     implementation(project(":validation"))
     implementation(project(":engine"))
+    implementation(project(":editing"))
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.activity.compose)

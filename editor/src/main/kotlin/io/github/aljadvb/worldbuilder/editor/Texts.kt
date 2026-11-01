@@ -12,7 +12,8 @@ object Texts {
     const val MENU_RECENT = "Zuletzt geöffnet"
     const val MENU_SAVE = "Speichern"
     const val MENU_SAVE_AS = "Speichern unter …"
-    const val MENU_CATALOG = "Material-Katalog wählen …"
+    const val MENU_CATALOG = "Material-Katalog wählen (.json/.zip) …"
+    const val MENU_EXPORT_ZIP = "Als ZIP für die App exportieren …"
     const val MENU_CATALOG_EXAMPLE = "Beispielkatalog verwenden"
     const val MENU_CLOSE = "Schließen"
     const val MENU_EXIT = "Beenden"
@@ -254,6 +255,7 @@ object Texts {
 
     fun catalogLabel(file: String?) = if (file == null) "Katalog: Beispielkatalog (erfunden)" else "Katalog: $file"
     fun issueSummary(errors: Int, warnings: Int) = "$errors Fehler · $warnings Hinweise"
+    fun exported(name: String) = "Exportiert: $name – diese Datei in der App über „Material-Katalog importieren“ laden."
     fun saved(name: String) = "Gespeichert: $name"
     fun savedWithErrors(name: String, errors: Int) = "Gespeichert: $name – enthält noch $errors Fehler; die App importiert die Datei erst ohne Fehler."
     fun saveFailed(reason: String) = "Speichern fehlgeschlagen: $reason"

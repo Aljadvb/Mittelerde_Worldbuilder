@@ -198,7 +198,10 @@ private fun ShapeGrid(model: CatalogEditorModel, id: String) {
         orientation = orientation,
         tiles = listOf(
             MapTile("area", "", area, MapColors.Grid.copy(alpha = 0.04f), border = MapColors.Grid),
-            MapTile(tile.id, "", cells, MapColors.chapterFill(0)),
+            MapTile(
+                tile.id, "", cells, MapColors.chapterFill(0),
+                image = tile.sides[model.side]?.image?.let { model.tileImages.image(it, HexCoord.ORIGIN, 0) },
+            ),
         ),
         highlightCells = setOf(HexCoord.ORIGIN),
     )

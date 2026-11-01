@@ -28,3 +28,18 @@ class CatalogValidatorTest {
         assertTrue(IssueCode.TILE_SHAPE_DUPLICATE_CELL in codes)
     }
 }
+
+class TileImageValidationTest {
+    @Test
+    fun `image paths must be relative`() {
+        val tile = Examples.catalog.tiles.first()
+        fun withImage(file: String, size: Double = 50.0) = Examples.catalog.copy(
+            tiles = listOf(tile.copy(sides = tile.sides.mapValues { (_, s) -> s.copy(image = io.github.aljadvb.worldbuilder.model.TileImage(file, 10.0, 10.0, size)) })),
+        )
+        assertEquals("", CatalogValidator.validate(withImage("bilder/x01A.jpg")).format())
+        listOf("/etc/passwd", "../geheim.jpg", "C:\\bild.jpg", "").forEach { bad ->
+            assertTrue(CatalogValidator.validate(withImage(bad)).issues.any { it.code == IssueCode.INVALID_IMAGE }, bad)
+        }
+        assertTrue(CatalogValidator.validate(withImage("a.jpg", 0.0)).issues.any { it.code == IssueCode.INVALID_IMAGE })
+    }
+}

@@ -83,10 +83,14 @@ fun editorScene(model: EditorModel, c: MapController, highlight: Color): MapScen
                 fill = MapColors.chapterFill(index),
                 emphasized = p.id == model.selection,
                 alpha = if (ch.id == current.id) 1f else 0.4f,
+                image = model.tileImages.forPlacement(p, catalog),
             )
         }
     } + listOfNotNull(c.ghost?.let { g ->
-        MapTile("pl__ghost", "${catalog.tile(g.tile)?.label ?: g.tile} ${g.side}", g.mapCells(catalog), highlight.copy(alpha = 0.35f), emphasized = true, alpha = 0.85f)
+        MapTile(
+            "pl__ghost", "${catalog.tile(g.tile)?.label ?: g.tile} ${g.side}", g.mapCells(catalog), highlight.copy(alpha = 0.35f),
+            emphasized = true, alpha = 0.85f, image = model.tileImages.forPlacement(g, catalog),
+        )
     })
     val tokens = visible.flatMap { it.tokens }.mapNotNull { t ->
         val cell = (drag as? Drag.Token)?.takeIf { it.tokenId == t.id }?.cell

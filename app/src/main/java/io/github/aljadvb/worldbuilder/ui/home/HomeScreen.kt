@@ -78,7 +78,11 @@ fun HomeScreen(
         readUri(uri, viewModel::importCampaign)
     }
     val catalogPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        readUri(uri, viewModel::importCatalog)
+        if (uri != null) {
+            runCatching { context.contentResolver.openInputStream(uri)!!.use { it.readBytes() } }
+                .onSuccess(viewModel::importCatalog)
+                .onFailure { viewModel.reportReadError(it.message ?: it.javaClass.simpleName) }
+        }
     }
     val mimeTypes = arrayOf("application/json", "text/plain", "application/octet-stream")
 
@@ -110,7 +114,7 @@ fun HomeScreen(
                         )
                         DropdownMenuItem(
                             text = { Text(stringResource(R.string.home_import_catalog)) },
-                            onClick = { menuOpen = false; catalogPicker.launch(mimeTypes) },
+                            onClick = { menuOpen = false; catalogPicker.launch(mimeTypes + "application/zip") },
                         )
                         DropdownMenuItem(
                             text = { Text(stringResource(R.string.home_install_example)) },

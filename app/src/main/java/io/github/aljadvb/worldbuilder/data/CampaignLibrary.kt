@@ -1,6 +1,7 @@
 package io.github.aljadvb.worldbuilder.data
 
 import android.content.res.AssetManager
+import io.github.aljadvb.worldbuilder.editing.CatalogPackage
 import io.github.aljadvb.worldbuilder.model.Campaign
 import io.github.aljadvb.worldbuilder.model.FormatJson
 import io.github.aljadvb.worldbuilder.model.MaterialCatalog
@@ -14,9 +15,12 @@ import java.security.MessageDigest
  * Campaign files and the material catalog stored in app-private storage.
  * Blocking I/O – call from a background dispatcher.
  */
-class CampaignLibrary(filesDir: File, private val assets: AssetManager) {
+class CampaignLibrary(private val filesDir: File, private val assets: AssetManager) {
+    private fun filesDir() = filesDir
     private val campaignDir = File(filesDir, "campaigns").apply { mkdirs() }
-    private val catalogFile = File(filesDir, "material.json")
+    /** Imported catalog package: material.json plus pictures (bilder/…). */
+    private val catalogDir = File(filesDir, "catalog")
+    private val catalogFile get() = File(catalogDir, CatalogPackage.CATALOG_NAME).takeIf { it.isFile } ?: File(filesDir, "material.json")
 
     data class StoredCampaign(val campaign: Campaign, val checksum: String, val report: ValidationReport)
 
@@ -28,6 +32,9 @@ class CampaignLibrary(filesDir: File, private val assets: AssetManager) {
 
     /** True while no own catalog has been imported and the bundled example catalog is used. */
     val usesExampleCatalog: Boolean get() = !catalogFile.isFile
+
+    /** Folder that tile pictures are resolved against, or null for the example catalog. */
+    val catalogImageDir: File? get() = if (catalogFile.isFile) catalogFile.parentFile else null
 
     fun catalog(): MaterialCatalog {
         val text = if (catalogFile.isFile) catalogFile.readText() else readAsset(EXAMPLE_CATALOG)
@@ -59,15 +66,36 @@ class CampaignLibrary(filesDir: File, private val assets: AssetManager) {
         return ImportResult.Success(campaign.title, report)
     }
 
-    fun importCatalog(text: String): ImportResult {
-        val catalog = try {
-            FormatJson.decodeCatalog(text)
+    /** Imports a catalog: plain material.json or a ZIP with material.json and pictures. */
+    fun importCatalog(bytes: ByteArray): ImportResult {
+        val staging = File(catalogDir.parentFile, "catalog_import")
+        val json = try {
+            if (CatalogPackage.isZip(bytes)) {
+                CatalogPackage.unpack(bytes.inputStream(), staging)
+            } else {
+                staging.deleteRecursively(); staging.mkdirs()
+                File(staging, CatalogPackage.CATALOG_NAME).apply { writeBytes(bytes) }
+            }
         } catch (e: Exception) {
+            staging.deleteRecursively()
+            return ImportResult.ParseError(e.message ?: e.javaClass.simpleName)
+        }
+        val catalog = try {
+            FormatJson.decodeCatalog(json.readText())
+        } catch (e: Exception) {
+            staging.deleteRecursively()
             return ImportResult.ParseError(e.message ?: e.javaClass.simpleName)
         }
         val report = CatalogValidator.validate(catalog)
-        if (!report.isValid) return ImportResult.Invalid(report)
-        catalogFile.writeText(text)
+        if (!report.isValid) {
+            staging.deleteRecursively()
+            return ImportResult.Invalid(report)
+        }
+        // Keep the folder that holds material.json (pictures are relative to it).
+        catalogDir.deleteRecursively()
+        File(filesDir(), "material.json").delete()
+        check(json.parentFile.renameTo(catalogDir)) { "Katalog konnte nicht gespeichert werden." }
+        staging.deleteRecursively()
         return ImportResult.Success("", report)
     }
 

@@ -68,7 +68,7 @@ class HomeViewModel(private val container: AppContainer) : ViewModel() {
     }
 
     fun importCampaign(text: String) = runImport(isCatalog = false) { container.library.importCampaign(text) }
-    fun importCatalog(text: String) = runImport(isCatalog = true) { container.library.importCatalog(text) }
+    fun importCatalog(bytes: ByteArray) = runImport(isCatalog = true) { container.library.importCatalog(bytes) }
     fun installExample() = runImport(isCatalog = false) { container.library.installExample() }
 
     fun reportReadError(message: String) {

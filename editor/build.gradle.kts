@@ -39,6 +39,8 @@ dependencies {
 
 tasks.test {
     systemProperty("repoRoot", rootDir.absolutePath)
+    // Optional: local screenshot with the user's own tile pictures (never committed).
+    providers.environmentVariable("WB_PRIVATE_CATALOG").orNull?.let { environment("WB_PRIVATE_CATALOG", it) }
 }
 
 compose.desktop {

@@ -51,6 +51,22 @@ enum class TileSide { A, B }
 data class TileSideShape(
     /** Cells in tile-local axial coordinates; (0,0) is the tile's anchor. */
     val cells: List<HexCoord>,
+    /** Optional picture of this side (e.g. the user's own scan), drawn clipped to the cells. */
+    val image: TileImage? = null,
+)
+
+/**
+ * A picture of a tile side and how it lies on the hex grid. The picture shows the side
+ * unrotated (rotation 0); [anchorX]/[anchorY] is the pixel centre of cell (0,0) and
+ * [hexSize] the hex radius (centre to corner) in pixels.
+ */
+@Serializable
+data class TileImage(
+    /** Path relative to the catalog file, e.g. "bilder/101A.jpg". */
+    val file: String,
+    val anchorX: Double,
+    val anchorY: Double,
+    val hexSize: Double,
 )
 
 @Serializable

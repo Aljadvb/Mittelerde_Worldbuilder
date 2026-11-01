@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import io.github.aljadvb.worldbuilder.editing.EditException
 import io.github.aljadvb.worldbuilder.editing.History
+import io.github.aljadvb.worldbuilder.editor.CatalogFiles
 import io.github.aljadvb.worldbuilder.editor.Texts
 import io.github.aljadvb.worldbuilder.model.FormatJson
 import io.github.aljadvb.worldbuilder.model.MaterialCatalog
@@ -30,6 +31,10 @@ class CatalogEditorModel(initial: MaterialCatalog, file: File?, private val onSa
     var side by mutableStateOf(TileSide.A)
     var message by mutableStateOf<String?>(null)
 
+    /** Pictures resolve relative to the folder of the catalog file. */
+    var tileImages by mutableStateOf(CatalogFiles.imageCache(file?.parentFile))
+        private set
+
     val catalog: MaterialCatalog get() = history.present
     val isDirty: Boolean get() = catalog != saved
     val report: ValidationReport get() = CatalogValidator.validate(catalog)
@@ -45,6 +50,16 @@ class CatalogEditorModel(initial: MaterialCatalog, file: File?, private val onSa
     fun undo() { history = history.undo() }
     fun redo() { history = history.redo() }
 
+    /** Writes material.json and all pictures into a ZIP for the app. */
+    fun exportZip(target: File): Boolean = try {
+        CatalogFiles.exportZip(FormatJson.encodeCatalog(catalog) + "\n", catalog, file?.parentFile, target)
+        message = Texts.exported(target.name)
+        true
+    } catch (e: Exception) {
+        message = Texts.saveFailed(e.message ?: e.javaClass.simpleName)
+        false
+    }
+
     fun save(): Boolean = file?.let(::saveAs) ?: false
 
     fun saveAs(target: File): Boolean {
@@ -54,7 +69,9 @@ class CatalogEditorModel(initial: MaterialCatalog, file: File?, private val onSa
             return false
         }
         return try {
+            CatalogFiles.copyImages(catalog, file?.parentFile, f.absoluteFile.parentFile)
             f.writeText(FormatJson.encodeCatalog(catalog) + "\n")
+            if (file?.parentFile?.canonicalPath != f.absoluteFile.parentFile.canonicalPath) tileImages = CatalogFiles.imageCache(f.absoluteFile.parentFile)
             file = f
             saved = catalog
             onSaved(f)

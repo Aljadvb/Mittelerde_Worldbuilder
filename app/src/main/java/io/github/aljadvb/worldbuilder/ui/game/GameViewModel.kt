@@ -23,6 +23,8 @@ import kotlinx.coroutines.withContext
 data class GameUi(
     val campaign: Campaign,
     val catalog: MaterialCatalog,
+    /** Folder of the catalog's tile pictures (null: none). */
+    val catalogImageDir: java.io.File?,
     val save: SaveGame,
     /** The campaign file differs from the one the game was started with. */
     val campaignChanged: Boolean,
@@ -66,6 +68,7 @@ class GameViewModel(
                     GameUi(
                         campaign = stored.campaign,
                         catalog = container.library.catalog(),
+                        catalogImageDir = container.library.catalogImageDir,
                         save = save,
                         campaignChanged = save.campaignChecksum != null && save.campaignChecksum != stored.checksum,
                     ),

@@ -11,6 +11,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.platform.app.InstrumentationRegistry
 import io.github.aljadvb.worldbuilder.data.CampaignLibrary
+import io.github.aljadvb.worldbuilder.editing.addPlacement
 import io.github.aljadvb.worldbuilder.engine.Command
 import io.github.aljadvb.worldbuilder.engine.GameEngine
 import io.github.aljadvb.worldbuilder.engine.GameState
@@ -125,5 +126,28 @@ class ScreenshotTest {
         compose.setContent { Screen { ResolutionContent(scenario, s, onContinue = {}) } }
         compose.onNodeWithText("Im Nebel verloren").assertExists()
         snapshot("06_resolution")
+    }
+
+    /** Local only: the user's own catalog with tile pictures (WB_PRIVATE_CATALOG); never committed. */
+    @Test
+    fun privateCatalogWithPictures() {
+        val path = System.getenv("WB_PRIVATE_CATALOG") ?: return
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val library = CampaignLibrary(context.filesDir, context.assets)
+        check(library.importCatalog(File(path).readBytes()) is CampaignLibrary.ImportResult.Success)
+        val own = library.catalog()
+        var c = io.github.aljadvb.worldbuilder.editing.newCampaign("Test")
+        val s0 = c.scenarios.single()
+        c = c.addPlacement(s0.startChapter, "t101", io.github.aljadvb.worldbuilder.model.TileSide.A, io.github.aljadvb.worldbuilder.model.HexCoord(0, 0)).campaign
+        c = c.addPlacement(s0.startChapter, "t103", io.github.aljadvb.worldbuilder.model.TileSide.B, io.github.aljadvb.worldbuilder.model.HexCoord(3, -1), 1).campaign
+        c = c.addPlacement(s0.startChapter, "t104", io.github.aljadvb.worldbuilder.model.TileSide.A, io.github.aljadvb.worldbuilder.model.HexCoord(0, 2)).campaign
+        val sc = c.scenarios.single()
+        val eng = GameEngine(sc)
+        var st = eng.start(2)
+        while (st.currentPrompt !is Prompt.Setup) st = eng.apply(st, Command.Acknowledge)
+        compose.setContent {
+            Screen { PlayContent(sc, own, st, campaignChanged = false, onCommand = {}, images = io.github.aljadvb.worldbuilder.ui.game.rememberTileImages(library.catalogImageDir)) }
+        }
+        snapshot("07_private_tiles")
     }
 }

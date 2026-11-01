@@ -38,6 +38,12 @@ object CatalogValidator {
                 if (HexCoord.ORIGIN !in shape.cells) {
                     c.error(IssueCode.TILE_SHAPE_WITHOUT_ANCHOR, sidePath, tile.id, "Seite $side von Kachel '${tile.id}' enthält das Ankerfeld (0,0) nicht.")
                 }
+                shape.image?.let { img ->
+                    if (img.file.isBlank() || img.file.startsWith("/") || img.file.contains("..") || img.file.contains('\\')) {
+                        c.error(IssueCode.INVALID_IMAGE, "$path.sides.$side.image.file", tile.id, "Bildpfad '${img.file}' muss relativ zum Katalog sein (z. B. bilder/101A.jpg).")
+                    }
+                    if (img.hexSize <= 0) c.error(IssueCode.INVALID_IMAGE, "$path.sides.$side.image.hexSize", tile.id, "Feldgröße des Bildes muss größer als 0 sein.")
+                }
                 shape.cells.groupBy { it }.filterValues { it.size > 1 }.keys.forEach { cell ->
                     c.error(IssueCode.TILE_SHAPE_DUPLICATE_CELL, sidePath, tile.id, "Seite $side von Kachel '${tile.id}' enthält Feld $cell mehrfach.")
                 }

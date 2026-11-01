@@ -109,7 +109,7 @@ fun GameScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                     game == null -> CampaignOver(l.ui.campaign, l.ui.save.progress.completed.map { it.scenarioId to it.resolutionId }, onBack)
                     scenario == null -> Message(stringResource(R.string.game_load_failed))
                     game.isOver -> ResolutionContent(scenario, game, onContinue = viewModel::continueCampaign)
-                    else -> PlayContent(scenario, l.ui.catalog, game, l.ui.campaignChanged, viewModel::send)
+                    else -> PlayContent(scenario, l.ui.catalog, game, l.ui.campaignChanged, viewModel::send, rememberTileImages(l.ui.catalogImageDir))
                 }
             }
         }
@@ -139,6 +139,7 @@ internal fun PlayContent(
     game: GameState,
     campaignChanged: Boolean,
     onCommand: (Command) -> Unit,
+    images: io.github.aljadvb.worldbuilder.hexmap.TileImageCache? = null,
 ) {
     var confirmEndRound by remember { mutableStateOf(false) }
     var confirmDefeat by remember { mutableStateOf<String?>(null) }
@@ -160,6 +161,7 @@ internal fun PlayContent(
             tapEnabled = game.isIdle,
             onTokenTap = { onCommand(Command.InteractToken(it)) },
             modifier = Modifier.weight(1f).fillMaxWidth(),
+            images = images,
         )
         if (prompt != null) {
             PromptPanel(prompt, scenario, catalog, game.heroCount, onCommand, Modifier.padding(bottom = 12.dp))

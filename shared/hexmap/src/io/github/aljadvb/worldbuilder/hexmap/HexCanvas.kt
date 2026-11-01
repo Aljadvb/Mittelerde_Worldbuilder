@@ -9,6 +9,11 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.graphics.drawscope.rotate
+import androidx.compose.ui.graphics.drawscope.scale
+import androidx.compose.ui.graphics.drawscope.translate
+import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
@@ -31,6 +36,8 @@ data class MapTile(
     val border: Color = MapColors.TileBorder,
     val emphasized: Boolean = false,
     val alpha: Float = 1f,
+    /** Picture of the tile (own scan); drawn clipped to [cells] instead of [fill]. */
+    val image: MapTileImage? = null,
 )
 
 data class MapToken(val id: String, val cell: HexCoord, val type: TokenType, val letter: String, val selected: Boolean = false)
@@ -95,10 +102,15 @@ fun HexCanvas(
 
         for (tile in scene.tiles) {
             val coords = tile.cells.toSet()
+            val image = tile.image
+            if (image != null) {
+                drawTileImage(proj, coords, image, tile.alpha)
+                if (tile.emphasized) for (cell in coords) drawPath(hexPath(proj.corners(cell)), highlight, alpha = 0.25f * tile.alpha)
+            }
             for (cell in coords) {
                 val path = hexPath(proj.corners(cell))
-                drawPath(path, tile.fill, alpha = tile.alpha)
-                drawPath(path, Color.Black.copy(alpha = 0.25f * tile.alpha), style = Stroke(thin))
+                if (image == null) drawPath(path, tile.fill, alpha = tile.alpha)
+                drawPath(path, Color.Black.copy(alpha = (if (image == null) 0.25f else 0.18f) * tile.alpha), style = Stroke(thin))
             }
             drawTileBorder(proj, coords, if (tile.emphasized) highlight else tile.border, if (tile.emphasized) 4.dp.toPx() else 2.dp.toPx(), tile.alpha)
         }
@@ -191,6 +203,26 @@ private fun DrawScope.drawTileBorder(proj: HexProjection, cells: Set<HexCoord>, 
             val dir = proj.center(neighbor) - center
             val edge = corners.sortedByDescending { (it - center).x * dir.x + (it - center).y * dir.y }.take(2)
             drawLine(color, edge[0], edge[1], strokeWidth = width, alpha = alpha)
+        }
+    }
+}
+
+/**
+ * Draws a tile picture so that its anchor pixel lands on the anchor cell, scaled to the
+ * current hex size and rotated with the placement, clipped to the tile's cells.
+ */
+private fun DrawScope.drawTileImage(proj: HexProjection, cells: Set<HexCoord>, image: MapTileImage, alpha: Float) {
+    val clip = Path().apply { cells.forEach { addPath(hexPath(proj.corners(it))) } }
+    val target = proj.center(image.anchorCell)
+    val a = image.anchorPx
+    val scale = proj.size / image.hexSize
+    clipPath(clip) {
+        withTransform({
+            translate(target.x - a.x, target.y - a.y)
+            rotate(image.rotation * 60f, a)
+            scale(scale, scale, a)
+        }) {
+            drawImage(image.bitmap, alpha = alpha)
         }
     }
 }

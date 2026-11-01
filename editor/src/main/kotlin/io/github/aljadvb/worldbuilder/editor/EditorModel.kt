@@ -36,6 +36,9 @@ class EditorModel(private val prefs: EditorPrefs) {
         private set
     var catalogFile: File? by mutableStateOf(null)
         private set
+    /** Tile pictures of the current catalog (resolved relative to its folder). */
+    var tileImages by mutableStateOf(CatalogFiles.imageCache(null))
+        private set
     var document: EditorDocument? by mutableStateOf(null)
         private set
     var report: ValidationReport by mutableStateOf(ValidationReport(emptyList()))
@@ -118,9 +121,16 @@ class EditorModel(private val prefs: EditorPrefs) {
 
     // ---- catalog -----------------------------------------------------------------
 
+    /** Loads a catalog from material.json or from a ZIP with pictures. */
     fun loadCatalog(file: File) {
+        val json = try {
+            if (file.extension.equals("zip", ignoreCase = true)) CatalogFiles.unpack(file) else file
+        } catch (e: Exception) {
+            message = Texts.openFailed(file.name, e.message ?: e.javaClass.simpleName)
+            return
+        }
         val loaded = try {
-            FormatJson.decodeCatalog(file.readText())
+            FormatJson.decodeCatalog(json.readText())
         } catch (e: Exception) {
             message = Texts.openFailed(file.name, e.message ?: e.javaClass.simpleName)
             return
@@ -131,14 +141,16 @@ class EditorModel(private val prefs: EditorPrefs) {
             return
         }
         catalog = loaded
-        catalogFile = file
-        prefs.catalogPath = file.absolutePath
+        catalogFile = json
+        tileImages = CatalogFiles.imageCache(json.parentFile)
+        prefs.catalogPath = json.absolutePath
         revalidate()
     }
 
     fun useExampleCatalog() {
         catalog = loadExampleCatalog()
         catalogFile = null
+        tileImages = CatalogFiles.imageCache(null)
         prefs.catalogPath = null
         revalidate()
     }

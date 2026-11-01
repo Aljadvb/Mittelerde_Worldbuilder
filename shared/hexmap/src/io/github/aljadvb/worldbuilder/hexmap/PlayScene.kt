@@ -17,7 +17,14 @@ data class MapHighlight(
 fun Scenario.mapCell(location: TileLocation): HexCoord? = placement(location.placement)?.toMap(location.cell)
 
 /** The map of everything unlocked in [state] (used by the app and the editor's playtest). */
-fun playScene(scenario: Scenario, catalog: MaterialCatalog, state: GameState, highlight: MapHighlight, tokenLetters: Map<String, String>): MapScene {
+fun playScene(
+    scenario: Scenario,
+    catalog: MaterialCatalog,
+    state: GameState,
+    highlight: MapHighlight,
+    tokenLetters: Map<String, String>,
+    images: TileImageCache? = null,
+): MapScene {
     val tiles = state.unlockedChapters.flatMap { chapterId ->
         val chapterIndex = scenario.chapters.indexOfFirst { it.id == chapterId }
         scenario.chapter(chapterId)?.tiles.orEmpty().map { p ->
@@ -28,6 +35,7 @@ fun playScene(scenario: Scenario, catalog: MaterialCatalog, state: GameState, hi
                 cells = shape.map(p::toMap),
                 fill = MapColors.chapterFill(chapterIndex),
                 emphasized = p.id in highlight.placements,
+                image = images?.forPlacement(p, catalog),
             )
         }
     }

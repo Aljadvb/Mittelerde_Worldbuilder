@@ -66,7 +66,7 @@ fun main() = application {
                     FileDialogs.saveJson(window, doc?.file?.name)?.let(model::saveAs)
                 }
                 Separator()
-                Item(Texts.MENU_CATALOG) { FileDialogs.openJson(window)?.let(model::loadCatalog) }
+                Item(Texts.MENU_CATALOG) { FileDialogs.openCatalog(window)?.let(model::loadCatalog) }
                 Item(Texts.MENU_CATALOG_EDIT) { catalogEditor = CatalogEditorModel(model.catalog, model.catalogFile, model::loadCatalog) }
                 Item(Texts.MENU_CATALOG_NEW) { catalogEditor = CatalogEditorModel(newCatalog(), null, model::loadCatalog) }
                 Item(Texts.MENU_CATALOG_EXAMPLE, enabled = model.catalogFile != null) { model.useExampleCatalog() }
@@ -108,6 +108,7 @@ fun main() = application {
                 Menu(Texts.MENU_FILE) {
                     Item(Texts.MENU_SAVE, shortcut = KeyShortcut(Key.S, ctrl = true)) { saveCatalog() }
                     Item(Texts.MENU_SAVE_AS) { FileDialogs.saveJson(window, cat.file?.name ?: "material.json")?.let(cat::saveAs) }
+                    Item(Texts.MENU_EXPORT_ZIP) { FileDialogs.saveZip(window, "mein-katalog.zip")?.let(cat::exportZip) }
                     Item(Texts.MENU_CLOSE) { if (cat.isDirty) closing = true else close() }
                 }
                 Menu(Texts.MENU_EDIT) {
@@ -131,7 +132,7 @@ fun main() = application {
     playtest?.let { campaign ->
         Window(onCloseRequest = { playtest = null }, title = "${Texts.PLAYTEST_WINDOW} – ${campaign.title}") {
             MaterialTheme(colorScheme = lightColorScheme()) {
-                PlaytestScreen(campaign, model.catalog)
+                PlaytestScreen(campaign, model.catalog, model.tileImages)
             }
         }
     }

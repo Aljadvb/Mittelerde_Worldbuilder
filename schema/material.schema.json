@@ -5,75 +5,185 @@
   "description": "Katalog des physisch vorhandenen Spielmaterials (Kacheln, Gegnertypen, Erweiterungen). Wird vom Nutzer selbst gepflegt; Kampagnen verweisen per ID darauf.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["formatVersion"],
+  "required": [
+    "formatVersion"
+  ],
   "properties": {
-    "formatVersion": { "const": 1 },
+    "formatVersion": {
+      "const": 1
+    },
     "hexOrientation": {
       "description": "Nur für die Darstellung: 'flat' = flache Seite oben (wie die Original-Kacheln), 'pointy' = Spitze oben.",
-      "enum": ["flat", "pointy"],
+      "enum": [
+        "flat",
+        "pointy"
+      ],
       "default": "flat"
     },
-    "expansions": { "type": "array", "items": { "$ref": "#/$defs/expansion" } },
-    "tiles": { "type": "array", "items": { "$ref": "#/$defs/tile" } },
-    "enemyTypes": { "type": "array", "items": { "$ref": "#/$defs/enemyType" } }
+    "expansions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/expansion"
+      }
+    },
+    "tiles": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/tile"
+      }
+    },
+    "enemyTypes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/enemyType"
+      }
+    }
   },
   "$defs": {
-    "id": { "type": "string", "pattern": "^[a-z][a-z0-9_]*$" },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$"
+    },
     "hex": {
       "description": "Sechseckfeld in axialen Koordinaten.",
       "type": "object",
       "additionalProperties": false,
-      "required": ["q", "r"],
-      "properties": { "q": { "type": "integer" }, "r": { "type": "integer" } }
+      "required": [
+        "q",
+        "r"
+      ],
+      "properties": {
+        "q": {
+          "type": "integer"
+        },
+        "r": {
+          "type": "integer"
+        }
+      }
     },
     "expansion": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "name"],
+      "required": [
+        "id",
+        "name"
+      ],
       "properties": {
-        "id": { "$ref": "#/$defs/id" },
-        "name": { "type": "string", "minLength": 1 },
-        "owned": { "type": "boolean", "default": true, "description": "false = Erweiterung nicht im Besitz; Szenarien damit erzeugen eine Warnung." }
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "owned": {
+          "type": "boolean",
+          "default": true,
+          "description": "false = Erweiterung nicht im Besitz; Szenarien damit erzeugen eine Warnung."
+        }
       }
     },
     "tileSide": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["cells"],
+      "required": [
+        "cells"
+      ],
       "properties": {
         "cells": {
           "description": "Felder der Kachelseite in kachel-lokalen axialen Koordinaten, von oben gesehen. (0,0) ist der Ankerpunkt und muss enthalten sein.",
           "type": "array",
           "minItems": 1,
-          "items": { "$ref": "#/$defs/hex" }
+          "items": {
+            "$ref": "#/$defs/hex"
+          }
+        },
+        "image": {
+          "description": "Optionales Bild dieser Seite (z. B. eigener Scan), ungedreht. anchorX/anchorY = Pixelmitte des Ankerfelds (0,0), hexSize = Radius eines Felds (Mitte bis Ecke) in Pixeln.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "file",
+            "anchorX",
+            "anchorY",
+            "hexSize"
+          ],
+          "properties": {
+            "file": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Pfad relativ zur Katalogdatei, z. B. bilder/101A.jpg"
+            },
+            "anchorX": {
+              "type": "number"
+            },
+            "anchorY": {
+              "type": "number"
+            },
+            "hexSize": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          }
         }
       }
     },
     "tile": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "label", "expansion", "sides"],
+      "required": [
+        "id",
+        "label",
+        "expansion",
+        "sides"
+      ],
       "properties": {
-        "id": { "$ref": "#/$defs/id" },
-        "label": { "type": "string", "minLength": 1, "description": "Aufgedruckte Kachelnummer." },
-        "expansion": { "$ref": "#/$defs/id" },
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Aufgedruckte Kachelnummer."
+        },
+        "expansion": {
+          "$ref": "#/$defs/id"
+        },
         "sides": {
           "description": "Form je Seite. Beim Umdrehen wird eine Kachel gespiegelt, daher hat jede Seite eine eigene Feldliste.",
           "type": "object",
           "additionalProperties": false,
           "minProperties": 1,
-          "properties": { "A": { "$ref": "#/$defs/tileSide" }, "B": { "$ref": "#/$defs/tileSide" } }
+          "properties": {
+            "A": {
+              "$ref": "#/$defs/tileSide"
+            },
+            "B": {
+              "$ref": "#/$defs/tileSide"
+            }
+          }
         }
       }
     },
     "enemyType": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["id", "name", "expansion"],
+      "required": [
+        "id",
+        "name",
+        "expansion"
+      ],
       "properties": {
-        "id": { "$ref": "#/$defs/id" },
-        "name": { "type": "string", "minLength": 1 },
-        "expansion": { "$ref": "#/$defs/id" }
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expansion": {
+          "$ref": "#/$defs/id"
+        }
       }
     }
   }
