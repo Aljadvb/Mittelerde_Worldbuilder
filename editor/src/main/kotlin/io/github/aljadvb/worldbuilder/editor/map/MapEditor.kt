@@ -224,7 +224,11 @@ private fun Toolbar(model: EditorModel, controller: MapController, onFit: () -> 
                 model.catalog.tiles.filter { it.expansion in owned }.forEach { tile ->
                     tile.sides.keys.sorted().forEach { side ->
                         DropdownMenuItem(
-                            text = { Text("${tile.label} – ${Texts.SIDE} $side (${tile.sides.getValue(side).cells.size} Felder)") },
+                            text = {
+                                val shape = tile.sides.getValue(side)
+                                val terrain = shape.terrain.joinToString(", ") { io.github.aljadvb.worldbuilder.model.Terrain.label(it) }
+                                Text("${tile.label} ${Texts.SIDE} $side · ${shape.cells.size} Felder" + if (terrain.isNotEmpty()) " · $terrain" else "")
+                            },
                             onClick = { tilesOpen = false; controller.tool = MapTool.PlaceTile(tile.id, side) },
                         )
                     }

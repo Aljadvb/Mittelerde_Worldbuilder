@@ -53,6 +53,10 @@ data class TileSideShape(
     val cells: List<HexCoord>,
     /** Optional picture of this side (e.g. the user's own scan), drawn clipped to the cells. */
     val image: TileImage? = null,
+    /** What the side shows, as IDs from [Terrain.TAGS] (e.g. "wald_dicht", "fluss"). */
+    val terrain: List<String> = emptyList(),
+    /** Short description of the landscape in own words. */
+    val description: String = "",
 )
 
 /**

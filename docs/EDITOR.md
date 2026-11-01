@@ -46,6 +46,12 @@ zeichnen die Kacheln dann mit diesem Bild statt einfarbig. Bilder und Katalog we
 
 Die Bilder gehören dir und kommen nicht ins (öffentliche) Repository.
 
+### Kategorien und Beschreibung
+
+Im Katalog-Fenster hat jede Kachelseite **Kategorien** aus einer festen Liste (z. B. *Lichter Wald*,
+*Dichter Wald*, *Fluss / Bach*, *Ruinen*, *Höhle*, *Düster*) und eine kurze **Beschreibung**. Die Kachelauswahl
+im Karteneditor zeigt sie an, und der spätere KI-Generator wählt damit Kacheln passend zur Geschichte.
+
 ## Karteneditor
 
 | Aktion | Bedienung |

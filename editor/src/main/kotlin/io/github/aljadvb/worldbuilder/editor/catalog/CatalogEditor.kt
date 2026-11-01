@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,6 +15,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
@@ -45,7 +48,9 @@ import io.github.aljadvb.worldbuilder.editing.mirrorAToB
 import io.github.aljadvb.worldbuilder.editing.removeEnemyType
 import io.github.aljadvb.worldbuilder.editing.removeExpansion
 import io.github.aljadvb.worldbuilder.editing.removeTile
+import io.github.aljadvb.worldbuilder.editing.setDescription
 import io.github.aljadvb.worldbuilder.editing.toggleCell
+import io.github.aljadvb.worldbuilder.editing.toggleTerrain
 import io.github.aljadvb.worldbuilder.editing.updateEnemyType
 import io.github.aljadvb.worldbuilder.editing.updateExpansion
 import io.github.aljadvb.worldbuilder.editing.updateTile
@@ -60,11 +65,13 @@ import io.github.aljadvb.worldbuilder.hexmap.MapScene
 import io.github.aljadvb.worldbuilder.hexmap.MapTile
 import io.github.aljadvb.worldbuilder.model.HexCoord
 import io.github.aljadvb.worldbuilder.model.HexOrientation
+import io.github.aljadvb.worldbuilder.model.Terrain
+import io.github.aljadvb.worldbuilder.model.TerrainGroup
 import io.github.aljadvb.worldbuilder.model.TileSide
 import io.github.aljadvb.worldbuilder.validation.Severity
 
 const val SHAPE_TAG = "shape"
-private const val SHAPE_RADIUS = 4
+private const val SHAPE_RADIUS = 3
 
 @Composable
 fun CatalogEditor(model: CatalogEditorModel) {
@@ -117,14 +124,13 @@ fun CatalogEditor(model: CatalogEditorModel) {
                 }
             }
             VerticalDivider()
-            Column(Modifier.weight(1f).fillMaxHeight().padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Column(Modifier.weight(1f).fillMaxHeight().verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 when (val sel = model.selection) {
                     is CatalogSelection.Tile -> TileDetail(model, sel.id)
                     is CatalogSelection.Enemy -> EnemyDetail(model, sel.id)
                     is CatalogSelection.Expansion -> ExpansionDetail(model, sel.id)
                     null -> Text(Texts.CATALOG_EMPTY)
                 }
-                Box(Modifier.weight(1f, fill = false))
                 HorizontalDivider()
                 val report = model.report
                 if (report.issues.isEmpty()) Text(Texts.CATALOG_VALID, style = MaterialTheme.typography.bodySmall)
@@ -181,8 +187,42 @@ private fun TileDetail(model: CatalogEditorModel, id: String) {
         OutlinedButton(onClick = { model.edit { it.mirrorAToB(id) }; model.side = TileSide.B }) { Text(Texts.CATALOG_MIRROR) }
         OutlinedButton(onClick = { model.edit { it.removeTile(id) }; model.selection = null }) { Text(Texts.DELETE) }
     }
-    Text(Texts.CATALOG_SHAPE_HINT, style = MaterialTheme.typography.bodySmall)
-    ShapeGrid(model, id)
+    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text(Texts.CATALOG_SHAPE_HINT, style = MaterialTheme.typography.bodySmall, modifier = Modifier.width(460.dp))
+            ShapeGrid(model, id)
+        }
+        TerrainEditor(model, id, Modifier.weight(1f))
+    }
+}
+
+/** Categories and description of the current side. */
+@Composable
+private fun TerrainEditor(model: CatalogEditorModel, id: String, modifier: Modifier) {
+    val shape = model.catalog.tile(id)?.sides?.get(model.side) ?: return
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text(Texts.catalogTerrain(model.side.name), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+        Text(Texts.CATALOG_TERRAIN_HINT, style = MaterialTheme.typography.bodySmall)
+        TerrainGroup.entries.forEach { group ->
+            Text(group.label, style = MaterialTheme.typography.labelMedium)
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Terrain.TAGS.filter { it.group == group }.forEach { tag ->
+                    FilterChip(
+                        selected = tag.id in shape.terrain,
+                        onClick = { model.edit { it.toggleTerrain(id, model.side, tag.id) } },
+                        label = { Text(tag.label) },
+                    )
+                }
+            }
+        }
+        OutlinedTextField(
+            shape.description,
+            { v -> model.edit("$id.${model.side}.description") { it.setDescription(id, model.side, v) } },
+            label = { Text(Texts.CATALOG_DESCRIPTION) },
+            minLines = 2,
+            modifier = Modifier.fillMaxWidth(),
+        )
+    }
 }
 
 /** Click cells of a hex grid to toggle them on the current side. */

@@ -125,6 +125,38 @@
               "exclusiveMinimum": 0
             }
           }
+        },
+        "terrain": {
+          "description": "Was die Seite zeigt (feste Liste), z. B. zum Auswählen passender Kacheln für eine Geschichte.",
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "wiese",
+              "gebuesch",
+              "lichtung",
+              "wald_licht",
+              "wald_dicht",
+              "huegel",
+              "felsen",
+              "gebirge",
+              "oedland",
+              "weg",
+              "fluss",
+              "gewaesser",
+              "sumpf",
+              "ruinen",
+              "bauwerk",
+              "siedlung",
+              "hoehle",
+              "innenraum",
+              "duester"
+            ]
+          }
+        },
+        "description": {
+          "description": "Kurze Beschreibung der Landschaft in eigenen Worten.",
+          "type": "string"
         }
       }
     },

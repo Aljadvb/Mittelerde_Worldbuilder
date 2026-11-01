@@ -112,3 +112,22 @@ class FormatJsonTest {
         assertIs<MaterialCatalog>(FormatJson.decodeCatalog(FormatJson.encodeCatalog(catalog)))
     }
 }
+
+class TerrainTest {
+    @Test
+    fun `terrain ids are unique, valid and listed in the schema`() {
+        val ids = Terrain.TAGS.map { it.id }
+        assertEquals(ids.size, ids.toSet().size)
+        assertTrue(ids.all { Regex("^[a-z][a-z0-9_]*$").matches(it) })
+        val schema = RepoFiles.materialSchema
+        ids.forEach { assertTrue("\"$it\"" in schema, it) }
+        assertEquals("Dichter Wald", Terrain.label("wald_dicht"))
+    }
+
+    @Test
+    fun `terrain and description round trip`() {
+        val side = TileSideShape(listOf(HexCoord.ORIGIN), terrain = listOf("fluss", "huegel"), description = "Hügel am Fluss")
+        val catalog = MaterialCatalog(1, tiles = listOf(TileDefinition("t1", "1", "x", mapOf(TileSide.A to side))))
+        assertEquals(catalog, FormatJson.decodeCatalog(FormatJson.encodeCatalog(catalog)))
+    }
+}

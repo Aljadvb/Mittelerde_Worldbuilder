@@ -78,6 +78,7 @@ Der Schlüssel wird in der **Windows-Anmeldeinformationsverwaltung** gespeichert
 Exakte Hex-Koordinaten ohne Überlappung sind für ein Sprachmodell fehleranfällig. Deshalb teile ich die Aufgabe:
 
 - **Die KI wählt** pro Kapitel die Kacheln (nur aus dem freigegebenen Material) und setzt Token und Gegner auf **kachel-lokale Felder**. Diese Felder kennt sie aus dem Material-Auszug, und der Validator prüft sie.
+- **Passende Landschaft:** Der Material-Auszug enthält zu jeder Kachelseite ihre **Kategorien** (z. B. dichter Wald, Fluss, Ruinen) und die **Beschreibung**. So wählt die KI für einen Schauplatz „Turmruine am Waldrand“ etwa 103B neben 100A statt einer beliebigen Kachel. Ein kleiner Vorfilter im Code (`tilesWith(…)`) schlägt pro Schauplatz geeignete Kachelseiten vor.
 - **Unser Code ordnet die Kacheln an.** `AutoLayout` legt sie überschneidungsfrei aneinander, Kapitel für Kapitel. Spätere Kapitel schließen an die früheren an.
 
 Die Positionen kannst du danach im Karteneditor wie gewohnt verschieben und drehen.

@@ -92,3 +92,19 @@ fun MaterialCatalog.removeExpansion(id: String): MaterialCatalog {
     if (used > 0) throw EditException("Die Erweiterung wird noch von $used Kacheln/Gegnertypen verwendet.")
     return copy(expansions = expansions.filterNot { it.id == id })
 }
+
+/** Adds or removes a terrain category on one side. */
+fun MaterialCatalog.toggleTerrain(tileId: String, side: TileSide, tag: String): MaterialCatalog = updateTile(tileId) { tile ->
+    val shape = tile.sides[side] ?: return@updateTile tile
+    val terrain = if (tag in shape.terrain) shape.terrain - tag else shape.terrain + tag
+    tile.copy(sides = tile.sides + (side to shape.copy(terrain = terrain)))
+}
+
+fun MaterialCatalog.setDescription(tileId: String, side: TileSide, text: String): MaterialCatalog = updateTile(tileId) { tile ->
+    val shape = tile.sides[side] ?: return@updateTile tile
+    tile.copy(sides = tile.sides + (side to shape.copy(description = text)))
+}
+
+/** Tiles whose side shows all of [tags] (for picking tiles that fit a description). */
+fun MaterialCatalog.tilesWith(vararg tags: String): List<Pair<TileDefinition, TileSide>> =
+    tiles.flatMap { t -> t.sides.filter { (_, s) -> tags.all { it in s.terrain } }.keys.map { t to it } }

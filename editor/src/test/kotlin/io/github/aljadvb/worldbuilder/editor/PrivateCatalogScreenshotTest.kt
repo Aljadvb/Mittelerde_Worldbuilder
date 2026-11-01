@@ -41,4 +41,22 @@ class PrivateCatalogScreenshotTest {
             scene.close()
         }
     }
+
+    @Test
+    fun catalogEditorWithTerrain() {
+        val path = System.getenv("WB_PRIVATE_CATALOG") ?: return
+        CatalogFiles.dataDir = File("build/private-catalog")
+        val m = EditorModel(InMemoryEditorPrefs())
+        m.loadCatalog(File(path))
+        val cat = io.github.aljadvb.worldbuilder.editor.catalog.CatalogEditorModel(m.catalog, m.catalogFile) {}
+        cat.selection = io.github.aljadvb.worldbuilder.editor.catalog.CatalogSelection.Tile("t103")
+        cat.side = TileSide.B
+        val scene = ImageComposeScene(1400, 900, Density(1f)) { MaterialTheme(colorScheme = lightColorScheme()) { io.github.aljadvb.worldbuilder.editor.catalog.CatalogEditor(cat) } }
+        try {
+            scene.render()
+            File("build/screenshots/private_catalog.png").writeBytes(scene.render(1_000_000_000L).encodeToData(EncodedImageFormat.PNG)!!.bytes)
+        } finally {
+            scene.close()
+        }
+    }
 }

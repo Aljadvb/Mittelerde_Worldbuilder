@@ -50,3 +50,18 @@ class CatalogEditsTest {
         assertEquals("", CatalogValidator.validate(c).format())
     }
 }
+
+class TerrainEditsTest {
+    @Test
+    fun `toggle terrain, describe and search`() {
+        var (c, id) = newCatalog().addTile("103", "grundspiel")
+        c = c.toggleTerrain(id, TileSide.A, "fluss").toggleTerrain(id, TileSide.A, "huegel").toggleTerrain(id, TileSide.B, "ruinen")
+            .setDescription(id, TileSide.A, "Hügel am Fluss")
+        assertEquals(listOf("fluss", "huegel"), c.tile(id)!!.sides.getValue(TileSide.A).terrain)
+        assertEquals(listOf(c.tile(id)!! to TileSide.A), c.tilesWith("fluss", "huegel"))
+        assertEquals(listOf(c.tile(id)!! to TileSide.B), c.tilesWith("ruinen"))
+        c = c.toggleTerrain(id, TileSide.A, "fluss")
+        assertEquals(listOf("huegel"), c.tile(id)!!.sides.getValue(TileSide.A).terrain)
+        assertEquals("", CatalogValidator.validate(c).format())
+    }
+}

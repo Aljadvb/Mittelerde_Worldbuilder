@@ -3,6 +3,7 @@ package io.github.aljadvb.worldbuilder.validation
 import io.github.aljadvb.worldbuilder.model.CURRENT_FORMAT_VERSION
 import io.github.aljadvb.worldbuilder.model.HexCoord
 import io.github.aljadvb.worldbuilder.model.MaterialCatalog
+import io.github.aljadvb.worldbuilder.model.Terrain
 
 /** Checks the user's material catalog on its own. */
 object CatalogValidator {
@@ -43,6 +44,9 @@ object CatalogValidator {
                         c.error(IssueCode.INVALID_IMAGE, "$path.sides.$side.image.file", tile.id, "Bildpfad '${img.file}' muss relativ zum Katalog sein (z. B. bilder/101A.jpg).")
                     }
                     if (img.hexSize <= 0) c.error(IssueCode.INVALID_IMAGE, "$path.sides.$side.image.hexSize", tile.id, "Feldgröße des Bildes muss größer als 0 sein.")
+                }
+                shape.terrain.filter { Terrain.tag(it) == null }.forEach { unknown ->
+                    c.warn(IssueCode.UNKNOWN_TERRAIN, "$path.sides.$side.terrain", tile.id, "Unbekannte Kategorie '$unknown' an Seite $side von Kachel '${tile.id}'.")
                 }
                 shape.cells.groupBy { it }.filterValues { it.size > 1 }.keys.forEach { cell ->
                     c.error(IssueCode.TILE_SHAPE_DUPLICATE_CELL, sidePath, tile.id, "Seite $side von Kachel '${tile.id}' enthält Feld $cell mehrfach.")
