@@ -54,7 +54,7 @@ Läuft ein Event, steht im Zustand ein `pending`-Eintrag (z. B. „wartet auf Au
   Karte = `rotate(lokal, rotation) + position`. Rotation in Würfelkoordinaten: `(x,y,z) → (−z,−x,−y)` pro Schritt.
 - **Token und Gegner** werden in **kachel-lokalen** Koordinaten angegeben (`placement` + `cell`). Dreht man eine Kachel im Editor, wandern sie mit. Der Validator prüft, ob das Feld zur Kachelform gehört.
 - Seite A und B einer echten Kachel sind beim Umdrehen gespiegelt. Deshalb hat **jede Seite ihre eigene Feldliste**, jeweils von oben gesehen.
-- Die Darstellungsausrichtung (Spitze oben / flache Seite oben) ist eine Einstellung im Katalog (`hexOrientation`) und betrifft nur das Zeichnen.
+- Die Darstellungsausrichtung ist eine Einstellung im Katalog (`hexOrientation`, Standard `flat` = flache Seite oben wie bei den Original-Kacheln) und betrifft nur das Zeichnen.
 
 ---
 
@@ -63,7 +63,7 @@ Läuft ein Event, steht im Zustand ein `pending`-Eintrag (z. B. „wartet auf Au
 ```json
 {
   "formatVersion": 1,
-  "hexOrientation": "pointy",
+  "hexOrientation": "flat",
   "expansions": [
     { "id": "basis", "name": "Grundspiel", "owned": true }
   ],

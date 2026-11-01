@@ -1,6 +1,6 @@
 {
   "formatVersion": 1,
-  "hexOrientation": "pointy",
+  "hexOrientation": "flat",
   "expansions": [
     { "id": "beispiel", "name": "Beispielmaterial (erfunden)", "owned": true }
   ],

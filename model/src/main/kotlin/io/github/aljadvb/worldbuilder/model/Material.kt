@@ -10,7 +10,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class MaterialCatalog(
     val formatVersion: Int,
-    val hexOrientation: HexOrientation = HexOrientation.POINTY,
+    val hexOrientation: HexOrientation = HexOrientation.FLAT,
     val expansions: List<Expansion> = emptyList(),
     val tiles: List<TileDefinition> = emptyList(),
     val enemyTypes: List<EnemyType> = emptyList(),
@@ -22,8 +22,9 @@ data class MaterialCatalog(
 
 @Serializable
 enum class HexOrientation {
-    @SerialName("pointy") POINTY,
+    /** Flat side up – the orientation of the original game tiles. */
     @SerialName("flat") FLAT,
+    @SerialName("pointy") POINTY,
 }
 
 @Serializable

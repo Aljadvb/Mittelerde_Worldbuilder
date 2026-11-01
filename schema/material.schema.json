@@ -9,9 +9,9 @@
   "properties": {
     "formatVersion": { "const": 1 },
     "hexOrientation": {
-      "description": "Nur für die Darstellung: 'pointy' = Spitze oben, 'flat' = flache Seite oben.",
-      "enum": ["pointy", "flat"],
-      "default": "pointy"
+      "description": "Nur für die Darstellung: 'flat' = flache Seite oben (wie die Original-Kacheln), 'pointy' = Spitze oben.",
+      "enum": ["flat", "pointy"],
+      "default": "flat"
     },
     "expansions": { "type": "array", "items": { "$ref": "#/$defs/expansion" } },
     "tiles": { "type": "array", "items": { "$ref": "#/$defs/tile" } },

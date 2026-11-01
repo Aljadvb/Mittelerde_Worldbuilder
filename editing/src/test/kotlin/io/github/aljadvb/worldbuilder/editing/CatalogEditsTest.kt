@@ -18,8 +18,8 @@ class CatalogEditsTest {
         c = c.toggleCell(id, TileSide.A, HexCoord.ORIGIN) // anchor stays
         assertEquals(setOf(HexCoord(0, 0), HexCoord(1, 0), HexCoord(0, 1)), c.tile(id)!!.sides.getValue(TileSide.A).cells.toSet())
 
-        c = c.mirrorAToB(id)
-        assertEquals(setOf(HexCoord(0, 0), HexCoord(-1, 0), HexCoord(-1, 1)), c.tile(id)!!.sides.getValue(TileSide.B).cells.toSet())
+        c = c.mirrorAToB(id) // new catalogs use flat-top hexes (like the original tiles)
+        assertEquals(setOf(HexCoord(0, 0), HexCoord(-1, 1), HexCoord(0, 1)), c.tile(id)!!.sides.getValue(TileSide.B).cells.toSet())
         assertEquals("", CatalogValidator.validate(c).format())
 
         c = c.toggleCell(id, TileSide.A, HexCoord(1, 0))
