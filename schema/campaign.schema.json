@@ -1,0 +1,889 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Aljadvb/Mittelerde_Worldbuilder/schema/campaign.schema.json",
+  "title": "Kampagne",
+  "description": "Kampagnenformat v1. Hierarchie: Kampagne → Szenarien → Kapitel → Kachel-Platzierungen/Token; dazu Events, Trigger, Ziele, Gegnergruppen, Auflösungen je Szenario. Alle Verweise laufen über IDs, die innerhalb der Kampagne eindeutig sind. Strukturelle Regeln prüft dieses Schema; Verweise, Erreichbarkeit und Katalogbezug prüft der Validator der App. Alle Texte sind eigene Texte (keine Übernahme aus geschützten Werken).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "formatVersion",
+    "id",
+    "title",
+    "startScenario",
+    "scenarios"
+  ],
+  "properties": {
+    "formatVersion": {
+      "const": 1
+    },
+    "id": {
+      "$ref": "#/$defs/id"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "description": {
+      "type": "string"
+    },
+    "startScenario": {
+      "$ref": "#/$defs/id",
+      "description": "ID des ersten Szenarios."
+    },
+    "scenarios": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/scenario"
+      }
+    },
+    "transitions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/transition"
+      },
+      "description": "Verzweigungen: Endet Szenario 'from' mit Auflösung 'resolution', folgt Szenario 'to'. Auflösungen ohne Übergang beenden die Kampagne."
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "description": "Sprechende ID, Kleinbuchstaben/Ziffern/Unterstrich, mit Typ-Präfix: cmp_, scn_, ch_, pl_, tok_, evt_, trg_, obj_, eg_, res_."
+    },
+    "hex": {
+      "description": "Sechseckfeld in axialen Koordinaten.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "q",
+        "r"
+      ],
+      "properties": {
+        "q": {
+          "type": "integer"
+        },
+        "r": {
+          "type": "integer"
+        }
+      }
+    },
+    "tileLocation": {
+      "description": "Ort auf einer platzierten Kachel.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "placement",
+        "cell"
+      ],
+      "properties": {
+        "placement": {
+          "$ref": "#/$defs/id",
+          "description": "ID einer Kachel-Platzierung (pl_…) in diesem Szenario."
+        },
+        "cell": {
+          "$ref": "#/$defs/hex",
+          "description": "Feld in kachel-lokalen Koordinaten; muss zur Form der Kachelseite gehören."
+        }
+      }
+    },
+    "transition": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "from",
+        "resolution",
+        "to"
+      ],
+      "properties": {
+        "from": {
+          "$ref": "#/$defs/id"
+        },
+        "resolution": {
+          "$ref": "#/$defs/id"
+        },
+        "to": {
+          "$ref": "#/$defs/id"
+        }
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "intro",
+        "threat",
+        "startChapter",
+        "startObjective",
+        "chapters",
+        "resolutions"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "intro": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Einleitungstext, wird vor dem Aufbau vorgelesen."
+        },
+        "threat": {
+          "$ref": "#/$defs/threat"
+        },
+        "startChapter": {
+          "$ref": "#/$defs/id",
+          "description": "Kapitel, das zu Spielbeginn freigeschaltet ist."
+        },
+        "startObjective": {
+          "$ref": "#/$defs/id",
+          "description": "Ziel, das zu Spielbeginn aktiv ist."
+        },
+        "chapters": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/chapter"
+          }
+        },
+        "enemyGroups": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/enemyGroup"
+          }
+        },
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/event"
+          }
+        },
+        "triggers": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/trigger"
+          }
+        },
+        "objectives": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/objective"
+          }
+        },
+        "resolutions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/resolution"
+          }
+        }
+      }
+    },
+    "threat": {
+      "description": "Bedrohungsleiste. Schwellen werden als Trigger vom Typ 'threatReached' definiert.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "max"
+      ],
+      "properties": {
+        "max": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Erreicht die Bedrohung diesen Wert, feuern Trigger vom Typ 'threatMax'."
+        },
+        "perRound": {
+          "description": "Am Rundenende steigt die Bedrohung um base + perHero × Heldenzahl.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [],
+          "properties": {
+            "base": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            },
+            "perHero": {
+              "type": "integer",
+              "minimum": 0,
+              "default": 0
+            }
+          }
+        }
+      }
+    },
+    "chapter": {
+      "description": "Abschnitt des Szenarios; bringt beim Freischalten eigene Kacheln und Token mit.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "setupText": {
+          "type": "string",
+          "description": "Text beim Freischalten/Aufbau des Kapitels."
+        },
+        "onUnlock": {
+          "$ref": "#/$defs/id",
+          "description": "Optional: Event, das nach dem Aufbau läuft."
+        },
+        "tiles": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/tilePlacement"
+          }
+        },
+        "tokens": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/token"
+          }
+        }
+      }
+    },
+    "tilePlacement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "tile",
+        "side",
+        "position"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "tile": {
+          "$ref": "#/$defs/id",
+          "description": "Kachel-ID aus dem Material-Katalog."
+        },
+        "side": {
+          "enum": [
+            "A",
+            "B"
+          ]
+        },
+        "position": {
+          "$ref": "#/$defs/hex",
+          "description": "Kartenkoordinate des Kachel-Ankers (lokal 0,0)."
+        },
+        "rotation": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5,
+          "default": 0,
+          "description": "Drehung in 60°-Schritten im Uhrzeigersinn um den Anker."
+        }
+      }
+    },
+    "token": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "type",
+        "label",
+        "location"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "type": {
+          "enum": [
+            "search",
+            "person",
+            "threat",
+            "explore",
+            "custom"
+          ]
+        },
+        "customType": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Nur und genau bei type 'custom': Bezeichnung des eigenen Token-Typs."
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        },
+        "location": {
+          "$ref": "#/$defs/tileLocation"
+        },
+        "initiallyActive": {
+          "type": "boolean",
+          "default": true,
+          "description": "false = erscheint erst durch einen Schritt 'addToken'."
+        },
+        "inspectText": {
+          "type": "string",
+          "description": "Text beim Untersuchen."
+        },
+        "onInteract": {
+          "$ref": "#/$defs/id",
+          "description": "Event, das beim Antippen läuft."
+        },
+        "removeAfterInteract": {
+          "type": "boolean",
+          "default": false
+        }
+      },
+      "if": {
+        "properties": {
+          "type": {
+            "const": "custom"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "customType"
+        ]
+      },
+      "else": {
+        "not": {
+          "required": [
+            "customType"
+          ]
+        }
+      }
+    },
+    "enemyGroup": {
+      "description": "Gegnergruppe; erscheint durch einen Schritt 'spawnEnemies'.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "enemyType",
+        "count",
+        "location"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "enemyType": {
+          "$ref": "#/$defs/id",
+          "description": "Gegnertyp-ID aus dem Material-Katalog."
+        },
+        "count": {
+          "description": "Anzahl Gegner je Heldenzahl 1–5.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "1",
+            "2",
+            "3",
+            "4",
+            "5"
+          ],
+          "properties": {
+            "1": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "2": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "3": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "4": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "5": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "location": {
+          "$ref": "#/$defs/tileLocation"
+        }
+      }
+    },
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "steps"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "steps": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/step"
+          },
+          "description": "Schritte in Reihenfolge. 'choice', 'test' und 'endScenario' dürfen nur als letzter Schritt stehen."
+        }
+      }
+    },
+    "step": {
+      "oneOf": [
+        {
+          "description": "Text anzeigen.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "text"
+          ],
+          "properties": {
+            "type": {
+              "const": "text"
+            },
+            "text": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        {
+          "description": "Auswahl; jede Option führt in ein Event. Nur als letzter Schritt.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "text",
+            "options"
+          ],
+          "properties": {
+            "type": {
+              "const": "choice"
+            },
+            "text": {
+              "type": "string",
+              "minLength": 1
+            },
+            "options": {
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "label",
+                  "event"
+                ],
+                "properties": {
+                  "label": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "event": {
+                    "$ref": "#/$defs/id"
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "description": "Probe am Tisch; die App fragt die Anzahl der Erfolge ab. Nur als letzter Schritt.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "attribute",
+            "successes",
+            "onSuccess"
+          ],
+          "properties": {
+            "type": {
+              "const": "test"
+            },
+            "text": {
+              "type": "string"
+            },
+            "attribute": {
+              "enum": [
+                "might",
+                "agility",
+                "wisdom",
+                "spirit",
+                "wit"
+              ]
+            },
+            "successes": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "onSuccess": {
+              "$ref": "#/$defs/id"
+            },
+            "onFailure": {
+              "$ref": "#/$defs/id",
+              "description": "Optional; ohne Angabe passiert bei Misserfolg nichts weiter."
+            }
+          }
+        },
+        {
+          "description": "Gegnergruppe aufstellen.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "group"
+          ],
+          "properties": {
+            "type": {
+              "const": "spawnEnemies"
+            },
+            "group": {
+              "$ref": "#/$defs/id"
+            }
+          }
+        },
+        {
+          "description": "Bedrohung um amount ändern (negativ = senken).",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "amount"
+          ],
+          "properties": {
+            "type": {
+              "const": "changeThreat"
+            },
+            "amount": {
+              "type": "integer",
+              "not": {
+                "const": 0
+              }
+            }
+          }
+        },
+        {
+          "description": "Token aktivieren (muss in einem Kapitel definiert sein).",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "token"
+          ],
+          "properties": {
+            "type": {
+              "const": "addToken"
+            },
+            "token": {
+              "$ref": "#/$defs/id"
+            }
+          }
+        },
+        {
+          "description": "Token entfernen.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "token"
+          ],
+          "properties": {
+            "type": {
+              "const": "removeToken"
+            },
+            "token": {
+              "$ref": "#/$defs/id"
+            }
+          }
+        },
+        {
+          "description": "Kapitel freischalten; Aufbau wird angezeigt.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "chapter"
+          ],
+          "properties": {
+            "type": {
+              "const": "unlockChapter"
+            },
+            "chapter": {
+              "$ref": "#/$defs/id"
+            }
+          }
+        },
+        {
+          "description": "Ziel aktivieren.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "objective"
+          ],
+          "properties": {
+            "type": {
+              "const": "setObjective"
+            },
+            "objective": {
+              "$ref": "#/$defs/id"
+            }
+          }
+        },
+        {
+          "description": "Trigger vom Typ 'manual' auslösen.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "trigger"
+          ],
+          "properties": {
+            "type": {
+              "const": "fireTrigger"
+            },
+            "trigger": {
+              "$ref": "#/$defs/id"
+            }
+          }
+        },
+        {
+          "description": "Szenario mit dieser Auflösung beenden. Nur als letzter Schritt.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "resolution"
+          ],
+          "properties": {
+            "type": {
+              "const": "endScenario"
+            },
+            "resolution": {
+              "$ref": "#/$defs/id"
+            }
+          }
+        }
+      ]
+    },
+    "trigger": {
+      "description": "Benannter Auslöser, der Events startet und/oder Ziele erfüllt.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "on"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "on": {
+          "$ref": "#/$defs/condition"
+        },
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "description": "Events, die beim Auslösen laufen (darf leer sein, wenn der Trigger nur ein Ziel erfüllt)."
+        },
+        "repeatable": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "condition": {
+      "oneOf": [
+        {
+          "description": "Token wurde angetippt/untersucht.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "token"
+          ],
+          "properties": {
+            "type": {
+              "const": "tokenInteracted"
+            },
+            "token": {
+              "$ref": "#/$defs/id"
+            }
+          }
+        },
+        {
+          "description": "Bedrohung erreicht/übersteigt value (Schwelle der Bedrohungsleiste).",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "value"
+          ],
+          "properties": {
+            "type": {
+              "const": "threatReached"
+            },
+            "value": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        {
+          "description": "Bedrohung erreicht das Maximum des Szenarios.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "const": "threatMax"
+            }
+          }
+        },
+        {
+          "description": "Gegnergruppe als besiegt gemeldet.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "group"
+          ],
+          "properties": {
+            "type": {
+              "const": "enemyGroupDefeated"
+            },
+            "group": {
+              "$ref": "#/$defs/id"
+            }
+          }
+        },
+        {
+          "description": "Ziel wurde erfüllt.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "objective"
+          ],
+          "properties": {
+            "type": {
+              "const": "objectiveCompleted"
+            },
+            "objective": {
+              "$ref": "#/$defs/id"
+            }
+          }
+        },
+        {
+          "description": "Runde Nr. round wurde beendet.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "round"
+          ],
+          "properties": {
+            "type": {
+              "const": "roundEnded"
+            },
+            "round": {
+              "type": "integer",
+              "minimum": 1
+            }
+          }
+        },
+        {
+          "description": "Wird nur durch einen Schritt 'fireTrigger' ausgelöst.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "const": "manual"
+            }
+          }
+        }
+      ]
+    },
+    "objective": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "reminder",
+        "completedBy"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reminder": {
+          "type": "string",
+          "minLength": 1
+        },
+        "completedBy": {
+          "$ref": "#/$defs/id",
+          "description": "Trigger, der das Ziel erfüllt, sofern es gerade aktiv ist."
+        }
+      }
+    },
+    "resolution": {
+      "description": "Ende eines Szenarios.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "title",
+        "text",
+        "outcome"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "text": {
+          "type": "string",
+          "minLength": 1
+        },
+        "outcome": {
+          "enum": [
+            "victory",
+            "defeat",
+            "neutral"
+          ]
+        }
+      }
+    }
+  }
+}

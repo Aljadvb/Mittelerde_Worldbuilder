@@ -1,0 +1,251 @@
+{
+  "formatVersion": 1,
+  "id": "cmp_hainbrueck",
+  "title": "Die Nebel von Hainbrück",
+  "description": "Eine kleine Beispielkampagne mit frei erfundenen Texten.",
+  "startScenario": "scn_muehle",
+  "scenarios": [
+    {
+      "id": "scn_muehle",
+      "title": "Die stille Mühle",
+      "intro": "Seit drei Tagen dreht sich das Rad der alten Mühle von Hainbrück nicht mehr. Der Müller ist verschwunden, und jeden Abend kriecht ein kalter Nebel vom Bach herauf. Die Dorfbewohner bitten euch um Hilfe.",
+      "threat": { "max": 20, "perRound": { "base": 1, "perHero": 1 } },
+      "startChapter": "ch_dorf",
+      "startObjective": "obj_muehle_finden",
+      "chapters": [
+        {
+          "id": "ch_dorf",
+          "title": "Das Dorf",
+          "setupText": "Ihr erreicht den Dorfplatz von Hainbrück. Die Fensterläden sind geschlossen, nur ein paar Hühner laufen umher.",
+          "onUnlock": "evt_dorf_ankunft",
+          "tiles": [
+            { "id": "pl_dorfplatz", "tile": "x01", "side": "A", "position": {"q":0,"r":0}, "rotation": 0 },
+            { "id": "pl_dorfweg", "tile": "x02", "side": "A", "position": {"q":2,"r":0}, "rotation": 0 }
+          ],
+          "tokens": [
+            {
+              "id": "tok_dorfbewohnerin",
+              "type": "person",
+              "label": "Alte Wäscherin",
+              "location": { "placement": "pl_dorfplatz", "cell": {"q":1,"r":0} },
+              "inspectText": "Eine alte Frau mit einem Korb voller Wäsche winkt euch heran.",
+              "onInteract": "evt_dorfbewohnerin",
+              "removeAfterInteract": true
+            },
+            {
+              "id": "tok_brunnen",
+              "type": "search",
+              "label": "Alter Brunnen",
+              "location": { "placement": "pl_dorfplatz", "cell": {"q":0,"r":1} },
+              "inspectText": "Moos bedeckt die Steine des Brunnens. Tief unten schimmert etwas.",
+              "onInteract": "evt_brunnen",
+              "removeAfterInteract": true
+            },
+            {
+              "id": "tok_spuren",
+              "type": "explore",
+              "label": "Schleifspuren",
+              "location": { "placement": "pl_dorfweg", "cell": {"q":2,"r":0} },
+              "initiallyActive": false,
+              "inspectText": "Im feuchten Boden führen Schleifspuren nach Osten, zum Bach hinunter.",
+              "onInteract": "evt_spuren",
+              "removeAfterInteract": true
+            }
+          ]
+        },
+        {
+          "id": "ch_muehle",
+          "title": "Die Mühle am Bach",
+          "setupText": "Hinter einer Biegung taucht die Mühle aus dem Nebel auf. Das Wasserrad steht still, das Tor ist verriegelt.",
+          "onUnlock": "evt_muehle_ankunft",
+          "tiles": [
+            { "id": "pl_muehle", "tile": "x03", "side": "A", "position": {"q":6,"r":-1}, "rotation": 0 }
+          ],
+          "tokens": [
+            {
+              "id": "tok_muehlentor",
+              "type": "custom",
+              "customType": "Tor",
+              "label": "Verriegeltes Mühlentor",
+              "location": { "placement": "pl_muehle", "cell": {"q":0,"r":0} },
+              "inspectText": "Hinter dem schweren Tor hört ihr ein leises Klopfen.",
+              "onInteract": "evt_tor"
+            }
+          ]
+        }
+      ],
+      "enemyGroups": [
+        {
+          "id": "eg_nebelwoelfe",
+          "enemyType": "nebelwolf",
+          "count": { "1": 1, "2": 1, "3": 2, "4": 2, "5": 3 },
+          "location": { "placement": "pl_muehle", "cell": {"q":1,"r":0} }
+        }
+      ],
+      "events": [
+        {
+          "id": "evt_dorf_ankunft",
+          "steps": [
+            { "type": "text", "text": "Ein Hahn kräht viel zu spät am Tag. Irgendwo knarrt eine Tür. Sprecht mit den Leuten oder seht euch um." }
+          ]
+        },
+        {
+          "id": "evt_dorfbewohnerin",
+          "steps": [
+            { "type": "text", "text": "„Ihr seid wegen der Mühle hier, nicht wahr?“, flüstert die Wäscherin und blickt sich ängstlich um." },
+            {
+              "type": "choice",
+              "text": "Was tut ihr?",
+              "options": [
+                { "label": "Nach dem Müller fragen", "event": "evt_frage_mueller" },
+                { "label": "Ihr beim Tragen helfen", "event": "evt_waesche_tragen" }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "evt_frage_mueller",
+          "steps": [
+            { "type": "text", "text": "„Man hat ihn fortgeschleift, in der Nacht. Ich habe die Spuren am Weg gesehen, aber ich traue mich nicht hin.“" },
+            { "type": "addToken", "token": "tok_spuren" }
+          ]
+        },
+        {
+          "id": "evt_waesche_tragen",
+          "steps": [
+            { "type": "text", "text": "Dankbar lächelt sie. Unterwegs erzählt sie von Schleifspuren am Weg und davon, dass der Nebel jeden Abend dichter wird." },
+            { "type": "changeThreat", "amount": -1 },
+            { "type": "addToken", "token": "tok_spuren" }
+          ]
+        },
+        {
+          "id": "evt_brunnen",
+          "steps": [
+            { "type": "text", "text": "Der Eimer hängt an einem morschen Seil. Wer das Glitzern bergen will, muss sich weit hinabbeugen." },
+            { "type": "test", "text": "Beugt euch hinab und greift danach.", "attribute": "agility", "successes": 2, "onSuccess": "evt_brunnen_erfolg", "onFailure": "evt_brunnen_fehlschlag" }
+          ]
+        },
+        {
+          "id": "evt_brunnen_erfolg",
+          "steps": [
+            { "type": "text", "text": "Ihr bekommt einen kleinen Messingschlüssel zu fassen, in den ein Mühlrad graviert ist. Ihr fühlt euch zuversichtlicher." },
+            { "type": "changeThreat", "amount": -2 }
+          ]
+        },
+        {
+          "id": "evt_brunnen_fehlschlag",
+          "steps": [
+            { "type": "text", "text": "Das Seil reißt, der Eimer platscht in die Tiefe. Das Echo hallt unheimlich lange nach." },
+            { "type": "changeThreat", "amount": 1 }
+          ]
+        },
+        {
+          "id": "evt_spuren",
+          "steps": [
+            { "type": "text", "text": "Ihr folgt den Spuren den Hang hinab. Das Rauschen des Baches wird lauter, der Nebel dichter." },
+            { "type": "unlockChapter", "chapter": "ch_muehle" },
+            { "type": "setObjective", "objective": "obj_mueller_befreien" }
+          ]
+        },
+        {
+          "id": "evt_muehle_ankunft",
+          "steps": [
+            { "type": "text", "text": "Aus dem Nebel lösen sich graue Gestalten mit glühenden Augen. Knurrend versperren sie euch den Weg." },
+            { "type": "spawnEnemies", "group": "eg_nebelwoelfe" }
+          ]
+        },
+        {
+          "id": "evt_woelfe_besiegt",
+          "steps": [
+            { "type": "text", "text": "Mit einem letzten Heulen zerfließen die Wölfe zu Nebelschwaden. Die Luft wird spürbar wärmer." },
+            { "type": "changeThreat", "amount": -2 }
+          ]
+        },
+        {
+          "id": "evt_tor",
+          "steps": [
+            { "type": "text", "text": "Ein schwerer Balken liegt quer vor dem Tor, verkeilt mit rostigen Eisenkrampen." },
+            { "type": "test", "text": "Stemmt den Balken aus der Halterung.", "attribute": "might", "successes": 3, "onSuccess": "evt_tor_offen", "onFailure": "evt_tor_klemmt" }
+          ]
+        },
+        {
+          "id": "evt_tor_offen",
+          "steps": [
+            { "type": "text", "text": "Mit einem Krachen gibt der Balken nach. Im Dunkel der Mühle sitzt der Müller gefesselt zwischen den Mehlsäcken – erschöpft, aber am Leben." },
+            { "type": "removeToken", "token": "tok_muehlentor" },
+            { "type": "fireTrigger", "trigger": "trg_mueller_befreit" }
+          ]
+        },
+        {
+          "id": "evt_tor_klemmt",
+          "steps": [
+            { "type": "text", "text": "Der Balken rührt sich nicht. Hinter euch schwillt der Nebel an." },
+            { "type": "changeThreat", "amount": 2 }
+          ]
+        },
+        {
+          "id": "evt_nebel_dichter",
+          "steps": [
+            { "type": "text", "text": "Der Nebel kriecht in die Gassen des Dorfes. Die Wäscherin hat sich in ihrem Haus verbarrikadiert." },
+            { "type": "removeToken", "token": "tok_dorfbewohnerin" }
+          ]
+        },
+        {
+          "id": "evt_nebel_kalt",
+          "steps": [
+            { "type": "text", "text": "Eisige Kälte legt sich auf eure Glieder. Euch bleibt nicht mehr viel Zeit." }
+          ]
+        },
+        {
+          "id": "evt_sieg",
+          "steps": [
+            { "type": "endScenario", "resolution": "res_muehle_sieg" }
+          ]
+        },
+        {
+          "id": "evt_niederlage",
+          "steps": [
+            { "type": "endScenario", "resolution": "res_muehle_niederlage" }
+          ]
+        }
+      ],
+      "triggers": [
+        { "id": "trg_spuren_untersucht", "on": { "type": "tokenInteracted", "token": "tok_spuren" } },
+        { "id": "trg_mueller_befreit", "on": { "type": "manual" } },
+        { "id": "trg_ziel_mueller_erfuellt", "on": { "type": "objectiveCompleted", "objective": "obj_mueller_befreien" }, "events": ["evt_sieg"] },
+        { "id": "trg_woelfe_besiegt", "on": { "type": "enemyGroupDefeated", "group": "eg_nebelwoelfe" }, "events": ["evt_woelfe_besiegt"] },
+        { "id": "trg_bedrohung_8", "on": { "type": "threatReached", "value": 8 }, "events": ["evt_nebel_dichter"] },
+        { "id": "trg_bedrohung_14", "on": { "type": "threatReached", "value": 14 }, "events": ["evt_nebel_kalt"] },
+        { "id": "trg_bedrohung_max", "on": { "type": "threatMax" }, "events": ["evt_niederlage"] }
+      ],
+      "objectives": [
+        {
+          "id": "obj_muehle_finden",
+          "title": "Finde den Weg zur Mühle",
+          "reminder": "Hört euch im Dorf um. Irgendjemand muss gesehen haben, was mit dem Müller geschehen ist.",
+          "completedBy": "trg_spuren_untersucht"
+        },
+        {
+          "id": "obj_mueller_befreien",
+          "title": "Befreie den Müller",
+          "reminder": "Der Müller ist in seiner eigenen Mühle eingesperrt. Öffnet das Tor.",
+          "completedBy": "trg_mueller_befreit"
+        }
+      ],
+      "resolutions": [
+        {
+          "id": "res_muehle_sieg",
+          "title": "Das Rad dreht sich wieder",
+          "text": "Gestützt auf eure Schultern kehrt der Müller ins Dorf zurück. Noch in derselben Nacht lichtet sich der Nebel, und am Morgen dreht sich das Mühlrad wieder.",
+          "outcome": "victory"
+        },
+        {
+          "id": "res_muehle_niederlage",
+          "title": "Im Nebel verloren",
+          "text": "Der Nebel wird so dicht, dass ihr kaum noch die eigene Hand vor Augen seht. Ihr müsst euch ins Dorf zurückziehen – die Mühle bleibt still.",
+          "outcome": "defeat"
+        }
+      ]
+    }
+  ]
+}

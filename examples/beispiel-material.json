@@ -1,0 +1,40 @@
+{
+  "formatVersion": 1,
+  "hexOrientation": "pointy",
+  "expansions": [
+    { "id": "beispiel", "name": "Beispielmaterial (erfunden)", "owned": true }
+  ],
+  "tiles": [
+    {
+      "id": "x01",
+      "label": "X01",
+      "expansion": "beispiel",
+      "sides": {
+        "A": { "cells": [ {"q":0,"r":0}, {"q":1,"r":0}, {"q":0,"r":1}, {"q":1,"r":-1} ] },
+        "B": { "cells": [ {"q":0,"r":0}, {"q":-1,"r":0}, {"q":0,"r":-1}, {"q":-1,"r":1} ] }
+      }
+    },
+    {
+      "id": "x02",
+      "label": "X02",
+      "expansion": "beispiel",
+      "sides": {
+        "A": { "cells": [ {"q":0,"r":0}, {"q":1,"r":0}, {"q":2,"r":0}, {"q":1,"r":-1} ] },
+        "B": { "cells": [ {"q":0,"r":0}, {"q":-1,"r":0}, {"q":-2,"r":0}, {"q":-1,"r":1} ] }
+      }
+    },
+    {
+      "id": "x03",
+      "label": "X03",
+      "expansion": "beispiel",
+      "sides": {
+        "A": { "cells": [ {"q":0,"r":0}, {"q":1,"r":0}, {"q":0,"r":1}, {"q":-1,"r":1}, {"q":-1,"r":0}, {"q":0,"r":-1}, {"q":1,"r":-1} ] },
+        "B": { "cells": [ {"q":0,"r":0}, {"q":1,"r":0}, {"q":0,"r":1}, {"q":-1,"r":1}, {"q":-1,"r":0}, {"q":0,"r":-1}, {"q":1,"r":-1} ] }
+      }
+    }
+  ],
+  "enemyTypes": [
+    { "id": "nebelwolf", "name": "Nebelwolf", "expansion": "beispiel" },
+    { "id": "aschekraehe", "name": "Aschekrähe", "expansion": "beispiel" }
+  ]
+}
