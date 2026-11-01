@@ -113,7 +113,7 @@ fun HexCanvas(
 
         // Tile labels in the cell nearest to the centroid, on a light pill
         for (tile in scene.tiles) {
-            if (tile.cells.isEmpty()) continue
+            if (tile.cells.isEmpty() || tile.label.isBlank()) continue
             val centers = tile.cells.map { proj.center(it) }
             val centroid = Offset(centers.map { it.x }.average().toFloat(), centers.map { it.y }.average().toFloat())
             val anchor = centers.minBy { (it - centroid).getDistance() }

@@ -14,6 +14,9 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
+import io.github.aljadvb.worldbuilder.editing.newCatalog
+import io.github.aljadvb.worldbuilder.editor.catalog.CatalogEditor
+import io.github.aljadvb.worldbuilder.editor.catalog.CatalogEditorModel
 import io.github.aljadvb.worldbuilder.editor.ui.EditorContent
 import io.github.aljadvb.worldbuilder.editor.ui.UnsavedChangesDialog
 import java.io.File
@@ -21,6 +24,7 @@ import java.io.File
 fun main() = application {
     val model = remember { EditorModel(SystemEditorPrefs()) }
     val windowState = rememberWindowState(placement = WindowPlacement.Maximized, width = 1400.dp, height = 900.dp)
+    var catalogEditor by remember { mutableStateOf<CatalogEditorModel?>(null) }
     /** Action waiting for the unsaved-changes decision. */
     var pending by remember { mutableStateOf<(() -> Unit)?>(null) }
 
@@ -61,6 +65,8 @@ fun main() = application {
                 }
                 Separator()
                 Item(Texts.MENU_CATALOG) { FileDialogs.openJson(window)?.let(model::loadCatalog) }
+                Item(Texts.MENU_CATALOG_EDIT) { catalogEditor = CatalogEditorModel(model.catalog, model.catalogFile, model::loadCatalog) }
+                Item(Texts.MENU_CATALOG_NEW) { catalogEditor = CatalogEditorModel(newCatalog(), null, model::loadCatalog) }
                 Item(Texts.MENU_CATALOG_EXAMPLE, enabled = model.catalogFile != null) { model.useExampleCatalog() }
                 Separator()
                 Item(Texts.MENU_CLOSE, enabled = doc != null) { guarded { model.close() } }
@@ -79,6 +85,38 @@ fun main() = application {
                     onDiscard = { pending = null; action() },
                     onCancel = { pending = null },
                 )
+            }
+        }
+    }
+
+    catalogEditor?.let { cat ->
+        var closing by remember(cat) { mutableStateOf(false) }
+        val close = { catalogEditor = null }
+        fun saveCatalog(): Boolean = cat.save() || FileDialogs.saveJson(null, "material.json")?.let(cat::saveAs) == true
+        Window(
+            onCloseRequest = { if (cat.isDirty) closing = true else close() },
+            title = (if (cat.isDirty) "• " else "") + (cat.file?.name ?: Texts.UNTITLED) + " – " + Texts.CATALOG_WINDOW,
+        ) {
+            MenuBar {
+                Menu(Texts.MENU_FILE) {
+                    Item(Texts.MENU_SAVE, shortcut = KeyShortcut(Key.S, ctrl = true)) { saveCatalog() }
+                    Item(Texts.MENU_SAVE_AS) { FileDialogs.saveJson(window, cat.file?.name ?: "material.json")?.let(cat::saveAs) }
+                    Item(Texts.MENU_CLOSE) { if (cat.isDirty) closing = true else close() }
+                }
+                Menu(Texts.MENU_EDIT) {
+                    Item(Texts.MENU_UNDO, enabled = cat.history.canUndo, shortcut = KeyShortcut(Key.Z, ctrl = true)) { cat.undo() }
+                    Item(Texts.MENU_REDO, enabled = cat.history.canRedo, shortcut = KeyShortcut(Key.Y, ctrl = true)) { cat.redo() }
+                }
+            }
+            MaterialTheme(colorScheme = lightColorScheme()) {
+                CatalogEditor(cat)
+                if (closing) {
+                    UnsavedChangesDialog(
+                        onSave = { if (saveCatalog()) close() else closing = false },
+                        onDiscard = close,
+                        onCancel = { closing = false },
+                    )
+                }
             }
         }
     }
