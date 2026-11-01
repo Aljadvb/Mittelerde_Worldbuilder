@@ -14,6 +14,7 @@ junit4 = "4.13.2"
 jsonSchemaValidator = "1.5.9"
 robolectric = "4.16"
 composeMultiplatform = "1.9.3"
+anthropic = "3.3.0"
 
 [libraries]
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
@@ -33,6 +34,7 @@ compose-material-icons-core = { module = "androidx.compose.material:material-ico
 compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
 compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
+anthropic-java = { module = "com.anthropic:anthropic-java", version.ref = "anthropic" }
 junit-bom = { module = "org.junit:junit-bom", version.ref = "junit5" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher" }
