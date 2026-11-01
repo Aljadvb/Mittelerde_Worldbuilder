@@ -74,6 +74,11 @@ class EditorModel(private val prefs: EditorPrefs) {
         remember(file)
     }
 
+    /** Opens a campaign that was created elsewhere (e.g. by the generator) as a new, unsaved document. */
+    fun openUnsaved(campaign: Campaign) {
+        replaceDocument(EditorDocument(null, History(campaign), saved = null))
+    }
+
     /** Opens the bundled example as a new, unsaved document. */
     fun openExample() {
         val campaign = FormatJson.decodeCampaign(exampleCampaignText())

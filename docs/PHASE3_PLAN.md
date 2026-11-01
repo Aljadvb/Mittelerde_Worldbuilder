@@ -1,6 +1,8 @@
 # Phase 3 – KI-Generator im Windows-Editor: Plan zur Freigabe
 
-Stand: 2026-11-01 · Noch kein Code.
+Stand: 2026-11-01 · **Umgesetzt** (Schritte 1–5). Offen: Schritt 6, der erste echte Testlauf mit API-Schlüssel.
+
+Abweichung: Der API-Schlüssel wird mit der Windows-Datenschutz-API (DPAPI) verschlüsselt und an das Windows-Konto gebunden gespeichert – derselbe Mechanismus, den die Anmeldeinformationsverwaltung nutzt. Die Kopier-Prüfung markiert Fundstellen; umformuliert wird im Editor (kein eigener KI-Knopf dafür).
 
 ## 1. Ziel
 

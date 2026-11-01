@@ -17,7 +17,14 @@ import androidx.compose.ui.window.rememberWindowState
 import io.github.aljadvb.worldbuilder.editing.newCatalog
 import io.github.aljadvb.worldbuilder.editor.catalog.CatalogEditor
 import io.github.aljadvb.worldbuilder.editor.catalog.CatalogEditorModel
+import io.github.aljadvb.worldbuilder.editor.ai.AiSettings
+import io.github.aljadvb.worldbuilder.editor.ai.AiSettingsDialog
+import io.github.aljadvb.worldbuilder.editor.ai.GeneratorModel
+import io.github.aljadvb.worldbuilder.editor.ai.GeneratorScreen
+import io.github.aljadvb.worldbuilder.editor.ai.defaultKeyStore
 import io.github.aljadvb.worldbuilder.editor.play.PlaytestScreen
+import io.github.aljadvb.worldbuilder.generator.AnthropicProvider
+import androidx.compose.runtime.rememberCoroutineScope
 import io.github.aljadvb.worldbuilder.editor.ui.EditorContent
 import io.github.aljadvb.worldbuilder.editor.ui.UnsavedChangesDialog
 import java.io.File
@@ -26,6 +33,10 @@ fun main() = application {
     val model = remember { EditorModel(SystemEditorPrefs()) }
     val windowState = rememberWindowState(placement = WindowPlacement.Maximized, width = 1400.dp, height = 900.dp)
     var catalogEditor by remember { mutableStateOf<CatalogEditorModel?>(null) }
+    val aiSettings = remember { AiSettings() }
+    val apiKeys = remember { defaultKeyStore() }
+    var aiSettingsOpen by remember { mutableStateOf(false) }
+    var generatorOpen by remember { mutableStateOf(false) }
     var playtest by remember { mutableStateOf<io.github.aljadvb.worldbuilder.model.Campaign?>(null) }
     /** Action waiting for the unsaved-changes decision. */
     var pending by remember { mutableStateOf<(() -> Unit)?>(null) }
@@ -79,6 +90,10 @@ fun main() = application {
                     if (model.report.isValid) playtest = model.campaign else model.message = Texts.PLAYTEST_HAS_ERRORS
                 }
             }
+            Menu(Texts.MENU_AI, mnemonic = 'K') {
+                Item(Texts.MENU_AI_GENERATE, shortcut = KeyShortcut(Key.G, ctrl = true)) { generatorOpen = true }
+                Item(Texts.MENU_AI_SETTINGS) { aiSettingsOpen = true }
+            }
             Menu(Texts.MENU_EDIT, mnemonic = 'B') {
                 Item(Texts.MENU_UNDO, enabled = doc?.history?.canUndo == true, shortcut = KeyShortcut(Key.Z, ctrl = true)) { model.undo() }
                 Item(Texts.MENU_REDO, enabled = doc?.history?.canRedo == true, shortcut = KeyShortcut(Key.Y, ctrl = true)) { model.redo() }
@@ -86,6 +101,7 @@ fun main() = application {
         }
         MaterialTheme(colorScheme = lightColorScheme()) {
             EditorContent(model)
+            if (aiSettingsOpen) AiSettingsDialog(aiSettings, apiKeys) { aiSettingsOpen = false }
             pending?.let { action ->
                 UnsavedChangesDialog(
                     onSave = { if (saveOrAsk()) { pending = null; action() } },
@@ -133,6 +149,24 @@ fun main() = application {
         Window(onCloseRequest = { playtest = null }, title = "${Texts.PLAYTEST_WINDOW} – ${campaign.title}") {
             MaterialTheme(colorScheme = lightColorScheme()) {
                 PlaytestScreen(campaign, model.catalog, model.tileImages)
+            }
+        }
+    }
+
+    if (generatorOpen) {
+        val scope = rememberCoroutineScope()
+        val generator = remember(model.catalog) {
+            GeneratorModel(model.catalog, scope, providerFactory = {
+                apiKeys.load()?.let { AnthropicProvider(it, aiSettings.model, aiSettings.fallbacks) }
+            })
+        }
+        Window(onCloseRequest = { generator.cancelRun(); generatorOpen = false }, title = Texts.AI_WINDOW, state = rememberWindowState(width = 1100.dp, height = 860.dp)) {
+            MaterialTheme(colorScheme = lightColorScheme()) {
+                GeneratorScreen(
+                    generator, model.catalog, model, hasOpenCampaign = model.campaign != null,
+                    onLoadFile = { FileDialogs.openText(window)?.readText() },
+                    onDone = { generatorOpen = false },
+                )
             }
         }
     }

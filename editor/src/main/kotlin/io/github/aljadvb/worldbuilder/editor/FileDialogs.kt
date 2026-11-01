@@ -11,6 +11,9 @@ object FileDialogs {
     /** Catalog: material.json or a ZIP with pictures. */
     fun openCatalog(window: Frame?): File? = show(window, "Material-Katalog öffnen", FileDialog.LOAD, "*.json;*.zip", setOf("json", "zip"))
 
+    /** Plain text source for the generator (.txt/.md). */
+    fun openText(window: Frame?): File? = show(window, "Vorlage laden", FileDialog.LOAD, "*.txt;*.md", setOf("txt", "md"))
+
     fun saveZip(window: Frame?, suggestedName: String): File? =
         show(window, "Als ZIP exportieren", FileDialog.SAVE, suggestedName, setOf("zip"))?.let { if (it.extension.equals("zip", true)) it else File(it.path + ".zip") }
 

@@ -52,6 +52,23 @@ Im Katalog-Fenster hat jede Kachelseite **Kategorien** aus einer festen Liste (z
 *Dichter Wald*, *Fluss / Bach*, *Ruinen*, *Höhle*, *Düster*) und eine kurze **Beschreibung**. Die Kachelauswahl
 im Karteneditor zeigt sie an, und der spätere KI-Generator wählt damit Kacheln passend zur Geschichte.
 
+## KI-Generator
+
+**KI → Einstellungen …**: Modell wählen (Claude Opus 5.5 oder das günstigere Sonnet 5.5) und den API-Schlüssel von
+console.anthropic.com eintragen. Er wird verschlüsselt an dein Windows-Konto gebunden gespeichert.
+
+**KI → Szenario generieren … (Strg+G)** führt in drei Schritten zum Szenario:
+
+1. **Vorlage**: eigene Notizen, eine Zusammenfassung oder gemeinfreier Text, dazu Länge, Schwierigkeit, Wünsche und
+   das erlaubte Material (Kacheln mit ihren Kategorien, Gegnertypen).
+2. **Story-Entwurf**: Titel, Einleitung, Kapitel mit Schauplätzen und Landschaft, Ziele, Gegner, Enden – alles bearbeitbar,
+   oder „Neu vorschlagen“.
+3. **Szenario**: Die KI erzeugt das Szenario, die App ordnet die Kacheln an und prüft alles; Fehler gehen bis zu
+   dreimal zur Korrektur an die KI zurück. „In den Editor übernehmen“ öffnet es als neue Kampagne oder fügt es in die
+   geöffnete ein – danach wie gewohnt bearbeiten, probespielen, speichern.
+
+Oben rechts stehen die bisherigen Kosten. Lange wörtliche Übernahmen aus der Vorlage werden markiert.
+
 ## Karteneditor
 
 | Aktion | Bedienung |

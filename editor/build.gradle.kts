@@ -27,6 +27,8 @@ sourceSets {
 
 dependencies {
     implementation(project(":editing"))
+    implementation(project(":generator"))
+    implementation(libs.jna.platform)
     implementation(project(":engine"))
     implementation(compose.desktop.currentOs)
     implementation(compose.material3)
@@ -53,7 +55,7 @@ compose.desktop {
             packageVersion = rootProject.file("version.txt").readText().trim()
             description = "Editor für eigene Kampagnen"
             vendor = "Aljadvb"
-            modules("java.prefs")
+            modules("java.prefs", "jdk.unsupported", "java.net.http", "java.naming")
             windows {
                 menuGroup = "Mittelerde Worldbuilder"
                 shortcut = true
