@@ -33,6 +33,13 @@ android {
     buildFeatures {
         compose = true
     }
+
+    testOptions {
+        unitTests.isIncludeAndroidResources = true
+    }
+
+    // Bundle the example campaign and catalog as assets.
+    sourceSets["main"].assets.srcDir(rootProject.file("examples"))
 }
 
 kotlin {
@@ -56,7 +63,12 @@ dependencies {
     implementation(libs.compose.ui)
     implementation(libs.compose.ui.tooling.preview)
     implementation(libs.compose.material3)
+    implementation(libs.compose.material.icons.core)
     debugImplementation(libs.compose.ui.tooling)
 
     testImplementation(libs.junit4)
+    testImplementation(libs.robolectric)
+    testImplementation(platform(libs.compose.bom))
+    testImplementation(libs.compose.ui.test.junit4)
+    debugImplementation(libs.compose.ui.test.manifest)
 }
