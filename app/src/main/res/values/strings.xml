@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Mittelerde Worldbuilder</string>
+    <string name="home_title">Eigene Kampagnen</string>
+    <string name="home_placeholder">Noch keine Kampagne geladen.</string>
+</resources>
