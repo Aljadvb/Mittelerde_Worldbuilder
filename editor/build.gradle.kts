@@ -47,8 +47,8 @@ compose.desktop {
         nativeDistributions {
             targetFormats(TargetFormat.Msi)
             packageName = "Mittelerde Worldbuilder Editor"
-            // Overridden by CI for version tags (-PappVersion=1.2.3).
-            packageVersion = providers.gradleProperty("appVersion").getOrElse("1.0.0")
+            // Single source of the release version (also used by the release job).
+            packageVersion = rootProject.file("version.txt").readText().trim()
             description = "Editor für eigene Kampagnen"
             vendor = "Aljadvb"
             modules("java.prefs")

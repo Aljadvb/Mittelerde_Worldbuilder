@@ -8,7 +8,7 @@
    Neue Versionen werden einfach darüber installiert.
 3. `Mittelerde-Worldbuilder-App-….apk` ist die App für das Handy.
 
-Ein neues Release entsteht automatisch, wenn ein Versions-Tag wie `v1.1.0` gepusht wird.
+Ein neues Release entsteht automatisch, sobald in `version.txt` eine neue Versionsnummer steht (z. B. `1.1.0`) und gepusht wird.
 Zwischenstände ohne Release liegen unter **Actions → Build → Lauf → Artifacts** (90 Tage).
 
 > Windows warnt beim ersten Start evtl. vor einer „unbekannten App“, weil das Paket nicht signiert ist:
