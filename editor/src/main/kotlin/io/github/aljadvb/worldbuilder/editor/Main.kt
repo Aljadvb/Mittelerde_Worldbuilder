@@ -162,7 +162,7 @@ fun main() = application {
         val generator = remember(model.catalog) {
             GeneratorModel(model.catalog, model.table, scope, providerFactory = {
                 apiKeys.load()?.let { AnthropicProvider(it, aiSettings.model, aiSettings.fallbacks) }
-            })
+            }).apply { if (apiKeys.load() == null) mode = GeneratorModel.Mode.CLAUDE_AI }
         }
         Window(onCloseRequest = { generator.cancelRun(); generatorOpen = false }, title = Texts.AI_WINDOW, state = rememberWindowState(width = 1100.dp, height = 860.dp)) {
             MaterialTheme(colorScheme = lightColorScheme()) {

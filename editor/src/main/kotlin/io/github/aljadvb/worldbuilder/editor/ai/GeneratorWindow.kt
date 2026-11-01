@@ -71,7 +71,10 @@ fun GeneratorScreen(model: GeneratorModel, catalog: MaterialCatalog, editor: Edi
                 }
             }
             HorizontalDivider()
-            if (model.busy) {
+            val manual = model.manualRequest
+            if (model.busy && manual != null) {
+                ManualPanel(model, manual)
+            } else if (model.busy) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     CircularProgressIndicator(Modifier.width(24.dp))
                     Text(model.status, Modifier.weight(1f))
@@ -102,6 +105,34 @@ fun GeneratorScreen(model: GeneratorModel, catalog: MaterialCatalog, editor: Edi
             confirmButton = { Button(onClick = { model.error = null }) { Text(Texts.OK) } },
             text = { Text(msg) },
         )
+    }
+}
+
+/** Copy & paste exchange with a chat (claude.ai). */
+@Composable
+private fun ManualPanel(model: GeneratorModel, request: io.github.aljadvb.worldbuilder.generator.ManualRequest) {
+    val clipboard = androidx.compose.ui.platform.LocalClipboardManager.current
+    var copied by remember(request) { mutableStateOf(false) }
+    Card(Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(if (request.sameChat) Texts.AI_MANUAL_STEP_SAME else Texts.AI_MANUAL_STEP_NEW, fontWeight = FontWeight.Bold)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Button(onClick = { clipboard.setText(androidx.compose.ui.text.AnnotatedString(request.prompt)); copied = true }) {
+                    Text(if (copied) Texts.AI_MANUAL_COPIED else Texts.AI_MANUAL_COPY)
+                }
+                Text(Texts.aiManualSize(request.prompt.length), style = MaterialTheme.typography.bodySmall)
+            }
+            OutlinedTextField(
+                model.manualAnswer, { model.manualAnswer = it },
+                Modifier.fillMaxWidth().heightIn(min = 120.dp, max = 240.dp),
+                label = { Text(Texts.AI_MANUAL_ANSWER) }, minLines = 5,
+            )
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(onClick = model::submitManualAnswer, enabled = model.manualAnswer.isNotBlank()) { Text(Texts.AI_MANUAL_SUBMIT) }
+                OutlinedButton(onClick = model::cancelRun) { Text(Texts.AI_CANCEL) }
+            }
+            Text(Texts.AI_MANUAL_HINT, style = MaterialTheme.typography.bodySmall)
+        }
     }
 }
 
@@ -156,6 +187,11 @@ private fun InputStep(model: GeneratorModel, catalog: MaterialCatalog, hasOpenCa
                 )
             }
         }
+    }
+    Heading(Texts.AI_MODE)
+    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        FilterChip(model.mode == GeneratorModel.Mode.CLAUDE_AI, { model.mode = GeneratorModel.Mode.CLAUDE_AI }, label = { Text(Texts.AI_MODE_MANUAL) })
+        FilterChip(model.mode == GeneratorModel.Mode.API, { model.mode = GeneratorModel.Mode.API }, label = { Text(Texts.AI_MODE_API) })
     }
     Heading(Texts.AI_TARGET)
     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {

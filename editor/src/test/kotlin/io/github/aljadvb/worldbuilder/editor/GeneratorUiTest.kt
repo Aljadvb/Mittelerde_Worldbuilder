@@ -128,3 +128,35 @@ class GeneratorUiTest {
         render("e15_ai_result", g)
     }
 }
+
+class ManualModeTest {
+    @Test
+    fun copyAndPasteFlowWithoutApiKey() = runBlocking { kotlinx.coroutines.withTimeout(20_000) {
+        val catalog = EditorModel.loadExampleCatalog()
+        val draft = StoryDraft("Titel", "Intro", emptyList(), emptyList(), emptyList(), emptyList())
+        val g = GeneratorModel(catalog, scope = this, providerFactory = { null }, worker = Dispatchers.IO)
+        g.mode = GeneratorModel.Mode.CLAUDE_AI
+        g.source = "Notizen"
+        g.createStory()
+        var waited = 0
+        while (g.manualRequest == null && waited++ < 200) kotlinx.coroutines.delay(20)
+        val request = g.manualRequest ?: run { g.cancelRun(); error("no manual request") }
+        assertTrue("# Verfügbares Material" in request.prompt)
+        val scene = ImageComposeScene(1100, 860, Density(1f)) {
+            MaterialTheme(colorScheme = lightColorScheme()) { GeneratorScreen(g, catalog, EditorModel(InMemoryEditorPrefs()), false, { null }, {}) }
+        }
+        try {
+            scene.render()
+            File("build/screenshots").mkdirs()
+            File("build/screenshots/e16_ai_manual.png").writeBytes(scene.render(1_000_000_000L).encodeToData(EncodedImageFormat.PNG)!!.bytes)
+        } finally {
+            scene.close()
+        }
+        g.manualAnswer = "Gern!\n```json\n" + Json.encodeToString(StoryDraft.serializer(), draft) + "\n```"
+        g.submitManualAnswer()
+        g.join()
+        assertNull(g.error)
+        assertEquals(draft, g.draft)
+        assertEquals(0.0, g.totalCost)
+    } }
+}

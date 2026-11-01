@@ -57,6 +57,11 @@ im Karteneditor zeigt sie an, und der spätere KI-Generator wählt damit Kacheln
 **KI → Einstellungen …**: Modell wählen (Claude Opus 5.5 oder das günstigere Sonnet 5.5) und den API-Schlüssel von
 console.anthropic.com eintragen. Er wird verschlüsselt an dein Windows-Konto gebunden gespeichert.
 
+**Ohne API-Schlüssel:** Im Generator unter „Weg“ *über Claude.ai kopieren* wählen (Voreinstellung, solange kein
+Schlüssel gespeichert ist). Der Editor erstellt dann für jeden Schritt eine Anweisung: kopieren, in einen neuen Chat auf
+claude.ai einfügen, Claudes Antwort komplett zurückkopieren und „Antwort übernehmen“. Korrekturen gehen im selben Chat
+weiter. Kosten entstehen dabei keine zusätzlichen; für Szenarien am besten die Länge „kurz“ wählen.
+
 **KI → Szenario generieren … (Strg+G)** führt in drei Schritten zum Szenario:
 
 1. **Vorlage**: eigene Notizen, eine Zusammenfassung oder gemeinfreier Text, dazu Länge, Schwierigkeit, Wünsche und

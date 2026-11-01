@@ -36,6 +36,8 @@ class GeneratorModel(
 ) {
     enum class Step { INPUT, STORY, SCENARIO }
     enum class Target { NEW_CAMPAIGN, CURRENT_CAMPAIGN }
+    /** API: requests go directly to the AI service. CLAUDE_AI: copy & paste via a chat, no API key needed. */
+    enum class Mode { API, CLAUDE_AI }
 
     var step by mutableStateOf(Step.INPUT)
     // inputs
@@ -46,6 +48,19 @@ class GeneratorModel(
     var allowedTiles by mutableStateOf(ownedTiles())
     var allowedEnemies by mutableStateOf(ownedEnemies())
     var target by mutableStateOf(Target.NEW_CAMPAIGN)
+    var mode by mutableStateOf(Mode.API)
+    /** Copy & paste mode: the text waiting to be copied into the chat. */
+    var manualRequest by mutableStateOf<io.github.aljadvb.worldbuilder.generator.ManualRequest?>(null)
+        private set
+    var manualAnswer by mutableStateOf("")
+    private val manual = io.github.aljadvb.worldbuilder.generator.ManualProvider().also { p -> p.onPending = { manualRequest = it } }
+
+    /** Hands the pasted chat answer to the waiting generator. */
+    fun submitManualAnswer() {
+        if (manualAnswer.isBlank()) return
+        manual.answer(manualAnswer)
+        manualAnswer = ""
+    }
     // progress & results
     var draft by mutableStateOf<StoryDraft?>(null)
     var result by mutableStateOf<ScenarioResult?>(null)
@@ -114,7 +129,7 @@ class GeneratorModel(
 
     private fun run(startStatus: String, block: suspend (ScenarioGenerator, CancelSignal) -> Unit) {
         if (busy) return
-        val provider = providerFactory()
+        val provider = if (mode == Mode.CLAUDE_AI) manual else providerFactory()
         if (provider == null) {
             error = Texts.AI_NO_KEY
             return
