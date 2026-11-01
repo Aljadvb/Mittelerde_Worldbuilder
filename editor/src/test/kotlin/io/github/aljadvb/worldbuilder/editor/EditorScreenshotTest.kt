@@ -1,0 +1,41 @@
+package io.github.aljadvb.worldbuilder.editor
+
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.lightColorScheme
+import androidx.compose.ui.ImageComposeScene
+import androidx.compose.ui.unit.Density
+import io.github.aljadvb.worldbuilder.editing.updateToken
+import io.github.aljadvb.worldbuilder.editor.ui.EditorContent
+import io.github.aljadvb.worldbuilder.model.HexCoord
+import org.jetbrains.skia.EncodedImageFormat
+import java.io.File
+import kotlin.test.Test
+
+/** Renders the editor window content headlessly to build/screenshots for inspection. */
+class EditorScreenshotTest {
+    private fun render(name: String, model: EditorModel) {
+        val scene = ImageComposeScene(width = 1400, height = 860, density = Density(1f)) {
+            MaterialTheme(colorScheme = lightColorScheme()) { EditorContent(model) }
+        }
+        try {
+            scene.render() // first frame runs effects
+            val image = scene.render(1_000_000_000L)
+            val dir = File("build/screenshots").apply { mkdirs() }
+            File(dir, "$name.png").writeBytes(image.encodeToData(EncodedImageFormat.PNG)!!.bytes)
+        } finally {
+            scene.close()
+        }
+    }
+
+    @Test
+    fun emptyWindow() = render("e01_empty", EditorModel(InMemoryEditorPrefs()))
+
+    @Test
+    fun exampleWithError() {
+        val m = EditorModel(InMemoryEditorPrefs())
+        m.openExample()
+        m.edit { c -> c.updateToken("tok_brunnen") { it.copy(location = it.location.copy(cell = HexCoord(9, 9))) } }
+        m.selection = "tok_brunnen"
+        render("e02_structure", m)
+    }
+}

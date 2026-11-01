@@ -1,0 +1,57 @@
+package io.github.aljadvb.worldbuilder.editor
+
+/** German UI texts of the desktop editor, kept in one place. */
+object Texts {
+    const val APP_TITLE = "Mittelerde Worldbuilder – Editor"
+    const val UNTITLED = "Unbenannt"
+
+    const val MENU_FILE = "Datei"
+    const val MENU_NEW = "Neue Kampagne"
+    const val MENU_OPEN = "Öffnen …"
+    const val MENU_OPEN_EXAMPLE = "Beispielkampagne öffnen"
+    const val MENU_RECENT = "Zuletzt geöffnet"
+    const val MENU_SAVE = "Speichern"
+    const val MENU_SAVE_AS = "Speichern unter …"
+    const val MENU_CATALOG = "Material-Katalog wählen …"
+    const val MENU_CATALOG_EXAMPLE = "Beispielkatalog verwenden"
+    const val MENU_CLOSE = "Schließen"
+    const val MENU_EXIT = "Beenden"
+    const val MENU_EDIT = "Bearbeiten"
+    const val MENU_UNDO = "Rückgängig"
+    const val MENU_REDO = "Wiederholen"
+
+    const val STRUCTURE = "Struktur"
+    const val CHECK = "Prüfung"
+    const val NO_ISSUES = "Keine Befunde – die Kampagne kann in der App importiert werden."
+    const val ERROR = "Fehler"
+    const val WARNING = "Hinweis"
+    const val USED_BY = "Benutzt von"
+    const val NOT_USED = "Wird nirgends verwendet."
+    const val NOTHING_OPEN = "Keine Kampagne geöffnet."
+    const val NOTHING_OPEN_HINT = "Lege über „Datei“ eine neue Kampagne an oder öffne eine vorhandene Datei."
+
+    const val GROUP_SCENARIOS = "Szenarien"
+    const val GROUP_CHAPTERS = "Kapitel"
+    const val GROUP_EVENTS = "Events"
+    const val GROUP_TRIGGERS = "Trigger"
+    const val GROUP_OBJECTIVES = "Ziele"
+    const val GROUP_ENEMIES = "Gegnergruppen"
+    const val GROUP_RESOLUTIONS = "Auflösungen"
+    const val GROUP_TILES = "Kacheln"
+    const val GROUP_TOKENS = "Token"
+
+    const val UNSAVED_TITLE = "Ungespeicherte Änderungen"
+    const val UNSAVED_TEXT = "Die Kampagne wurde geändert. Änderungen speichern?"
+    const val SAVE = "Speichern"
+    const val DISCARD = "Verwerfen"
+    const val CANCEL = "Abbrechen"
+    const val OK = "OK"
+
+    fun catalogLabel(file: String?) = if (file == null) "Katalog: Beispielkatalog (erfunden)" else "Katalog: $file"
+    fun issueSummary(errors: Int, warnings: Int) = "$errors Fehler · $warnings Hinweise"
+    fun saved(name: String) = "Gespeichert: $name"
+    fun savedWithErrors(name: String, errors: Int) = "Gespeichert: $name – enthält noch $errors Fehler; die App importiert die Datei erst ohne Fehler."
+    fun saveFailed(reason: String) = "Speichern fehlgeschlagen: $reason"
+    fun openFailed(name: String, reason: String) = "„$name“ konnte nicht gelesen werden:\n$reason"
+    fun catalogInvalid(reason: String) = "Der Material-Katalog enthält Fehler: $reason"
+}
