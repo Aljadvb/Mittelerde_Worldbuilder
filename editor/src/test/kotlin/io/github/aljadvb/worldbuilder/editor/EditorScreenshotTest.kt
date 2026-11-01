@@ -38,4 +38,18 @@ class EditorScreenshotTest {
         m.selection = "tok_brunnen"
         render("e02_structure", m)
     }
+
+    private fun example(selection: String) = EditorModel(InMemoryEditorPrefs()).apply { openExample(); this.selection = selection }
+
+    @Test
+    fun campaignForm() = render("e03_campaign", example("cmp_hainbrueck"))
+
+    @Test
+    fun scenarioForm() = render("e04_scenario", example("scn_muehle"))
+
+    @Test
+    fun tokenForm() = render("e05_token", example("tok_muehlentor"))
+
+    @Test
+    fun triggerForm() = render("e06_trigger", example("trg_bedrohung_8"))
 }
