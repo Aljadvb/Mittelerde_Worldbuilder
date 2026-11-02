@@ -70,6 +70,9 @@ class GeneratorModel(
     var status by mutableStateOf("")
         private set
     var error by mutableStateOf<String?>(null)
+    /** Why the last run ended without a result (stays visible after the dialog is closed). */
+    var lastFailure by mutableStateOf<String?>(null)
+        private set
     var totalCost by mutableStateOf(0.0)
         private set
     private var cancel: CancelSignal? = null
@@ -136,7 +139,7 @@ class GeneratorModel(
             return
         }
         val signal = CancelSignal().also { cancel = it }
-        busy = true; error = null; status = startStatus
+        busy = true; error = null; lastFailure = null; status = startStatus
         job = scope.launch(worker) {
             try {
                 block(ScenarioGenerator(provider, catalog, input()), signal)
@@ -149,6 +152,7 @@ class GeneratorModel(
             } catch (e: Exception) {
                 error = Texts.aiUnexpected(e.message ?: e.javaClass.simpleName)
             } finally {
+                lastFailure = error
                 busy = false
                 status = ""
             }

@@ -160,3 +160,19 @@ class ManualModeTest {
         assertEquals(0.0, g.totalCost)
     } }
 }
+
+class GeneratorFailureTest {
+    @Test
+    fun failedScenarioRunKeepsTheReasonVisible() = runBlocking {
+        val catalog = EditorModel.loadExampleCatalog()
+        val g = GeneratorModel(catalog, scope = this, providerFactory = { FakeProvider(MutableList(4) { "kein json" }, model = "claude-opus-5-5") }, worker = Dispatchers.Unconfined)
+        g.draft = StoryDraft("T", "I", emptyList(), emptyList(), emptyList(), emptyList())
+        g.step = GeneratorModel.Step.STORY
+        g.createScenario(); g.join()
+        assertEquals(GeneratorModel.Step.SCENARIO, g.step)
+        assertNull(g.result)
+        val reason = assertNotNull(g.lastFailure)
+        g.error = null
+        assertEquals(reason, g.lastFailure)
+    }
+}

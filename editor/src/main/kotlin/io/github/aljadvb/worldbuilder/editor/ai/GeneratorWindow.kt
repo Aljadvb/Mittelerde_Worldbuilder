@@ -58,7 +58,7 @@ fun GeneratorScreen(model: GeneratorModel, catalog: MaterialCatalog, editor: Edi
         Column(Modifier.fillMaxSize().padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 listOf(GeneratorModel.Step.INPUT to Texts.AI_STEP_INPUT, GeneratorModel.Step.STORY to Texts.AI_STEP_STORY, GeneratorModel.Step.SCENARIO to Texts.AI_STEP_SCENARIO)
-                    .forEach { (s, label) -> FilterChip(selected = model.step == s, onClick = {}, enabled = false, label = { Text(label) }) }
+                    .forEach { (s, label) -> FilterChip(selected = model.step == s, onClick = {}, label = { Text(label, fontWeight = if (model.step == s) FontWeight.Bold else FontWeight.Normal) }) }
                 Spacer(Modifier.weight(1f))
                 if (model.totalCost > 0) Text(Texts.aiCost(model.totalCost), style = MaterialTheme.typography.labelLarge)
             }
@@ -115,6 +115,11 @@ private fun ManualPanel(model: GeneratorModel, request: io.github.aljadvb.worldb
     var copied by remember(request) { mutableStateOf(false) }
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(
+                (if (model.step == GeneratorModel.Step.SCENARIO) Texts.AI_MANUAL_FOR_SCENARIO else Texts.AI_MANUAL_FOR_STORY) +
+                    if (request.sameChat && model.status.isNotBlank()) " · ${model.status}" else "",
+                style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary,
+            )
             Text(if (request.sameChat) Texts.AI_MANUAL_STEP_SAME else Texts.AI_MANUAL_STEP_NEW, fontWeight = FontWeight.Bold)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 Button(onClick = { clipboard.setText(androidx.compose.ui.text.AnnotatedString(request.prompt)); copied = true }) {
@@ -268,7 +273,23 @@ fun DraftEditor(draft: StoryDraft, catalog: MaterialCatalog, onChange: (StoryDra
 
 @Composable
 private fun ResultStep(model: GeneratorModel) {
-    val r = model.result ?: return
+    val r = model.result ?: run {
+        Text(Texts.AI_STEP_SCENARIO, style = MaterialTheme.typography.headlineSmall)
+        model.draft?.let { d ->
+            Text(d.title, style = MaterialTheme.typography.titleMedium)
+            d.chapters.forEachIndexed { i, ch -> Text("${i + 1}. ${ch.title}" + if (ch.battle) " (${Texts.MAP_KIND_BATTLE})" else "", style = MaterialTheme.typography.bodyMedium) }
+        }
+        when {
+            model.busy && model.manualRequest != null -> Text(Texts.AI_SCENARIO_MANUAL_HINT, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+            model.busy -> Text(Texts.AI_SCENARIO_RUNNING)
+            else -> {
+                Text(Texts.AI_SCENARIO_NONE, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error)
+                model.lastFailure?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                Text(Texts.AI_SCENARIO_RETRY, style = MaterialTheme.typography.bodySmall)
+            }
+        }
+        return
+    }
     Text(r.scenario.title, style = MaterialTheme.typography.headlineSmall)
     Text(r.scenario.intro)
     Text(
