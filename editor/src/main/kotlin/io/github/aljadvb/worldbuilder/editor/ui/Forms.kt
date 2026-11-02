@@ -71,8 +71,8 @@ fun ObjectForm(model: EditorModel, def: Definition) {
         ObjectKind.TRIGGER -> TriggerForm(model, scenario!!, def, ask)
         ObjectKind.PLACEMENT -> PlacementInfo(model, scenario!!, def)
         ObjectKind.EVENT -> EventForm(model, scenario!!, def, ask)
-        // Battle map forms follow with the battle map editor.
-        ObjectKind.BOARD_PLACEMENT, ObjectKind.TERRAIN_PLACEMENT -> { Text(def.id); FieldIssues(model, def.path) }
+        ObjectKind.BOARD_PLACEMENT -> BoardForm(model, scenario!!, def)
+        ObjectKind.TERRAIN_PLACEMENT -> TerrainForm(model, scenario!!, def)
     }
 
     request?.let { r ->
@@ -186,7 +186,8 @@ private fun ChapterForm(model: EditorModel, s: Scenario, def: Definition, ask: (
         model, Texts.ON_UNLOCK, ch.onUnlock, s.eventChoices(), "${def.path}.onUnlock", allowNone = true,
         onCreate = { ask(Texts.NEW_EVENT) { n -> model.createThen({ it.addEvent(s.id, n) }) { id -> model.edit { c -> c.updateChapter(ch.id) { x -> x.copy(onUnlock = id) } } } } },
     ) { v -> model.edit { it.updateChapter(ch.id) { c -> c.copy(onUnlock = v) } } }
-    Text(Texts.MAP_HINT, style = MaterialTheme.typography.bodySmall)
+    MapKindInput(model, ch)
+    Text(if (ch.isBattle) Texts.BATTLE_HINT_SELECT else Texts.MAP_HINT, style = MaterialTheme.typography.bodySmall)
 }
 
 // ---- objective / resolution ---------------------------------------------------------------

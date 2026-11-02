@@ -72,4 +72,20 @@ class CatalogEditorTest {
             scene.close()
         }
     }
+
+    @Test
+    fun battlePieceScreenshot() {
+        val model = CatalogEditorModel(EditorModel.loadExampleCatalog(), null) {}
+        model.selection = CatalogSelection.Piece("bach_wall")
+        model.side = io.github.aljadvb.worldbuilder.model.TileSide.B
+        val scene = ImageComposeScene(1200, 1000, Density(1f)) { MaterialTheme(colorScheme = lightColorScheme()) { CatalogEditor(model) } }
+        try {
+            scene.render()
+            val img = scene.render(1_000_000_000L)
+            File("build/screenshots").mkdirs()
+            File("build/screenshots/e22_catalog_piece.png").writeBytes(img.encodeToData(EncodedImageFormat.PNG)!!.bytes)
+        } finally {
+            scene.close()
+        }
+    }
 }

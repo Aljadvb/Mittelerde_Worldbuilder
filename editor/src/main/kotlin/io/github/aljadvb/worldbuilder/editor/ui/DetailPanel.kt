@@ -34,6 +34,8 @@ import io.github.aljadvb.worldbuilder.editing.scenarioOf
 import io.github.aljadvb.worldbuilder.editing.usages
 import io.github.aljadvb.worldbuilder.editor.EditorModel
 import io.github.aljadvb.worldbuilder.editor.Texts
+import io.github.aljadvb.worldbuilder.editor.map.BattleController
+import io.github.aljadvb.worldbuilder.editor.map.BattleEditor
 import io.github.aljadvb.worldbuilder.editor.map.MapController
 import io.github.aljadvb.worldbuilder.editor.map.MapEditor
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -48,8 +50,9 @@ fun DetailPanel(model: EditorModel, modifier: Modifier = Modifier) {
     var renaming by remember(id) { mutableStateOf(false) }
     var deleting by remember(id) { mutableStateOf(false) }
 
-    val mapKinds = setOf(ObjectKind.CHAPTER, ObjectKind.PLACEMENT, ObjectKind.TOKEN, ObjectKind.ENEMY_GROUP)
+    val mapKinds = setOf(ObjectKind.CHAPTER, ObjectKind.PLACEMENT, ObjectKind.TOKEN, ObjectKind.ENEMY_GROUP, ObjectKind.BOARD_PLACEMENT, ObjectKind.TERRAIN_PLACEMENT)
     val controller = remember(model) { MapController(model) }
+    val battleController = remember(model) { BattleController(model) }
 
     Column(modifier.fillMaxSize().padding(horizontal = 20.dp, vertical = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -65,7 +68,8 @@ fun DetailPanel(model: EditorModel, modifier: Modifier = Modifier) {
             }
         }
         if (def.kind in mapKinds) {
-            MapEditor(model, controller, Modifier.weight(1.8f).fillMaxWidth())
+            if (battleController.chapter?.isBattle == true) BattleEditor(model, battleController, Modifier.weight(1.8f).fillMaxWidth())
+            else MapEditor(model, controller, Modifier.weight(1.8f).fillMaxWidth())
         }
         Column(
             Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()),

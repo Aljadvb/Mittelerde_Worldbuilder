@@ -41,6 +41,8 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import io.github.aljadvb.worldbuilder.editing.addBattleBoard
+import io.github.aljadvb.worldbuilder.editing.addTerrainPiece
 import io.github.aljadvb.worldbuilder.editing.addEnemyType
 import io.github.aljadvb.worldbuilder.editing.addExpansion
 import io.github.aljadvb.worldbuilder.editing.addTile
@@ -97,6 +99,30 @@ fun CatalogEditor(model: CatalogEditorModel) {
                     }
                 }
                 item {
+                    ListHeader(Texts.CATALOG_BOARDS) {
+                        creating = Texts.CATALOG_NEW_BOARD to { name ->
+                            var id = ""
+                            model.edit { c -> c.addBattleBoard(name, defaultExpansion).also { id = it.second }.first }
+                            model.selection = CatalogSelection.Board(id)
+                        }
+                    }
+                }
+                items(catalog.battleBoards, key = { "b_" + it.id }) { b ->
+                    ListRow("${b.label}  ·  ${b.count}×", model.selection == CatalogSelection.Board(b.id)) { model.selection = CatalogSelection.Board(b.id) }
+                }
+                item {
+                    ListHeader(Texts.CATALOG_PIECES) {
+                        creating = Texts.CATALOG_NEW_PIECE to { name ->
+                            var id = ""
+                            model.edit { c -> c.addTerrainPiece(name, defaultExpansion).also { id = it.second }.first }
+                            model.selection = CatalogSelection.Piece(id)
+                        }
+                    }
+                }
+                items(catalog.terrainPieces, key = { "g_" + it.id }) { p ->
+                    ListRow("${p.sides.values.joinToString(" / ") { it.name }}  ·  ${p.count}×", model.selection == CatalogSelection.Piece(p.id)) { model.selection = CatalogSelection.Piece(p.id) }
+                }
+                item {
                     ListHeader(Texts.CATALOG_ENEMIES) {
                         creating = Texts.CATALOG_NEW_ENEMY to { name ->
                             var id = ""
@@ -129,6 +155,8 @@ fun CatalogEditor(model: CatalogEditorModel) {
                     is CatalogSelection.Tile -> TileDetail(model, sel.id)
                     is CatalogSelection.Enemy -> EnemyDetail(model, sel.id)
                     is CatalogSelection.Expansion -> ExpansionDetail(model, sel.id)
+                    is CatalogSelection.Board -> BoardDetail(model, sel.id)
+                    is CatalogSelection.Piece -> PieceDetail(model, sel.id)
                     null -> Text(Texts.CATALOG_EMPTY)
                 }
                 HorizontalDivider()
@@ -169,7 +197,7 @@ private fun ListRow(text: String, selected: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
-private fun ExpansionChoice(model: CatalogEditorModel, selected: String, onSelect: (String) -> Unit) {
+internal fun ExpansionChoice(model: CatalogEditorModel, selected: String, onSelect: (String) -> Unit) {
     Text(Texts.CATALOG_EXPANSION, style = MaterialTheme.typography.labelLarge)
     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         model.catalog.expansions.forEach { x -> FilterChip(selected = x.id == selected, onClick = { onSelect(x.id) }, label = { Text(x.name) }) }

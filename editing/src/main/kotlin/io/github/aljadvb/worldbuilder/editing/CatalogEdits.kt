@@ -7,6 +7,11 @@ import io.github.aljadvb.worldbuilder.model.HexCoord
 import io.github.aljadvb.worldbuilder.model.HexOrientation
 import io.github.aljadvb.worldbuilder.model.MaterialCatalog
 import io.github.aljadvb.worldbuilder.model.TileDefinition
+import io.github.aljadvb.worldbuilder.model.BattleBoard
+import io.github.aljadvb.worldbuilder.model.BoardSide
+import io.github.aljadvb.worldbuilder.model.PiecePlacement
+import io.github.aljadvb.worldbuilder.model.TerrainPiece
+import io.github.aljadvb.worldbuilder.model.TerrainPieceSide
 import io.github.aljadvb.worldbuilder.model.TileSide
 import io.github.aljadvb.worldbuilder.model.TileSideShape
 
@@ -108,3 +113,32 @@ fun MaterialCatalog.setDescription(tileId: String, side: TileSide, text: String)
 /** Tiles whose side shows all of [tags] (for picking tiles that fit a description). */
 fun MaterialCatalog.tilesWith(vararg tags: String): List<Pair<TileDefinition, TileSide>> =
     tiles.flatMap { t -> t.sides.filter { (_, s) -> tags.all { it in s.terrain } }.keys.map { t to it } }
+
+// ---- battle boards and terrain pieces ------------------------------------------------
+
+/** A new 3 × 3 board with both sides; fields as single squares until edited. */
+fun MaterialCatalog.addBattleBoard(name: String, expansion: String): Pair<MaterialCatalog, String> {
+    val id = catalogId(name, battleBoards.map { it.id }.toSet())
+    val side = BoardSide(width = 3, height = 3)
+    return copy(battleBoards = battleBoards + BattleBoard(id, name, expansion, 1, mapOf(TileSide.A to side, TileSide.B to side))) to id
+}
+
+fun MaterialCatalog.updateBattleBoard(id: String, edit: (BattleBoard) -> BattleBoard) =
+    copy(battleBoards = battleBoards.map { if (it.id == id) edit(it) else it })
+
+fun MaterialCatalog.removeBattleBoard(id: String) = copy(battleBoards = battleBoards.filterNot { it.id == id })
+
+/** A new two-sided piece lying in a field; both sides start with [name]. */
+fun MaterialCatalog.addTerrainPiece(name: String, expansion: String): Pair<MaterialCatalog, String> {
+    val id = catalogId(name, terrainPieces.map { it.id }.toSet())
+    val side = TerrainPieceSide(name, PiecePlacement.AREA)
+    return copy(terrainPieces = terrainPieces + TerrainPiece(id, expansion, 1, mapOf(TileSide.A to side, TileSide.B to side))) to id
+}
+
+fun MaterialCatalog.updateTerrainPiece(id: String, edit: (TerrainPiece) -> TerrainPiece) =
+    copy(terrainPieces = terrainPieces.map { if (it.id == id) edit(it) else it })
+
+fun MaterialCatalog.updatePieceSide(id: String, side: TileSide, edit: (TerrainPieceSide) -> TerrainPieceSide) =
+    updateTerrainPiece(id) { p -> p.copy(sides = p.sides.mapValues { (s, v) -> if (s == side) edit(v) else v }) }
+
+fun MaterialCatalog.removeTerrainPiece(id: String) = copy(terrainPieces = terrainPieces.filterNot { it.id == id })

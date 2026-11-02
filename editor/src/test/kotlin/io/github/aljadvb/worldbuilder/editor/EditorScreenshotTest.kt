@@ -64,4 +64,15 @@ class EditorScreenshotTest {
 
     @Test
     fun mapEditorToken() = render("e10_map_token", example("tok_brunnen"), height = 1000)
+
+    private fun battle(selection: String) = EditorModel(InMemoryEditorPrefs()).apply {
+        openUnsaved(io.github.aljadvb.worldbuilder.model.FormatJson.decodeCampaign(java.io.File(System.getProperty("repoRoot") ?: "..", "examples/beispiel-schlacht.json").readText()))
+        this.selection = selection
+    }
+
+    @Test
+    fun battleEditorChapter() = render("e20_battle_chapter", battle("ch_bach"), height = 1000)
+
+    @Test
+    fun battleEditorTerrain() = render("e21_battle_terrain", battle("gt_busch"), height = 1100)
 }

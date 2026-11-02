@@ -218,9 +218,15 @@ fun BattleCanvas(
                 }
             }
             if (piece.picture == null) {
-                // Name label for pieces without picture
-                val m = textMeasurer.measure(piece.name, TextStyle(fontSize = (proj.cell / 9f).toSp(), color = MapColors.Label, fontWeight = FontWeight.Bold))
-                drawText(m, topLeft = c - Offset(m.size.width / 2f, m.size.height / 2f))
+                // Name label for pieces without picture: along the piece, shrunk to its length
+                val s0 = pieceSize(proj, scene, piece)
+                var font = proj.cell / 9f
+                var m = textMeasurer.measure(piece.name, TextStyle(fontSize = font.toSp(), color = MapColors.Label, fontWeight = FontWeight.Bold))
+                if (m.size.width > s0.width * 0.95f) {
+                    font *= s0.width * 0.95f / m.size.width
+                    m = textMeasurer.measure(piece.name, TextStyle(fontSize = font.toSp(), color = MapColors.Label, fontWeight = FontWeight.Bold))
+                }
+                rotate(if (vertical) 90f else 0f, c) { drawText(m, topLeft = c - Offset(m.size.width / 2f, m.size.height / 2f)) }
             }
             if (piece.special) drawSpecialMarker(c + Offset(minOf(s.width, proj.cell * 0.5f) / 2, -minOf(s.height, proj.cell * 0.5f) / 2), proj.cell * 0.07f)
         }
