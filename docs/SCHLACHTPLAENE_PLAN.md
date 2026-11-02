@@ -48,6 +48,21 @@ zusammen (z. B. Fluss/Steinmauer: 10 Teile → 7 Flüsse + 3 Mauern erlaubt, 7 +
 | groß ca. 8 × 8 cm | Nebel | Grube | 3 | Bereich |
 | groß ca. 8 × 8 cm | Brunnen | Teich | 1 | Bereich |
 
+**Geländekarten (02.11.):** Zu jeder Seite eines Geländeteils kommt der **Kartentext** (`cardText`) in den Katalog –
+ausschließlich in dein privates Katalog-ZIP, nie ins Repo. Die Namen folgen den Karten (Mauer, Zaun, Spinnennetz,
+Feuerstelle, Springbrunnen). Symbole stehen im Text als Platzhalter in eckigen Klammern (z. B. `[Erfolg]`) und werden in
+der App als Wort angezeigt. Ein Szenario kann einem gelegten Teil eine **eigene Bedeutung** geben:
+
+```json
+{"id": "gt_altar", "piece": "feuer_statue", "side": "B", "area": {"x": 1, "y": 1},
+ "customName": "Altar des Nekromanten",
+ "customRule": {"mode": "replace", "text": "Wer hier steht, ..."}}
+```
+
+`mode`: `replace` (ersetzt die Kartenregel) oder `add` (gilt zusätzlich). Tippt man in der App beim Spielen auf ein
+Geländeteil, erscheint ein Fenster mit Name, Bild, Kartentext und – deutlich hervorgehoben – der abweichenden Regel im
+Szenario. Die KI darf `customName`/`customRule` setzen; ihre Texte formuliert sie selbst.
+
 ## 1. Ziel
 
 Neben **Reiseabenteuern** auf Sechseck-Kacheln gibt es **Schlachten** auf viereckigen Schlachtspielplänen mit
