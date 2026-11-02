@@ -14,6 +14,8 @@ enum class ObjectKind(val prefix: String, val displayName: String) {
     OBJECTIVE("obj_", "Ziel"),
     ENEMY_GROUP("eg_", "Gegnergruppe"),
     RESOLUTION("res_", "Auflösung"),
+    PLACE("pt_", "Ort"),
+    FLAG("fl_", "Merker"),
 }
 
 internal val ID_PATTERN = Regex("^[a-z][a-z0-9_]*$")

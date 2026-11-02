@@ -77,6 +77,23 @@ sealed interface EventStep {
         val text: String? = null,
     ) : EventStep
 
+    /** Sets a campaign flag (silent). */
+    @Serializable
+    @SerialName("setFlag")
+    data class SetFlag(val flag: String) : EventStep
+
+    /** Branches on a campaign flag. */
+    @Serializable
+    @SerialName("checkFlag")
+    data class CheckFlag(val flag: String, val ifSet: String, val ifNotSet: String? = null) : EventStep {
+        override val isTerminal get() = true
+    }
+
+    /** The group's lore rises (kept by the app for the whole campaign). */
+    @Serializable
+    @SerialName("gainLore")
+    data class GainLore(val amount: Int = 1, val text: String? = null) : EventStep
+
     /** Heroes suffer damage and/or fear (cards at the table; the app does not count them). */
     @Serializable
     @SerialName("sufferHarm")

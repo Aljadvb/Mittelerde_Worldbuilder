@@ -16,13 +16,14 @@ import io.github.aljadvb.worldbuilder.model.TriggerCondition
  * - a chapter's `onUnlock` runs right after the current frame;
  * - events of fired triggers run after everything already scheduled.
  */
-class GameEngine(val scenario: Scenario) {
+class GameEngine(val scenario: Scenario, private val campaignFlags: Set<String> = emptySet()) {
 
     fun start(heroCount: Int): GameState {
         require(heroCount in 1..5) { "heroCount must be 1–5" }
         val initial = GameState(
             scenarioId = scenario.id,
             heroCount = heroCount,
+            flags = campaignFlags,
             agenda = listOf(
                 Frame.InlineFrame(
                     listOf(EventStep.UnlockChapter(scenario.startChapter), EventStep.SetObjective(scenario.startObjective)),
@@ -97,6 +98,8 @@ class GameEngine(val scenario: Scenario) {
         val completedObjectives = s.completedObjectives.toMutableSet()
         val firedTriggers = s.firedTriggers.toMutableSet()
         val explored = s.exploredPlacements.toMutableSet()
+        val flags = s.flags.toMutableSet()
+        var loreGained = s.loreGained
         val agenda = s.agenda.toMutableList()
         val prompts = s.prompts.toMutableList()
         val history = s.history.toMutableList()
@@ -107,7 +110,7 @@ class GameEngine(val scenario: Scenario) {
             unlockedChapters = unlockedChapters.toList(), activeTokens = activeTokens.toSet(),
             interactedTokens = interactedTokens.toSet(), activeEnemyGroups = activeGroups.toSet(),
             defeatedEnemyGroups = defeatedGroups.toSet(), activeObjectives = activeObjectives.toList(),
-            completedObjectives = completedObjectives.toSet(), firedTriggers = firedTriggers.toSet(), exploredPlacements = explored.toSet(),
+            completedObjectives = completedObjectives.toSet(), firedTriggers = firedTriggers.toSet(), exploredPlacements = explored.toSet(), flags = flags.toSet(), loreGained = loreGained,
             agenda = agenda.toList(), prompts = prompts.toList(), history = history.toList(), resolution = resolution,
         )
 
@@ -220,6 +223,12 @@ class GameEngine(val scenario: Scenario) {
                 is EventStep.FireTrigger -> {
                     val trigger = scenario.trigger(step.trigger)
                     if (trigger?.on == TriggerCondition.Manual) fire(trigger)
+                }
+                is EventStep.SetFlag -> flags += step.flag
+                is EventStep.CheckFlag -> replaceCurrent(if (step.flag in flags) step.ifSet else step.ifNotSet)
+                is EventStep.GainLore -> if (step.amount > 0) {
+                    loreGained += step.amount
+                    prompts += Prompt.Lore(step.amount, step.text)
                 }
                 is EventStep.GainInspiration -> prompts += Prompt.Inspiration(step.amount, step.who, step.text)
                 is EventStep.SufferHarm -> if (step.damage > 0 || step.fear > 0) prompts += Prompt.Harm(step.damage, step.fear, step.who, step.hidden, step.text)

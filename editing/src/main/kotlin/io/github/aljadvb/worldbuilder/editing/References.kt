@@ -23,6 +23,8 @@ data class Reference(val kind: ObjectKind, val id: String, val path: String, val
 /** All objects defined in the campaign, in document order. */
 fun Campaign.definitions(): List<Definition> = buildList {
     add(Definition(ObjectKind.CAMPAIGN, id, "", null))
+    places.forEachIndexed { i, p -> add(Definition(ObjectKind.PLACE, p.id, "places[$i]", null)) }
+    flags.forEachIndexed { i, f -> add(Definition(ObjectKind.FLAG, f.id, "flags[$i]", null)) }
     scenarios.forEachIndexed { si, s ->
         val sp = "scenarios[$si]"
         add(Definition(ObjectKind.SCENARIO, s.id, sp, s.id))
@@ -71,6 +73,7 @@ fun Campaign.mapReferences(map: (Reference) -> String): Campaign {
                 from = ref(ObjectKind.SCENARIO, t.from, "$p.from", id),
                 resolution = ref(ObjectKind.RESOLUTION, t.resolution, "$p.resolution", id),
                 to = ref(ObjectKind.SCENARIO, t.to, "$p.to", id),
+                requiresFlag = t.requiresFlag?.let { ref(ObjectKind.FLAG, it, "$p.requiresFlag", id) },
             )
         },
         scenarios = scenarios.mapIndexed { si, s -> s.mapReferences("scenarios[$si]", ::ref) },
@@ -85,6 +88,10 @@ private fun Scenario.mapReferences(sp: String, ref: RefFn): Scenario {
     return copy(
         startChapter = ref(ObjectKind.CHAPTER, startChapter, "$sp.startChapter", id),
         startObjective = ref(ObjectKind.OBJECTIVE, startObjective, "$sp.startObjective", id),
+        place = place?.let { ref(ObjectKind.PLACE, it, "$sp.place", id) },
+        resolutions = resolutions.mapIndexed { i, r ->
+            r.copy(setFlags = r.setFlags.mapIndexed { fi, f -> ref(ObjectKind.FLAG, f, "$sp.resolutions[$i].setFlags[$fi]", r.id) })
+        },
         chapters = chapters.mapIndexed { ci, ch ->
             val cp = "$sp.chapters[$ci]"
             ch.copy(
@@ -112,7 +119,13 @@ private fun Event.mapReferences(ep: String, ref: RefFn): Event = copy(
     steps = steps.mapIndexed { i, step ->
         val p = "$ep.steps[$i]"
         when (step) {
-            is EventStep.Text, is EventStep.ChangeThreat, is EventStep.GainInspiration, is EventStep.SufferHarm -> step
+            is EventStep.Text, is EventStep.ChangeThreat, is EventStep.GainInspiration, is EventStep.SufferHarm, is EventStep.GainLore -> step
+            is EventStep.SetFlag -> step.copy(flag = ref(ObjectKind.FLAG, step.flag, "$p.flag", id))
+            is EventStep.CheckFlag -> step.copy(
+                flag = ref(ObjectKind.FLAG, step.flag, "$p.flag", id),
+                ifSet = ref(ObjectKind.EVENT, step.ifSet, "$p.ifSet", id),
+                ifNotSet = step.ifNotSet?.let { ref(ObjectKind.EVENT, it, "$p.ifNotSet", id) },
+            )
             is EventStep.Choice -> step.copy(
                 options = step.options.mapIndexed { oi, o -> o.copy(event = ref(ObjectKind.EVENT, o.event, "$p.options[$oi].event", id)) },
             )

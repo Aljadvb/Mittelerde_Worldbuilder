@@ -372,6 +372,7 @@ private fun historyText(prompt: Prompt, scenario: Scenario): String = when (prom
     is Prompt.Explored -> stringResource(R.string.prompt_explored_short)
     is Prompt.Inspiration -> inspirationText(prompt)
     is Prompt.Harm -> harmText(prompt)
+    is Prompt.Lore -> stringResource(R.string.prompt_lore_text, prompt.amount)
     is Prompt.Choice -> prompt.step.text
     is Prompt.Test -> prompt.step.text ?: ""
 }

@@ -197,3 +197,28 @@ class ExplorationValidationTest {
         assertTrue((IssueCode.INVALID_NUMBER to Severity.ERROR) in codes, bad.format())
     }
 }
+
+class CampaignMapValidationTest {
+    @Test
+    fun `places, flags and rewards are checked`() {
+        val c = Examples.campaign
+        val s = c.scenarios.single()
+        val good = c.copy(
+            places = listOf(io.github.aljadvb.worldbuilder.model.Place("pt_bree", "Bree", 0.3, 0.4)),
+            flags = listOf(io.github.aljadvb.worldbuilder.model.CampaignFlag("fl_a", "A")),
+            scenarios = listOf(s.copy(place = "pt_bree", resolutions = s.resolutions.map { it.copy(lore = 2, xp = 1, setFlags = listOf("fl_a")) })),
+            transitions = listOf(io.github.aljadvb.worldbuilder.model.ScenarioTransition(s.id, s.resolutions.first().id, s.id, requiresFlag = "fl_a")),
+        )
+        assertEquals("", CampaignValidator.validate(good, Examples.catalog).format())
+        val bad = good.copy(
+            places = listOf(io.github.aljadvb.worldbuilder.model.Place("pt_bree", "Bree", 1.3, 0.4)),
+            flags = good.flags + io.github.aljadvb.worldbuilder.model.CampaignFlag("fl_b", "B"),
+            scenarios = listOf(s.copy(place = "pt_gibtsnicht", resolutions = s.resolutions.map { it.copy(xp = -1) })),
+            transitions = good.transitions + good.transitions.first().copy(requiresFlag = "fl_b") + good.transitions.first().copy(requiresFlag = "fl_b"),
+        )
+        val codes = CampaignValidator.validate(bad, Examples.catalog).issues.map { it.code }.toSet()
+        for (code in listOf(IssueCode.INVALID_NUMBER, IssueCode.UNKNOWN_REFERENCE, IssueCode.FLAG_NEVER_SET, IssueCode.FLAG_NEVER_USED, IssueCode.DUPLICATE_TRANSITION)) {
+            assertTrue(code in codes, "$code missing: $codes")
+        }
+    }
+}

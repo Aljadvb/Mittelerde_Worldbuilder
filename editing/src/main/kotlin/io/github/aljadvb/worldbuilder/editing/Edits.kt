@@ -186,6 +186,8 @@ fun Campaign.rename(oldId: String, newId: String): Campaign {
         ObjectKind.OBJECTIVE -> renamed.updateObjective(oldId) { it.copy(id = newId) }
         ObjectKind.ENEMY_GROUP -> renamed.updateEnemyGroup(oldId) { it.copy(id = newId) }
         ObjectKind.RESOLUTION -> renamed.updateResolution(oldId) { it.copy(id = newId) }
+        ObjectKind.PLACE -> renamed.copy(places = renamed.places.map { if (it.id == oldId) it.copy(id = newId) else it })
+        ObjectKind.FLAG -> renamed.copy(flags = renamed.flags.map { if (it.id == oldId) it.copy(id = newId) else it })
         ObjectKind.BOARD_PLACEMENT -> renamed.updateBattlefields(oldId) { bf -> bf.copy(boards = bf.boards.map { if (it.id == oldId) it.copy(id = newId) else it }) }
         ObjectKind.TERRAIN_PLACEMENT -> renamed.updateBattlefields(oldId) { bf -> bf.copy(terrain = bf.terrain.map { if (it.id == oldId) it.copy(id = newId) else it }) }
     }
@@ -208,6 +210,8 @@ fun Campaign.delete(id: String): Campaign {
         ObjectKind.OBJECTIVE -> updateOwningScenario(id) { s -> s.copy(objectives = s.objectives.filterNot { it.id == id }) }
         ObjectKind.ENEMY_GROUP -> updateOwningScenario(id) { s -> s.copy(enemyGroups = s.enemyGroups.filterNot { it.id == id }) }
         ObjectKind.RESOLUTION -> updateOwningScenario(id) { s -> s.copy(resolutions = s.resolutions.filterNot { it.id == id }) }
+        ObjectKind.PLACE -> copy(places = places.filterNot { it.id == id })
+        ObjectKind.FLAG -> copy(flags = flags.filterNot { it.id == id })
         ObjectKind.BOARD_PLACEMENT -> updateBattlefields(id) { bf -> bf.copy(boards = bf.boards.filterNot { it.id == id }) }
         ObjectKind.TERRAIN_PLACEMENT -> updateBattlefields(id) { bf -> bf.copy(terrain = bf.terrain.filterNot { it.id == id }) }
     }
@@ -216,3 +220,22 @@ fun Campaign.delete(id: String): Campaign {
 /** Applies [f] to every battlefield of the scenario that owns [id]. */
 internal fun Campaign.updateBattlefields(id: String, f: (Battlefield) -> Battlefield): Campaign =
     updateOwningScenario(id) { s -> s.copy(chapters = s.chapters.map { ch -> ch.battlefield?.let { ch.copy(battlefield = f(it)) } ?: ch }) }
+
+
+// ---- campaign map and flags ----------------------------------------------------------
+
+fun Campaign.addPlace(name: String, x: Double = 0.5, y: Double = 0.5): Created {
+    val id = Ids.fromTitle(ObjectKind.PLACE, name, allIds())
+    return Created(copy(places = places + io.github.aljadvb.worldbuilder.model.Place(id, name, x.coerceIn(0.0, 1.0), y.coerceIn(0.0, 1.0))), id)
+}
+
+fun Campaign.updatePlace(id: String, edit: (io.github.aljadvb.worldbuilder.model.Place) -> io.github.aljadvb.worldbuilder.model.Place) =
+    copy(places = places.map { if (it.id == id) edit(it).let { p -> p.copy(x = p.x.coerceIn(0.0, 1.0), y = p.y.coerceIn(0.0, 1.0)) } else it })
+
+fun Campaign.addFlag(label: String): Created {
+    val id = Ids.fromTitle(ObjectKind.FLAG, label, allIds())
+    return Created(copy(flags = flags + io.github.aljadvb.worldbuilder.model.CampaignFlag(id, label)), id)
+}
+
+fun Campaign.updateFlag(id: String, edit: (io.github.aljadvb.worldbuilder.model.CampaignFlag) -> io.github.aljadvb.worldbuilder.model.CampaignFlag) =
+    copy(flags = flags.map { if (it.id == id) edit(it) else it })

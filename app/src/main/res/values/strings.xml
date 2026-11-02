@@ -87,6 +87,9 @@
     <string name="prompt_explored_short">Kachel erkundet</string>
     <string name="prompt_explored_inspiration">Der erkundende Held oder ein naher Held erhält 1 Inspiration (Marker nehmen). Entfernt den Erkundungsmarker.</string>
     <string name="prompt_explored_hint">Neue Marker sind auf der Karte hervorgehoben.</string>
+    <string name="prompt_lore_title">Wissen</string>
+    <string name="prompt_lore_text">Euer Wissen steigt um %1$d.</string>
+    <string name="prompt_lore_hint">Die App merkt sich das Wissen für die ganze Kampagne.</string>
     <string name="prompt_harm_title">Schaden und Furcht</string>
     <string name="prompt_harm_hint">Zieht die Karten am Tisch – die App zählt sie nicht mit.</string>
     <string name="harm_damage">%1$d Schaden</string>

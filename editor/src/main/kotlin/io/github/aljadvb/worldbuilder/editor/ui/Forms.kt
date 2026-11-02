@@ -72,6 +72,7 @@ fun ObjectForm(model: EditorModel, def: Definition) {
         ObjectKind.TRIGGER -> TriggerForm(model, scenario!!, def, ask)
         ObjectKind.PLACEMENT -> PlacementInfo(model, scenario!!, def)
         ObjectKind.EVENT -> EventForm(model, scenario!!, def, ask)
+        ObjectKind.PLACE, ObjectKind.FLAG -> { Text(def.id); FieldIssues(model, def.path) }
         ObjectKind.BOARD_PLACEMENT -> BoardForm(model, scenario!!, def)
         ObjectKind.TERRAIN_PLACEMENT -> TerrainForm(model, scenario!!, def)
     }

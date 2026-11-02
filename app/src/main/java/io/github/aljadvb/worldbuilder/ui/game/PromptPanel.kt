@@ -179,6 +179,12 @@ private fun NoticeContent(prompt: Prompt.Notice, scenario: Scenario, catalog: Ma
             }
             Hint(stringResource(R.string.prompt_explored_hint))
         }
+        is Prompt.Lore -> {
+            Title(stringResource(R.string.prompt_lore_title))
+            prompt.text?.let { Body(it) }
+            Body(stringResource(R.string.prompt_lore_text, prompt.amount))
+            Hint(stringResource(R.string.prompt_lore_hint))
+        }
         is Prompt.Harm -> {
             Title(stringResource(R.string.prompt_harm_title))
             prompt.text?.let { Body(it) }

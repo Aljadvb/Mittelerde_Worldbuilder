@@ -24,6 +24,10 @@ data class GameState(
     val activeObjectives: List<String> = emptyList(),
     val completedObjectives: Set<String> = emptySet(),
     val firedTriggers: Set<String> = emptySet(),
+    /** Campaign flags: those set before this scenario plus those set during it. */
+    val flags: Set<String> = emptySet(),
+    /** Lore gained during this scenario (added to the campaign at the end). */
+    val loreGained: Int = 0,
     /** Unexplored tiles that have been explored. */
     val exploredPlacements: Set<String> = emptySet(),
     /** Work still to do; the first frame is the one currently running. */
@@ -103,6 +107,9 @@ sealed interface Prompt {
     /** A tile was explored: [tokenIds] are laid out now; the exploring or a near hero takes 1 inspiration. */
     @Serializable @SerialName("explored")
     data class Explored(val placementId: String, val tokenIds: List<String>) : Notice
+
+    @Serializable @SerialName("lore")
+    data class Lore(val amount: Int, val text: String? = null) : Notice
 
     @Serializable @SerialName("harm")
     data class Harm(val damage: Int, val fear: Int, val who: io.github.aljadvb.worldbuilder.model.HeroTarget, val hidden: Boolean, val text: String? = null) : Notice

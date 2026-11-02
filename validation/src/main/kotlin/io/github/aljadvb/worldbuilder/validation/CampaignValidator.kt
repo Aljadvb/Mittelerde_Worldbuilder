@@ -44,6 +44,7 @@ private class CampaignChecks(
         blank(campaign.title, "title", campaign.id, "Titel der Kampagne")
         ref(campaign.startScenario, ObjectKind.SCENARIO, null, "startScenario", campaign.id, "Startszenario")
         checkTransitions()
+        checkPlacesAndFlags()
         campaign.scenarios.forEachIndexed { i, s -> checkScenario(s, i, "scenarios[$i]") }
     }
 
@@ -66,6 +67,8 @@ private class CampaignChecks(
 
     private fun buildIndex() {
         register(campaign.id, ObjectKind.CAMPAIGN, "", null)
+        campaign.places.forEachIndexed { i, p -> register(p.id, ObjectKind.PLACE, "places[$i]", null) }
+        campaign.flags.forEachIndexed { i, f -> register(f.id, ObjectKind.FLAG, "flags[$i]", null) }
         campaign.scenarios.forEachIndexed { si, s ->
             val sp = "scenarios[$si]"
             register(s.id, ObjectKind.SCENARIO, sp, si)
@@ -107,7 +110,7 @@ private class CampaignChecks(
     // ---- Campaign --------------------------------------------------------------------
 
     private fun checkTransitions() {
-        val seen = mutableSetOf<Pair<String, String>>()
+        val seen = mutableSetOf<Triple<String, String, String?>>()
         campaign.transitions.forEachIndexed { i, t ->
             val path = "transitions[$i]"
             val fromOk = ref(t.from, ObjectKind.SCENARIO, null, "$path.from", null, "Übergang (von)")
@@ -116,9 +119,10 @@ private class CampaignChecks(
                 val fromIndex = index.getValue(t.from).scenarioIndex
                 ref(t.resolution, ObjectKind.RESOLUTION, fromIndex, "$path.resolution", null, "Übergang (Auflösung von '${t.from}')")
             }
-            if (!seen.add(t.from to t.resolution)) {
+            t.requiresFlag?.let { ref(it, ObjectKind.FLAG, null, "$path.requiresFlag", null, "Übergang (Bedingung)") }
+            if (!seen.add(Triple(t.from, t.resolution, t.requiresFlag))) {
                 c.error(IssueCode.DUPLICATE_TRANSITION, path, null,
-                    "Für '${t.from}' mit Auflösung '${t.resolution}' gibt es mehrere Übergänge.")
+                    "Für '${t.from}' mit Auflösung '${t.resolution}'" + (t.requiresFlag?.let { " und Merker '$it'" } ?: "") + " gibt es mehrere Übergänge.")
             }
         }
         // Scenarios that can never be played
@@ -134,6 +138,22 @@ private class CampaignChecks(
         }
     }
 
+    private fun checkPlacesAndFlags() {
+        campaign.places.forEachIndexed { i, p ->
+            blank(p.name, "places[$i].name", p.id, "Name des Orts")
+            if (p.x !in 0.0..1.0 || p.y !in 0.0..1.0) c.error(IssueCode.INVALID_NUMBER, "places[$i]", p.id, "Ort '${p.id}' liegt außerhalb der Karte (x und y je 0–1).")
+        }
+        campaign.flags.forEachIndexed { i, f -> blank(f.label, "flags[$i].label", f.id, "Bezeichnung des Merkers") }
+        val steps = campaign.scenarios.flatMap { s -> s.events.flatMap { it.steps } }
+        val set = steps.filterIsInstance<io.github.aljadvb.worldbuilder.model.EventStep.SetFlag>().map { it.flag } +
+            campaign.scenarios.flatMap { s -> s.resolutions.flatMap { it.setFlags } }
+        val used = steps.filterIsInstance<io.github.aljadvb.worldbuilder.model.EventStep.CheckFlag>().map { it.flag } + campaign.transitions.mapNotNull { it.requiresFlag }
+        campaign.flags.forEachIndexed { i, f ->
+            if (f.id in used && f.id !in set) c.warn(IssueCode.FLAG_NEVER_SET, "flags[$i]", f.id, "Merker '${f.label}' wird abgefragt, aber nirgends gesetzt.")
+            if (f.id in set && f.id !in used) c.warn(IssueCode.FLAG_NEVER_USED, "flags[$i]", f.id, "Merker '${f.label}' wird gesetzt, aber nirgends abgefragt.")
+        }
+    }
+
     // ---- Scenario --------------------------------------------------------------------
 
     private fun checkScenario(s: Scenario, si: Int, sp: String) {
@@ -144,6 +164,7 @@ private class CampaignChecks(
             c.error(IssueCode.INVALID_NUMBER, "$sp.threat.perRound", s.id, "Bedrohung pro Runde darf nicht negativ sein.")
         }
         ref(s.startChapter, ObjectKind.CHAPTER, si, "$sp.startChapter", s.id, "Startkapitel")
+        s.place?.let { ref(it, ObjectKind.PLACE, null, "$sp.place", s.id, "Ort auf der Kampagnenkarte") }
         ref(s.startObjective, ObjectKind.OBJECTIVE, si, "$sp.startObjective", s.id, "Startziel")
 
         checkMap(s, si, sp)
@@ -159,6 +180,8 @@ private class CampaignChecks(
         s.resolutions.forEachIndexed { i, r ->
             blank(r.title, "$sp.resolutions[$i].title", r.id, "Titel der Auflösung")
             blank(r.text, "$sp.resolutions[$i].text", r.id, "Text der Auflösung")
+            if (r.lore < 0 || r.xp < 0) c.error(IssueCode.INVALID_NUMBER, "$sp.resolutions[$i]", r.id, "Wissen und EP einer Auflösung dürfen nicht negativ sein.")
+            r.setFlags.forEachIndexed { fi, f -> ref(f, ObjectKind.FLAG, null, "$sp.resolutions[$i].setFlags[$fi]", r.id, "Auflösung '${r.id}' (Merker)") }
         }
     }
 
@@ -339,6 +362,16 @@ private class CampaignChecks(
                     }
                 }
                 is EventStep.EndScenario -> ref(step.resolution, ObjectKind.RESOLUTION, si, "$p.resolution", eventId, what)
+                is EventStep.SetFlag -> ref(step.flag, ObjectKind.FLAG, null, "$p.flag", eventId, what)
+                is EventStep.CheckFlag -> {
+                    ref(step.flag, ObjectKind.FLAG, null, "$p.flag", eventId, what)
+                    ref(step.ifSet, ObjectKind.EVENT, si, "$p.ifSet", eventId, "$what (ifSet)")
+                    step.ifNotSet?.let { ref(it, ObjectKind.EVENT, si, "$p.ifNotSet", eventId, "$what (ifNotSet)") }
+                }
+                is EventStep.GainLore -> {
+                    if (step.amount !in 1..10) c.error(IssueCode.INVALID_NUMBER, "$p.amount", eventId, "$what: Wissen muss 1–10 betragen.")
+                    step.text?.let { blank(it, "$p.text", eventId, "$what: Text") }
+                }
                 is EventStep.SufferHarm -> {
                     if (step.damage !in 0..5 || step.fear !in 0..5 || step.damage + step.fear == 0) {
                         c.error(IssueCode.INVALID_NUMBER, p, eventId, "$what: Schaden und Furcht je 0–5, zusammen mindestens 1.")
@@ -393,6 +426,9 @@ internal fun stepName(step: EventStep): String = when (step) {
     is EventStep.SetObjective -> "setObjective"
     is EventStep.FireTrigger -> "fireTrigger"
     is EventStep.GainInspiration -> "gainInspiration"
+    is EventStep.SetFlag -> "setFlag"
+    is EventStep.CheckFlag -> "checkFlag"
+    is EventStep.GainLore -> "gainLore"
     is EventStep.SufferHarm -> "sufferHarm"
     is EventStep.EndScenario -> "endScenario"
 }

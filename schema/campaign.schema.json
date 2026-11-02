@@ -43,6 +43,20 @@
         "$ref": "#/$defs/transition"
       },
       "description": "Verzweigungen: Endet Szenario 'from' mit Auflösung 'resolution', folgt Szenario 'to'. Auflösungen ohne Übergang beenden die Kampagne."
+    },
+    "places": {
+      "type": "array",
+      "description": "Orte auf der Kampagnenkarte.",
+      "items": {
+        "$ref": "#/$defs/place"
+      }
+    },
+    "flags": {
+      "type": "array",
+      "description": "Kampagnen-Merker, die Ergebnisse über Szenarien hinweg festhalten.",
+      "items": {
+        "$ref": "#/$defs/flag"
+      }
     }
   },
   "$defs": {
@@ -104,6 +118,10 @@
         },
         "to": {
           "$ref": "#/$defs/id"
+        },
+        "requiresFlag": {
+          "$ref": "#/$defs/id",
+          "description": "Nur, wenn dieser Kampagnen-Merker gesetzt ist; solche Übergänge haben Vorrang."
         }
       }
     },
@@ -182,6 +200,10 @@
           "items": {
             "$ref": "#/$defs/resolution"
           }
+        },
+        "place": {
+          "$ref": "#/$defs/id",
+          "description": "Ort auf der Kampagnenkarte (pt_…)."
         }
       }
     },
@@ -750,6 +772,70 @@
           }
         },
         {
+          "description": "Kampagnen-Merker setzen (unsichtbar für die Spieler).",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "flag"
+          ],
+          "properties": {
+            "type": {
+              "const": "setFlag"
+            },
+            "flag": {
+              "$ref": "#/$defs/id"
+            }
+          }
+        },
+        {
+          "description": "Verzweigung nach Kampagnen-Merker. Nur als letzter Schritt.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "flag",
+            "ifSet"
+          ],
+          "properties": {
+            "type": {
+              "const": "checkFlag"
+            },
+            "flag": {
+              "$ref": "#/$defs/id"
+            },
+            "ifSet": {
+              "$ref": "#/$defs/id"
+            },
+            "ifNotSet": {
+              "$ref": "#/$defs/id"
+            }
+          }
+        },
+        {
+          "description": "Belohnung: Das Wissen der Gruppe steigt (die App führt es über die ganze Kampagne).",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "const": "gainLore"
+            },
+            "amount": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 10,
+              "default": 1
+            },
+            "text": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        {
           "description": "Szenario mit dieser Auflösung beenden. Nur als letzter Schritt.",
           "type": "object",
           "additionalProperties": false,
@@ -985,6 +1071,25 @@
             "defeat",
             "neutral"
           ]
+        },
+        "lore": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0,
+          "description": "Wissen, das die Gruppe mit diesem Ende erhält."
+        },
+        "xp": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0,
+          "description": "Erfahrung, die jeder Held mit diesem Ende erhält."
+        },
+        "setFlags": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "description": "Kampagnen-Merker, die dieses Ende setzt."
         }
       }
     },
@@ -1168,6 +1273,54 @@
         }
       },
       "description": "Ein gelegtes Geländeteil: genau eines von 'area' (Teil liegt in einem Feld) oder 'edge' (Teil liegt auf einer Feldgrenze), passend zum Katalog."
+    },
+    "place": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "x",
+        "y"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "x": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "0 = linker Rand, 1 = rechter Rand der Karte."
+        },
+        "y": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "0 = oberer Rand, 1 = unterer Rand."
+        }
+      }
+    },
+    "flag": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
     }
   }
 }

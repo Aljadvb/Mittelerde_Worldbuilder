@@ -29,6 +29,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import io.github.aljadvb.worldbuilder.editing.Definition
 import io.github.aljadvb.worldbuilder.editing.addEvent
+import io.github.aljadvb.worldbuilder.editing.addFlag
 import io.github.aljadvb.worldbuilder.editing.moved
 import io.github.aljadvb.worldbuilder.editing.updateEvent
 import io.github.aljadvb.worldbuilder.editor.EditorModel
@@ -110,6 +111,9 @@ private fun stepLabel(step: EventStep): String {
         is EventStep.FireTrigger -> "fireTrigger"
         is EventStep.GainInspiration -> "gainInspiration"
         is EventStep.SufferHarm -> "sufferHarm"
+        is EventStep.GainLore -> "gainLore"
+        is EventStep.SetFlag -> "setFlag"
+        is EventStep.CheckFlag -> "checkFlag"
         is EventStep.EndScenario -> "endScenario"
     }
     return Texts.STEP_TYPES.first { it.first == type }.second
@@ -130,6 +134,9 @@ fun newStep(type: String, s: Scenario): EventStep = when (type) {
     "endScenario" -> EventStep.EndScenario(s.resolutions.firstOrNull()?.id.orEmpty())
     "gainInspiration" -> EventStep.GainInspiration()
     "sufferHarm" -> EventStep.SufferHarm(damage = 1)
+    "gainLore" -> EventStep.GainLore(1)
+    "setFlag" -> EventStep.SetFlag("")
+    "checkFlag" -> EventStep.CheckFlag("", "")
     else -> error("unknown step type $type")
 }
 
@@ -199,6 +206,16 @@ private fun StepFields(
             }
             TextInput(model, Texts.OPTIONAL_TEXT, step.text.orEmpty(), "$key.text", "$p.text") { v -> setText(step.copy(text = v.ifEmpty { null })) }
         }
+        is EventStep.GainLore -> {
+            IntInput(model, Texts.AMOUNT, step.amount, "$key.amount", "$p.amount") { v -> setText(step.copy(amount = v)) }
+            TextInput(model, Texts.OPTIONAL_TEXT, step.text.orEmpty(), "$key.text", "$p.text") { v -> setText(step.copy(text = v.ifEmpty { null })) }
+        }
+        is EventStep.SetFlag -> FlagInput(model, step.flag, "$p.flag") { v -> set(step.copy(flag = v)) }
+        is EventStep.CheckFlag -> {
+            FlagInput(model, step.flag, "$p.flag") { v -> set(step.copy(flag = v)) }
+            ChoiceInput(model, Texts.IF_SET, step.ifSet, events, "$p.ifSet", onCreate = { newEvent { id -> set(step.copy(ifSet = id)) } }) { v -> set(step.copy(ifSet = v.orEmpty())) }
+            ChoiceInput(model, Texts.IF_NOT_SET, step.ifNotSet, events, "$p.ifNotSet", allowNone = true, onCreate = { newEvent { id -> set(step.copy(ifNotSet = id)) } }) { v -> set(step.copy(ifNotSet = v)) }
+        }
         is EventStep.SufferHarm -> {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
                 IntInput(model, Texts.DAMAGE, step.damage, "$key.damage", "$p") { v -> setText(step.copy(damage = v)) }
@@ -213,5 +230,21 @@ private fun StepFields(
         is EventStep.EndScenario -> ChoiceInput(model, Texts.RESOLUTION, step.resolution, s.resolutions.map { Choice(it.id, "${it.title} · ${it.id}") }, "$p.resolution") { v ->
             set(step.copy(resolution = v.orEmpty()))
         }
+    }
+}
+
+
+/** Campaign flag dropdown with "create new". */
+@Composable
+private fun FlagInput(model: EditorModel, flag: String, path: String, onSelect: (String) -> Unit) {
+    var creating by remember { mutableStateOf(false) }
+    val flags = model.campaign?.flags.orEmpty().map { Choice(it.id, "${it.label} · ${it.id}") }
+    ChoiceInput(model, Texts.FLAG, flag, flags, path, onCreate = { creating = true }) { v -> onSelect(v.orEmpty()) }
+    if (creating) {
+        NameDialog(Texts.NEW_FLAG, onConfirm = { label ->
+            creating = false
+            var id: String? = null
+            if (model.edit { c -> c.addFlag(label).also { id = it.id }.campaign }) id?.let(onSelect)
+        }, onDismiss = { creating = false })
     }
 }

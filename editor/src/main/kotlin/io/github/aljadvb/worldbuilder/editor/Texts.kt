@@ -175,11 +175,19 @@ object Texts {
         "fireTrigger" to "Trigger auslösen",
         "gainInspiration" to "Inspiration erhalten",
         "sufferHarm" to "Schaden/Furcht erleiden",
+        "gainLore" to "Wissen erhalten",
+        "setFlag" to "Kampagnen-Merker setzen",
+        "checkFlag" to "Kampagnen-Merker prüfen",
         "endScenario" to "Szenario beenden",
     )
     val INSPIRATION_TARGETS = listOf("ACTIVE" to "der handelnde Held", "EACH" to "jeder Held", "CHOSEN" to "ein Held eurer Wahl")
     const val INSPIRATION_WHO = "Wer erhält sie?"
     const val HARM_WHO = "Wer ist betroffen?"
+    const val FLAG = "Kampagnen-Merker"
+    const val IF_SET = "Wenn gesetzt → Event"
+    const val IF_NOT_SET = "Sonst → Event"
+    const val NEW_FLAG = "Neuer Kampagnen-Merker"
+    fun lore(amount: Int) = "Euer Wissen steigt um $amount."
     const val DAMAGE = "Schaden"
     const val FEAR = "Furcht"
     const val HIDDEN = "verdeckt"

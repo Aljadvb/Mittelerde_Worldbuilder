@@ -19,12 +19,24 @@ data class Campaign(
     val startScenario: String,
     val scenarios: List<Scenario>,
     val transitions: List<ScenarioTransition> = emptyList(),
+    /** Places on the campaign map. */
+    val places: List<Place> = emptyList(),
+    /** Campaign flags that remember outcomes across scenarios. */
+    val flags: List<CampaignFlag> = emptyList(),
 ) {
     fun scenario(id: String): Scenario? = scenarios.firstOrNull { it.id == id }
+    fun place(id: String): Place? = places.firstOrNull { it.id == id }
+    fun flag(id: String): CampaignFlag? = flags.firstOrNull { it.id == id }
 
-    /** Next scenario after [scenarioId] ended with [resolutionId], or null if the campaign ends. */
-    fun nextScenario(scenarioId: String, resolutionId: String): String? =
-        transitions.firstOrNull { it.from == scenarioId && it.resolution == resolutionId }?.to
+    /**
+     * Next scenario after [scenarioId] ended with [resolutionId], or null if the campaign ends.
+     * Transitions that require a set flag win over unconditional ones.
+     */
+    fun nextScenario(scenarioId: String, resolutionId: String, setFlags: Set<String> = emptySet()): String? {
+        val candidates = transitions.filter { it.from == scenarioId && it.resolution == resolutionId }
+        return (candidates.firstOrNull { it.requiresFlag != null && it.requiresFlag in setFlags }
+            ?: candidates.firstOrNull { it.requiresFlag == null })?.to
+    }
 }
 
 @Serializable
@@ -32,7 +44,16 @@ data class ScenarioTransition(
     val from: String,
     val resolution: String,
     val to: String,
+    /** Only taken if this campaign flag is set. */
+    val requiresFlag: String? = null,
 )
+
+/** A location on the campaign map; [x]/[y] are relative (0–1, left/top to right/bottom). */
+@Serializable
+data class Place(val id: String, val name: String, val x: Double, val y: Double)
+
+@Serializable
+data class CampaignFlag(val id: String, val label: String)
 
 @Serializable
 data class Scenario(
@@ -48,6 +69,8 @@ data class Scenario(
     val triggers: List<Trigger> = emptyList(),
     val objectives: List<Objective> = emptyList(),
     val resolutions: List<Resolution>,
+    /** Place on the campaign map. */
+    val place: String? = null,
 ) {
     val tokens: List<Token> get() = chapters.flatMap { it.tokens }
     val placements: List<TilePlacement> get() = chapters.flatMap { it.tiles }
@@ -174,4 +197,10 @@ data class Resolution(
     val title: String,
     val text: String,
     val outcome: Outcome,
+    /** Lore the group gains with this ending. */
+    val lore: Int = 0,
+    /** Experience each hero gains with this ending. */
+    val xp: Int = 0,
+    /** Campaign flags set by this ending. */
+    val setFlags: List<String> = emptyList(),
 )
