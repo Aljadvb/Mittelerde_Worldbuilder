@@ -46,6 +46,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.res.stringResource
+import androidx.compose.foundation.clickable
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -168,6 +169,7 @@ internal fun PlayContent(
     var confirmEndRound by remember { mutableStateOf(false) }
     var confirmDefeat by remember { mutableStateOf<String?>(null) }
     var showLimit by remember { mutableStateOf(false) }
+    var enemyMenu by remember { mutableStateOf<String?>(null) }
     var terrainInfo by remember { mutableStateOf<io.github.aljadvb.worldbuilder.hexmap.TerrainInfo?>(null) }
     val prompt = game.currentPrompt
     val tokenLetters = scenario.tokens.associate { it.id to tokenTypeLabel(it).take(1).uppercase() }
@@ -190,6 +192,7 @@ internal fun PlayContent(
                 onPieceTap = { terrainInfo = scenario.terrainInfo(it, catalog) },
                 modifier = Modifier.weight(1f).fillMaxWidth(),
                 images = images,
+                onEnemyTap = { enemyMenu = it },
             )
         } else {
             HexMap(
@@ -203,6 +206,7 @@ internal fun PlayContent(
                 modifier = Modifier.weight(1f).fillMaxWidth(),
                 images = images,
                 onExploreTap = { onCommand(Command.ExploreTile(it)) },
+                onEnemyTap = { enemyMenu = it },
             )
         }
         if (prompt != null) {
@@ -218,11 +222,18 @@ internal fun PlayContent(
                 battle = scenario.showsBattle(game),
                 onAttack = { attackGroup = it },
                 onProvoke = { onCommand(Command.ProvokeEnemy(it)) },
+                onEnemyMenu = { enemyMenu = it },
                 onLimit = { showLimit = true },
             )
         }
     }
 
+    enemyMenu?.takeIf { it in game.activeEnemyGroups }?.let { gid ->
+        EnemyMenu(scenario, catalog, game, gid, onDismiss = { enemyMenu = null },
+            onAttack = { enemyMenu = null; attackGroup = gid },
+            onProvoke = { enemyMenu = null; onCommand(Command.ProvokeEnemy(gid)) },
+            onDefeat = { enemyMenu = null; confirmDefeat = gid })
+    }
     if (showLimit) LimitDialog(game, heroNames, onDismiss = { showLimit = false }) { hero, kind -> showLimit = false; onCommand(Command.LimitReached(hero, kind)) }
     terrainInfo?.let { TerrainDialog(it, images, onDismiss = { terrainInfo = null }) }
     attackGroup?.let { gid -> AttackDialog(scenario, catalog, game, gid, onDismiss = { attackGroup = null }) { onCommand(it); attackGroup = null } }
@@ -296,6 +307,7 @@ private fun ActionPanel(
     onAttack: (String) -> Unit = {},
     onProvoke: (String) -> Unit = {},
     onLimit: () -> Unit = {},
+    onEnemyMenu: (String) -> Unit = {},
 ) {
     Column(Modifier.padding(bottom = 12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         val groups = game.activeEnemyGroups.mapNotNull { scenario.enemyGroup(it) }
@@ -303,11 +315,11 @@ private fun ActionPanel(
             Text(stringResource(R.string.game_enemies), style = MaterialTheme.typography.labelMedium)
             Text(stringResource(R.string.provoke_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             groups.forEach { g ->
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    val name = catalog.enemyType(g.enemyType)?.name ?: g.enemyType
+                Column {
+                    val name = enemyLabel(catalog, game, g.id, g.enemyType)
                     val health = game.enemyHealth[g.id]
-                    Column(Modifier.weight(1f)) {
-                        Text(stringResource(R.string.game_enemy_line, health?.count { it > 0 } ?: (g.count[game.heroCount] ?: 0), name))
+                    Column(Modifier.fillMaxWidth().clickable { onEnemyMenu(g.id) }) {
+                        Text(stringResource(R.string.game_enemy_line, health?.count { it > 0 } ?: (g.count[game.heroCount] ?: 0), name), fontWeight = FontWeight.Bold)
                         val type = catalog.enemyType(g.enemyType)
                         if (health != null && type != null) {
                             Text(
@@ -318,9 +330,11 @@ private fun ActionPanel(
                             )
                         }
                     }
-                    Button(onClick = { onAttack(g.id) }) { Text(stringResource(R.string.attack)) }
-                    TextButton(enabled = g.id !in game.exhaustedGroups, onClick = { onProvoke(g.id) }) { Text(stringResource(R.string.provoke)) }
-                    TextButton(onClick = { onDefeat(g.id) }) { Text(stringResource(R.string.game_defeated)) }
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Button(onClick = { onAttack(g.id) }) { Text(stringResource(R.string.attack)) }
+                        TextButton(enabled = g.id !in game.exhaustedGroups, onClick = { onProvoke(g.id) }) { Text(stringResource(R.string.provoke)) }
+                        TextButton(onClick = { onDefeat(g.id) }) { Text(stringResource(R.string.game_defeated)) }
+                    }
                 }
             }
         }
@@ -343,6 +357,43 @@ private fun ActionPanel(
             Button(onClick = onEndRound, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.game_end_round)) }
         }
     }
+}
+
+/** Enemy name with its banner number, e.g. "Ork-Jäger · Banner 2". */
+@Composable
+internal fun enemyLabel(catalog: MaterialCatalog, game: GameState, groupId: String, enemyType: String): String {
+    val name = catalog.enemyType(enemyType)?.name ?: enemyType
+    return game.enemyBanners[groupId]?.let { stringResource(R.string.enemy_with_banner, name, it) } ?: name
+}
+
+/** Enemy menu of one group: values, health of each enemy, and the actions. */
+@Composable
+private fun EnemyMenu(scenario: Scenario, catalog: MaterialCatalog, game: GameState, groupId: String, onDismiss: () -> Unit, onAttack: () -> Unit, onProvoke: () -> Unit, onDefeat: () -> Unit) {
+    val g = scenario.enemyGroup(groupId) ?: return
+    val type = catalog.enemyType(g.enemyType)
+    val health = game.enemyHealth[groupId]
+    val exhausted = groupId in game.exhaustedGroups
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.close)) } },
+        title = { Text(enemyLabel(catalog, game, groupId, g.enemyType)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (type != null) {
+                    Text(stringResource(R.string.enemy_menu_values, (type.armor - (game.armorLoss[groupId] ?: 0)).coerceAtLeast(0), type.sorcery, type.movement) +
+                        if (type.ranged) " · " + stringResource(R.string.enemy_menu_ranged) else "")
+                }
+                val alive = health?.withIndex()?.filter { it.value > 0 }.orEmpty()
+                alive.forEach { (i, hp) -> Text(stringResource(R.string.enemy_menu_health, i + 1, hp, type?.health ?: hp)) }
+                if (exhausted) Text(stringResource(R.string.enemy_exhausted), color = MaterialTheme.colorScheme.error)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(onClick = onAttack) { Text(stringResource(R.string.attack)) }
+                    OutlinedButton(enabled = !exhausted, onClick = onProvoke) { Text(stringResource(R.string.provoke)) }
+                }
+                TextButton(onClick = onDefeat) { Text(stringResource(R.string.game_defeated)) }
+            }
+        },
+    )
 }
 
 /** Pick the hero who reached a limit and whether it is damage or fear. */

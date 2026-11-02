@@ -164,6 +164,7 @@ private fun NoticeContent(prompt: Prompt.Notice, scenario: Scenario, catalog: Ma
                 if (group.location is SquareLocation) stringResource(R.string.prompt_spawn_text_battle, prompt.count, name)
                 else stringResource(R.string.prompt_spawn_text, prompt.count, name, tileLabel(group.location.placementId.orEmpty())),
             )
+            prompt.banner?.let { Text(stringResource(R.string.prompt_spawn_banner, it), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error) }
         }
         is Prompt.PlaceToken -> {
             val token = scenario.token(prompt.tokenId) ?: return

@@ -177,6 +177,7 @@ class GameEngine(
         val ownedItemsAtStart = s.ownedItems
         val itemsFound = s.itemsFound.toMutableList()
         val testProgress = s.testProgress.toMutableMap()
+        val enemyBanners = s.enemyBanners.toMutableMap()
 
         /** Deterministic random number in 0 until [n]. */
         fun random(n: Int): Int {
@@ -197,7 +198,7 @@ class GameEngine(
             enemyHealth = enemyHealth.toMap(), armorLoss = armorLoss.toMap(), exhaustedGroups = exhausted.toSet(),
             darknessFear = darknessFear, rng = rng,
             defeatedHeroes = defeatedHeroes.toSet(), lastStandUsed = lastStandUsed.toSet(),
-            ownedItems = ownedItemsAtStart, itemsFound = itemsFound.toList(), testProgress = testProgress.toMap(),
+            ownedItems = ownedItemsAtStart, itemsFound = itemsFound.toList(), testProgress = testProgress.toMap(), enemyBanners = enemyBanners.toMap(),
             agenda = agenda.toList(), prompts = prompts.toList(), history = history.toList(), resolution = resolution,
         )
 
@@ -301,6 +302,7 @@ class GameEngine(
 
         fun defeat(groupId: String) {
             enemyHealth -= groupId
+            enemyBanners -= groupId
             exhausted -= groupId
             activeGroups -= groupId
             defeatedGroups += groupId
@@ -385,7 +387,11 @@ class GameEngine(
                         val type = enemyTypes[group.enemyType]
                         enemyHealth[group.id] = List(group.count[heroCount] ?: 0) { type?.health ?: 1 }
                         armorLoss -= group.id
-                        prompts += Prompt.SpawnEnemies(group.id, group.count[heroCount] ?: 0)
+                        // Another group of the same type on the map: this one gets the lowest free banner number.
+                        val sameType = activeGroups.any { it != group.id && scenario.enemyGroup(it)?.enemyType == group.enemyType }
+                        val banner = if (sameType) generateSequence(1) { it + 1 }.first { it !in enemyBanners.values } else null
+                        banner?.let { enemyBanners[group.id] = it }
+                        prompts += Prompt.SpawnEnemies(group.id, group.count[heroCount] ?: 0, banner)
                     }
                 }
                 is EventStep.ChangeThreat -> {

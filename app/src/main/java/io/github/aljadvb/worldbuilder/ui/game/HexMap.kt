@@ -30,6 +30,7 @@ fun HexMap(
     modifier: Modifier = Modifier,
     onExploreTap: (String) -> Unit = {},
     images: TileImageCache? = null,
+    onEnemyTap: (String) -> Unit = {},
 ) {
     val scene = playScene(scenario, catalog, state, highlight, tokenLetters, images)
     val projection = remember { arrayOfNulls<HexProjection>(1) }
@@ -41,7 +42,9 @@ fun HexMap(
             detectTapGestures { pos ->
                 val proj = projection[0] ?: return@detectTapGestures
                 val token = tokenAt(proj, scene.tokens, pos)
-                if (token != null) onTokenTap(token.id)
+                val enemy = io.github.aljadvb.worldbuilder.hexmap.enemyAt(proj, scene.enemies, pos)
+                if (enemy != null) onEnemyTap(enemy.id)
+                else if (token != null) onTokenTap(token.id)
                 else io.github.aljadvb.worldbuilder.hexmap.exploreMarkerAt(proj, scene.tiles, pos)?.let { onExploreTap(it.id) }
             }
         },

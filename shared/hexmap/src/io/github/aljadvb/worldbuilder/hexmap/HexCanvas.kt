@@ -51,7 +51,7 @@ data class MapTile(
 
 data class MapToken(val id: String, val cell: HexCoord, val type: TokenType, val letter: String, val selected: Boolean = false)
 
-data class MapEnemy(val id: String, val cell: HexCoord, val count: Int, val selected: Boolean = false)
+data class MapEnemy(val id: String, val cell: HexCoord, val count: Int, val selected: Boolean = false, val banner: Int? = null)
 
 /** Everything the map shows. */
 data class MapScene(
@@ -163,8 +163,7 @@ fun HexCanvas(
             drawText(measured, topLeft = topLeft)
         }
 
-        for (enemy in scene.enemies) {
-            val c = enemyCenter(proj, enemy.cell)
+        for ((enemy, c) in enemyCenters(proj, scene.enemies)) {
             val r = proj.size * 0.3f
             val diamond = Path().apply {
                 moveTo(c.x, c.y - r); lineTo(c.x + r, c.y); lineTo(c.x, c.y + r); lineTo(c.x - r, c.y); close()
@@ -173,6 +172,7 @@ fun HexCanvas(
             drawPath(diamond, MapColors.Enemy)
             val m = textMeasurer.measure(enemy.count.toString(), TextStyle(fontSize = (r * 0.9f).toSp(), color = Color.White, fontWeight = FontWeight.Bold))
             drawText(m, topLeft = Offset(c.x - m.size.width / 2f, c.y - m.size.height / 2f))
+            enemy.banner?.let { drawBanner(textMeasurer, it, c + Offset(r * 0.9f, r * 0.9f), r * 0.55f) }
         }
 
         for ((token, c) in tokenCenters(proj, scene.tokens)) {
@@ -218,6 +218,25 @@ fun tokenCenters(proj: HexProjection, tokens: List<MapToken>): List<Pair<MapToke
     }
 
 fun enemyCenter(proj: HexProjection, cell: HexCoord): Offset = proj.center(cell) + Offset(proj.size * 0.35f, -proj.size * 0.35f)
+
+/** Pixel centres of enemy markers; several groups on one cell stand side by side. */
+fun enemyCenters(proj: HexProjection, enemies: List<MapEnemy>): List<Pair<MapEnemy, Offset>> =
+    enemies.groupBy { it.cell }.flatMap { (cell, onCell) ->
+        onCell.mapIndexed { i, e -> e to (enemyCenter(proj, cell) - Offset(proj.size * 0.62f * i, 0f)) }
+    }
+
+/** The enemy marker at [p], if any. */
+fun enemyAt(proj: HexProjection, enemies: List<MapEnemy>, p: Offset): MapEnemy? =
+    enemyCenters(proj, enemies).minByOrNull { (it.second - p).getDistance() }
+        ?.takeIf { (it.second - p).getDistance() <= proj.size * 0.4f }?.first
+
+/** Small white disc with the banner number next to an enemy marker. */
+internal fun androidx.compose.ui.graphics.drawscope.DrawScope.drawBanner(textMeasurer: androidx.compose.ui.text.TextMeasurer, banner: Int, c: Offset, r: Float) {
+    drawCircle(Color.White, r, c)
+    drawCircle(MapColors.Enemy, r, c, style = Stroke(r * 0.25f))
+    val m = textMeasurer.measure(banner.toString(), TextStyle(fontSize = (r * 1.2f).toSp(), color = MapColors.Enemy, fontWeight = FontWeight.Bold))
+    drawText(m, topLeft = Offset(c.x - m.size.width / 2f, c.y - m.size.height / 2f))
+}
 
 /** The token whose disc contains [p], if any. */
 fun tokenAt(proj: HexProjection, tokens: List<MapToken>, p: Offset): MapToken? =

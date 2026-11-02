@@ -155,4 +155,22 @@ class ShadowPhaseTest {
             while (!x.isIdle && !x.isOver) x = e.apply(x, Command.Acknowledge)
         }
     }
+
+    @Test
+    fun `second group of the same type gets a numbered banner, freed on defeat`() {
+        val g = scenario.enemyGroups.single { it.id == "eg_nebelwoelfe" }
+        val sc = scenario.copy(
+            enemyGroups = scenario.enemyGroups + g.copy(id = "eg_zwei") + g.copy(id = "eg_drei"),
+            events = scenario.events + Event("evt_mehr", listOf(EventStep.SpawnEnemies("eg_nebelwoelfe"), EventStep.SpawnEnemies("eg_zwei"), EventStep.SpawnEnemies("eg_drei"))),
+        )
+        val e = GameEngine(sc, enemyTypes = mapOf("nebelwolf" to wolf))
+        var s = e.start(3)
+        while (!s.isIdle) s = e.apply(s, Command.Acknowledge)
+        s = s.copy(agenda = listOf(Frame.EventFrame("evt_mehr")), prompts = listOf(Prompt.Intro))
+        val spawns = mutableListOf<Prompt.SpawnEnemies>()
+        while (!s.isIdle) { (s.currentPrompt as? Prompt.SpawnEnemies)?.let { spawns += it }; s = e.apply(s, Command.Acknowledge) }
+        assertEquals(listOf(null, 1, 2), spawns.map { it.banner })
+        s = e.apply(s, Command.DefeatEnemyGroup("eg_zwei"))
+        assertEquals(mapOf("eg_drei" to 2), s.enemyBanners)
+    }
 }

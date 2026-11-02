@@ -50,6 +50,7 @@ fun BattleMapView(
     onPieceTap: (String) -> Unit,
     modifier: Modifier = Modifier,
     images: TileImageCache? = null,
+    onEnemyTap: (String) -> Unit = {},
 ) {
     val scene = battlePlayScene(scenario, catalog, state, highlight, tokenLetters, images)
     val projection = remember { arrayOfNulls<BattleProjection>(1) }
@@ -60,7 +61,9 @@ fun BattleMapView(
             detectTapGestures { pos ->
                 val proj = projection[0] ?: return@detectTapGestures
                 val token = if (tapEnabled) squareTokenAt(proj, scene.tokens, pos) else null
+                val enemy = if (tapEnabled) io.github.aljadvb.worldbuilder.hexmap.squareEnemyAt(proj, scene.enemies, pos) else null
                 when {
+                    enemy != null -> onEnemyTap(enemy.id)
                     token != null -> onTokenTap(token.id)
                     else -> pieceAt(proj, scene, pos)?.let { onPieceTap(it.id) }
                 }

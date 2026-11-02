@@ -289,6 +289,13 @@ Gegnertyps: Bewegung, Schaden, Furcht, Text; erschöpfte Gruppen erholen sich st
 `attacks` [{damage, fear, text}]. Die App führt die Gesundheit jedes Gegners; Angriffe mit Treffern und den Modifikatoren
 Durchbohren, Zerschlagen, Zerfallen, Spalten, Betäuben, Tödlich.
 
+**Proben, Erholung, Gegner (1.12.0, Plan: `docs/PROBEN_GEGNER_PLAN.md`):** `test` hat optional `hidden` (App nennt die
+Erfolge nicht, meldet nur geschafft/nicht geschafft) und `cumulative` (Sammelprobe: Erfolge über Versuche addieren, Stand
+in `GameState.testProgress`, `onAttempt` nach jedem noch nicht reichenden Versuch, kein `onFailure`). Neuer Schritt
+`recover` (Schaden/Furcht ablegen). Gegner: Erscheint eine Gruppe, während eine andere desselben Typs auf dem Plan steht,
+vergibt die App die kleinste freie Banner-Nummer (frei, sobald die Gruppe besiegt ist). Antippen der Gegner-Raute oder
+des Namens öffnet das Gegnermenü (Werte, Gesundheit je Feind, Angreifen, Provozieren, Besiegt).
+
 **Schmuckstücke (1.11.0):** Der Katalog hat eine Liste `items` (`id`, `name`, `expansion`, `kind` = `trinket`, `effect` in
 eigenen Worten, `cardText` und `image` nur im privaten Katalog). Event-Schritt `{"type": "gainItem", "item": "…", "who":
 "active"}`; ohne `item` wählt die App ein zufälliges Schmuckstück, das die Gruppe noch nicht besitzt (ein schon besessenes

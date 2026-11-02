@@ -53,7 +53,8 @@ fun playScene(
     }
     val enemies = state.activeEnemyGroups.mapNotNull { id ->
         val g = scenario.enemyGroup(id) ?: return@mapNotNull null
-        scenario.mapCell(g.location)?.let { MapEnemy(g.id, it, g.count[state.heroCount] ?: 0) }
+        val alive = state.enemyHealth[g.id]?.count { it > 0 } ?: (g.count[state.heroCount] ?: 0)
+        scenario.mapCell(g.location)?.let { MapEnemy(g.id, it, alive, banner = state.enemyBanners[g.id]) }
     }
     return MapScene(catalog.hexOrientation, tiles, tokens, enemies, highlightCells = highlight.cells)
 }

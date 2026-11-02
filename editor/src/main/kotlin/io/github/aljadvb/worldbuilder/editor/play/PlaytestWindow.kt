@@ -338,7 +338,8 @@ fun describe(prompt: Prompt, scenario: Scenario, catalog: MaterialCatalog): Stri
         is Prompt.Text -> prompt.text
         is Prompt.Inspect -> scenario.token(prompt.tokenId)?.let { "${it.label}: ${it.inspectText.orEmpty()}" }.orEmpty()
         is Prompt.Setup -> scenario.chapter(prompt.chapterId)?.let { Texts.setup(it.title) + if (it.setupText.isNotBlank()) "\n" + it.setupText else "" }.orEmpty()
-        is Prompt.SpawnEnemies -> scenario.enemyGroup(prompt.groupId)?.let { Texts.spawn(prompt.count, catalog.enemyType(it.enemyType)?.name ?: it.enemyType, tile(it.location.placementId.orEmpty())) }.orEmpty()
+        is Prompt.SpawnEnemies -> scenario.enemyGroup(prompt.groupId)?.let { Texts.spawn(prompt.count, catalog.enemyType(it.enemyType)?.name ?: it.enemyType, tile(it.location.placementId.orEmpty())) }.orEmpty() +
+            (prompt.banner?.let { "\nStellt Banner $it dazu." } ?: "")
         is Prompt.PlaceToken -> scenario.token(prompt.tokenId)?.let { Texts.placeToken(it.label, tile(it.location.placementId.orEmpty())) }.orEmpty()
         is Prompt.RemoveToken -> scenario.token(prompt.tokenId)?.let { Texts.removeToken(it.label) }.orEmpty()
         is Prompt.ThreatChanged -> Texts.threatChanged(prompt.delta, prompt.threat)

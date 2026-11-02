@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.ui.unit.dp
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.platform.app.InstrumentationRegistry
@@ -363,5 +364,16 @@ class ScreenshotTest {
         compose.setContent { Screen { PlayContent(sc, catalog, st, campaignChanged = false, onCommand = {}) } }
         compose.onNodeWithText("Schmuckstück gefunden").assertExists()
         snapshot("18_item_found")
+    }
+
+    @Test
+    fun enemyMenu() {
+        val s = millWithEnemies()
+        val group = s.activeEnemyGroups.firstOrNull() ?: return
+        val name = catalog.enemyType(scenario.enemyGroup(group)!!.enemyType)!!.name
+        show(s)
+        compose.onAllNodesWithText(name, substring = true)[0].performClick()
+        compose.onNodeWithText("Schließen").assertExists()
+        snapshot("19_enemy_menu")
     }
 }

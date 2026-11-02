@@ -1,6 +1,6 @@
 # Proben, Stimmungs-Marker und Gegner – Plan zur Freigabe
 
-Stand: 2026-11-02 · **Entwurf, noch nicht umgesetzt.** Anlass: Rückmeldung nach dem ersten Spiel mit einem KI-Szenario.
+Stand: 2026-11-02 · **Umgesetzt in 1.12.0.** Entscheidungen: Banner als Nummern (keine Katalogliste); ein Versuch einer Sammelprobe kostet nur die Aktion, die App hält nichts vor (optional `onAttempt` im Szenario). Anlass: Rückmeldung nach dem ersten Spiel mit einem KI-Szenario.
 
 ## 1. Proben
 

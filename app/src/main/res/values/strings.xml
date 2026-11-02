@@ -268,4 +268,9 @@
     <string name="recover_active">Der handelnde Held legt %1$s ab.</string>
     <string name="recover_each">Jeder Held legt %1$s ab.</string>
     <string name="recover_chosen">Ein Held eurer Wahl legt %1$s ab.</string>
+    <string name="enemy_with_banner">%1$s · Banner %2$d</string>
+    <string name="prompt_spawn_banner">Stellt Banner %1$d dazu – so könnt ihr die Gruppe von anderen gleichen Gegnern unterscheiden.</string>
+    <string name="enemy_menu_values">Rüstung %1$d · Schutzzauber %2$d · Bewegung %3$d</string>
+    <string name="enemy_menu_ranged">Fernkampf</string>
+    <string name="enemy_menu_health">Feind %1$d: %2$d / %3$d Gesundheit</string>
 </resources>

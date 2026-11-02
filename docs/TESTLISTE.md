@@ -1,6 +1,6 @@
 # Testliste – was noch von Hand zu prüfen ist
 
-Stand: 2026-11-02 · Version 1.11.0 · Abhaken mit `[x]`. Rückmeldungen (Screenshots, Dateien) einfach im Chat schicken.
+Stand: 2026-11-02 · Version 1.12.0 · Abhaken mit `[x]`. Rückmeldungen (Screenshots, Dateien) einfach im Chat schicken.
 
 Alles hier ist automatisch getestet (Unit-Tests, simulierte Maus, gerenderte Screenshots), aber **noch nie auf echter
 Hardware bzw. mit einer echten KI gelaufen**. Die wichtigsten Punkte stehen oben.
@@ -101,6 +101,17 @@ Hardware bzw. mit einer echten KI gelaufen**. Die wichtigsten Punkte stehen oben
 - [ ] App: Meldung „Schmuckstück gefunden“ mit Name, Wirkung bzw. Kartentext (und Kartenbild, sobald gescannt)
 - [ ] Nach dem Szenario: Lager und ⋮ → Kampagne zeigen das Gruppeninventar; im nächsten Szenario kommt dasselbe Schmuckstück nicht noch einmal
 - [ ] KI-Generator: 1–2 Funde pro Szenario an passenden Stellen
+
+## 1k. Proben, Stimmungs-Marker, Gegnermenü und Banner (neu in 1.12.0)
+
+- [ ] Neues KI-Szenario: Proben mit 1, 2 und 3+ Erfolgen gemischt (leicht/normal/schwer)
+- [ ] Verdeckte Probe: App nennt die Zahl nicht, meldet nur „geschafft“ / „nicht geschafft“
+- [ ] Sammelprobe: mehrere Versuche (auch verschiedene Helden, über Runden), App zeigt „bisher X von Y“; der Marker bleibt liegen
+- [ ] Editor: Probe auf „Verdeckt“ und „Sammelprobe“ stellen; Schritt „Erholung“ anlegen
+- [ ] KI-Szenario: 2–3 optionale Stimmungs-Marker pro Kapitel mit kleinen Belohnungen
+- [ ] KI-Szenario: Gegner erscheinen wirklich (2–4 Gruppen)
+- [ ] Gegner-Raute oder Gegnername antippen → Gegnermenü mit Werten, Gesundheit je Feind, Angreifen/Provozieren/Besiegt
+- [ ] Zwei Gruppen desselben Gegnertyps: die zweite bekommt „Banner 1“ (Anzeige an der Raute und im Namen); nach dem Besiegen wird die Nummer wieder frei
 
 ## 1i. Alle Kacheln, Symbole und Höhlen-Durchgänge (Katalog vom 2.11.)
 

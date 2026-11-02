@@ -48,6 +48,8 @@ data class GameState(
     val ownedItems: Set<String> = emptySet(),
     /** Items found in this scenario, in order (added to the campaign inventory at the end). */
     val itemsFound: List<String> = emptyList(),
+    /** Numbered enemy banners of active groups (a group gets one when another group of its type is on the map). */
+    val enemyBanners: Map<String, Int> = emptyMap(),
     /** Successes collected so far per cumulative test (key: event id and step index). */
     val testProgress: Map<String, Int> = emptyMap(),
     /** Work still to do; the first frame is the one currently running. */
@@ -104,7 +106,7 @@ sealed interface Prompt {
     data class Setup(val chapterId: String) : Notice
 
     @Serializable @SerialName("spawnEnemies")
-    data class SpawnEnemies(val groupId: String, val count: Int) : Notice
+    data class SpawnEnemies(val groupId: String, val count: Int, val banner: Int? = null) : Notice
 
     @Serializable @SerialName("placeToken")
     data class PlaceToken(val tokenId: String) : Notice
