@@ -125,6 +125,8 @@ class PromptBuilder(private val catalog: MaterialCatalog, private val input: Gen
         appendLine("- Jede Kachel höchstens einmal im ganzen Szenario.")
         appendLine("- Am Ende liegen alle Kapitel gleichzeitig auf einem Tisch von ${input.table}: alle Kacheln zusammen höchstens etwa ${input.table.cellCapacity(catalog.hexSizeMm)} Felder (Felder je Kachel siehe Material).")
         appendLine("- Pro Kapitel 2–5 Token mit eigenen Texten; Proben und Auswahlen sorgen für Abwechslung.")
+        appendLine("- Reise-Kapitel: Die erste Kachel des Startkapitels ist erforscht (Startpunkt), weitere Kacheln meist \"unexplored\": true. Lege interessante Token und Gegner bevorzugt auf unerforschte Kacheln; gelegentlich ein kurzes onExplore-Event.")
+        appendLine("- Belohne mit gainInspiration: nach bestandenen Proben (im onSuccess-Event), gelungenen Interaktionen, erfüllten Zielen oder besiegten Gegnern – sparsam, etwa 1–3 Mal pro Kapitel.")
         appendLine("- Schwierigkeit „${input.difficulty.label}“: ${difficultyHint()}")
         appendLine()
         appendLine("Entwurf:")
@@ -190,8 +192,9 @@ Ablauf im Spiel:
 - Am Rundenende steigt die Bedrohung um perRound.base + perRound.perHero × Heldenzahl. Schwellen sind Trigger vom Typ threatReached; bei Erreichen des Maximums feuern Trigger vom Typ threatMax.
 - Ein Ziel ist erfüllt, wenn sein Trigger (completedBy) feuert, während es aktiv ist; danach feuern objectiveCompleted-Trigger.
 - unlockChapter baut ein weiteres Kapitel auf (Kacheln und Token mit initiallyActive=true erscheinen), danach läuft dessen onUnlock.
+- Kachel-Platzierungen mit "unexplored": true liegen zunächst ausgegraut mit Erkundungsmarker; ihre Token erscheinen erst, wenn die Gruppe die Kachel erkundet. Dabei erhält ein Held automatisch 1 Inspiration, dann läuft das optionale Event "onExplore" und Trigger vom Typ tileExplored (placement) feuern.
 
-Schritte eines Events: text, choice (Auswahl, ≥2 Optionen, jede führt in ein Event), test (Probe: attribute might/agility/wisdom/spirit/wit, successes = benötigte Erfolge, onSuccess/onFailure = Events), spawnEnemies, changeThreat (amount ≠ 0), addToken, removeToken, unlockChapter, setObjective, fireTrigger (nur Trigger vom Typ manual), endScenario.
+Schritte eines Events: text, choice (Auswahl, ≥2 Optionen, jede führt in ein Event), test (Probe: attribute might/agility/wisdom/spirit/wit, successes = benötigte Erfolge, onSuccess/onFailure = Events), spawnEnemies, changeThreat (amount ≠ 0), addToken, removeToken, unlockChapter, setObjective, fireTrigger (nur Trigger vom Typ manual), gainInspiration (Belohnung: amount 1–3, who = active/each/chosen, optional text), endScenario.
 
 Pflichtregeln (werden automatisch geprüft):
 1. choice, test und endScenario dürfen nur als LETZTER Schritt eines Events stehen. Fortsetzungen gehören in eigene Events.

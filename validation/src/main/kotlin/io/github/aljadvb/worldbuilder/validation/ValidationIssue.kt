@@ -38,6 +38,8 @@ enum class IssueCode {
     TILES_OVERLAP,
     TILE_USED_TWICE,
     LOCATION_ON_LATER_CHAPTER,
+    NOT_UNEXPLORED,
+    NO_EXPLORED_START,
 
     // Battle map
     MIXED_MAP,

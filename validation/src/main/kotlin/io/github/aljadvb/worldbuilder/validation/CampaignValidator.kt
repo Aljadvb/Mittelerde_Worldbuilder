@@ -176,6 +176,11 @@ private class CampaignChecks(
     }
 
     private fun checkMap(s: Scenario, si: Int, sp: String) {
+        s.chapter(s.startChapter)?.let { start ->
+            if (start.tiles.isNotEmpty() && start.tiles.all { it.unexplored }) {
+                c.warn(IssueCode.NO_EXPLORED_START, "$sp.startChapter", s.id, "Alle Kacheln des Startkapitels sind unerforscht – die Helden brauchen eine erforschte Startkachel.")
+            }
+        }
         BattleChecks(s, sp, catalog, c, ::checkExpansionOwned).run()
         val occupied = mutableMapOf<HexCoord, String>()
         val tileUse = mutableMapOf<String, String>()
@@ -199,6 +204,10 @@ private class CampaignChecks(
                 if (shape == null) {
                     c.error(IssueCode.UNKNOWN_TILE_SIDE, "$pp.side", p.id, "Kachel ${tile.label} hat im Katalog keine Seite ${p.side}.")
                     return@forEachIndexed
+                }
+                p.onExplore?.let { ref(it, ObjectKind.EVENT, si, "$pp.onExplore", p.id, "Kachel '${p.id}' (onExplore)") }
+                if (p.onExplore != null && !p.unexplored) {
+                    c.warn(IssueCode.NOT_UNEXPLORED, "$pp.onExplore", p.id, "Kachel '${p.id}' hat ein Erkundungs-Event, ist aber nicht als unerforscht markiert.")
                 }
                 tileUse.put(p.tile, p.id)?.let { other ->
                     c.warn(IssueCode.TILE_USED_TWICE, "$pp.tile", p.id, "Kachel ${tile.label} wird bereits von '$other' verwendet.")
@@ -330,6 +339,10 @@ private class CampaignChecks(
                     }
                 }
                 is EventStep.EndScenario -> ref(step.resolution, ObjectKind.RESOLUTION, si, "$p.resolution", eventId, what)
+                is EventStep.GainInspiration -> {
+                    if (step.amount !in 1..3) c.error(IssueCode.INVALID_NUMBER, "$p.amount", eventId, "$what: Inspiration muss 1–3 betragen.")
+                    step.text?.let { blank(it, "$p.text", eventId, "$what: Text") }
+                }
             }
         }
     }
@@ -350,6 +363,11 @@ private class CampaignChecks(
                 is TriggerCondition.RoundEnded -> if (on.round < 1) {
                     c.error(IssueCode.INVALID_NUMBER, "$tp.on.round", t.id, "$what: Rundennummer muss ≥ 1 sein.")
                 }
+                is TriggerCondition.TileExplored -> if (ref(on.placement, ObjectKind.PLACEMENT, si, "$tp.on.placement", t.id, what)) {
+                    if (s.placement(on.placement)?.unexplored != true) {
+                        c.warn(IssueCode.NOT_UNEXPLORED, "$tp.on.placement", t.id, "$what: Kachel '${on.placement}' ist nicht als unerforscht markiert und wird daher nie erkundet.")
+                    }
+                }
                 TriggerCondition.ThreatMax, TriggerCondition.Manual -> Unit
             }
             t.events.forEachIndexed { ei, e -> ref(e, ObjectKind.EVENT, si, "$tp.events[$ei]", t.id, what) }
@@ -368,5 +386,6 @@ internal fun stepName(step: EventStep): String = when (step) {
     is EventStep.UnlockChapter -> "unlockChapter"
     is EventStep.SetObjective -> "setObjective"
     is EventStep.FireTrigger -> "fireTrigger"
+    is EventStep.GainInspiration -> "gainInspiration"
     is EventStep.EndScenario -> "endScenario"
 }

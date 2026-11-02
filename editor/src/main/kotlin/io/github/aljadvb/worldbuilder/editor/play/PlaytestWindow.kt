@@ -176,7 +176,9 @@ private fun PlayMap(game: PlaytestModel, scenario: Scenario, catalog: MaterialCa
             detectTapGestures { pos ->
                 if (!state.isIdle) return@detectTapGestures
                 val proj = projection[0] ?: return@detectTapGestures
-                tokenAt(proj, scene.tokens, pos)?.let { game.send(Command.InteractToken(it.id)) }
+                val token = tokenAt(proj, scene.tokens, pos)
+                if (token != null) game.send(Command.InteractToken(token.id))
+                else io.github.aljadvb.worldbuilder.hexmap.exploreMarkerAt(proj, scene.tiles, pos)?.let { game.send(Command.ExploreTile(it.id)) }
             }
         },
         onProjection = { projection[0] = it },
@@ -312,6 +314,8 @@ fun describe(prompt: Prompt, scenario: Scenario, catalog: MaterialCatalog): Stri
         is Prompt.RoundEnded -> Texts.roundEnded(prompt.round, prompt.threatAdded, prompt.threat)
         is Prompt.ObjectiveSet -> scenario.objective(prompt.objectiveId)?.let { Texts.objectiveSet(it.title) }.orEmpty()
         is Prompt.ObjectiveCompleted -> scenario.objective(prompt.objectiveId)?.let { Texts.objectiveDone(it.title) }.orEmpty()
+        is Prompt.Explored -> Texts.explored(tile(prompt.placementId)) + prompt.tokenIds.mapNotNull { scenario.token(it) }.joinToString("") { "\n• " + Texts.placeToken(it.label, tile(prompt.placementId)) }
+        is Prompt.Inspiration -> listOfNotNull(prompt.text, Texts.inspiration(prompt.amount, prompt.who)).joinToString("\n")
         is Prompt.Choice -> prompt.step.text
         is Prompt.Test -> prompt.step.text.orEmpty()
     }

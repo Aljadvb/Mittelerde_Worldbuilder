@@ -83,6 +83,17 @@
     <string name="prompt_setup_tile_line">Kachel %1$s, Seite %2$s</string>
     <string name="prompt_setup_tokens">Token</string>
     <string name="prompt_setup_token_line">%1$s (%2$s) auf Kachel %3$s</string>
+    <string name="prompt_explored_title">Kachel %1$s erkundet</string>
+    <string name="prompt_explored_short">Kachel erkundet</string>
+    <string name="prompt_explored_inspiration">Der erkundende Held oder ein naher Held erhält 1 Inspiration (Marker nehmen). Entfernt den Erkundungsmarker.</string>
+    <string name="prompt_explored_hint">Neue Marker sind auf der Karte hervorgehoben.</string>
+    <string name="prompt_inspiration_title">Inspiration</string>
+    <string name="prompt_inspiration_hint">Nehmt euch die Inspirationsmarker – die App zählt sie nicht mit.</string>
+    <string name="inspiration_active">Der handelnde Held erhält %1$d Inspiration.</string>
+    <string name="inspiration_each">Jeder Held erhält %1$d Inspiration.</string>
+    <string name="inspiration_chosen">Ein Held eurer Wahl erhält %1$d Inspiration.</string>
+    <string name="game_tap_hint_explore">Tippe auf ein Token oder einen Erkundungsmarker (grüner Kompass).</string>
+    <string name="prompt_setup_tile_unexplored">Kachel %1$s, Seite %2$s – unerforscht: Erkundungsmarker darauflegen</string>
     <string name="prompt_setup_boards">Schlachtpläne</string>
     <string name="prompt_setup_board_line">%1$s, Seite %2$s</string>
     <string name="prompt_setup_terrain">Geländeteile</string>
@@ -132,9 +143,9 @@
     <string name="token_person">Person</string>
     <string name="token_threat">Bedrohung</string>
     <string name="token_explore">Erkundung</string>
-    <string name="attribute_might">Stärke</string>
-    <string name="attribute_agility">Geschick</string>
+    <string name="attribute_might">Körperkraft</string>
+    <string name="attribute_agility">Beweglichkeit</string>
     <string name="attribute_wisdom">Weisheit</string>
-    <string name="attribute_spirit">Geist</string>
-    <string name="attribute_wit">Verstand</string>
+    <string name="attribute_spirit">Willen</string>
+    <string name="attribute_wit">Scharfsinn</string>
 </resources>

@@ -218,7 +218,7 @@ Ein Event ist eine **Folge von Schritten**:
 | `fireTrigger`   | `trigger`                                                      | benannten Trigger vom Typ `manual` auslösen  |
 | `endScenario`   | `resolution`                                                   | Szenario mit dieser Auflösung beenden        |
 
-- `attribute`: feste Liste `might | agility | wisdom | spirit | wit`, in der UI als Stärke / Geschick / Weisheit / Geist / Verstand.
+- `attribute`: feste Liste `might | agility | wisdom | spirit | wit`, in der UI wie im Regelbuch als Körperkraft / Beweglichkeit / Weisheit / Willen / Scharfsinn.
 - **Strenge Regel:** `choice`, `test` und `endScenario` dürfen nur als **letzter** Schritt stehen. Verzweigungen gehen immer in ein neues Event. Es gibt keine Sprünge mitten in eine Liste, und der Ablauf bleibt für Mensch und KI eindeutig.
 - `test` ohne `onFailure` bedeutet: Bei Misserfolg passiert nichts weiter.
 
@@ -263,6 +263,14 @@ Mehrere Ziele können gleichzeitig aktiv sein. Ein Ziel gilt nur als erfüllt, w
 `outcome`: `victory` | `defeat` | `neutral`. Das ist nur eine Anzeige; die Verzweigung läuft über `transitions` und die ID.
 
 ---
+
+### 5.9a Inspiration und unerforschte Kacheln
+
+- Event-Schritt `{"type": "gainInspiration", "amount": 1, "who": "active" | "each" | "chosen", "text": "…"}`: Die App
+  zeigt einen Hinweis („Jeder Held erhält 1 Inspiration“); die Marker liegen am Tisch, die App zählt nicht mit.
+- Kachel-Platzierung `"unexplored": true` (optional `"onExplore": "evt_…"`): Die Kachel liegt zunächst ausgegraut mit
+  Erkundungsmarker, ihre Token bleiben verborgen. Antippen des Markers erkundet sie: Token erscheinen, der erkundende oder
+  ein naher Held erhält 1 Inspiration, dann laufen `onExplore` und Trigger `{"type": "tileExplored", "placement": …}`.
 
 ### 5.10 Schlacht-Kapitel
 

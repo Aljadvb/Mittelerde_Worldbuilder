@@ -87,6 +87,7 @@ fun editorScene(model: EditorModel, c: MapController, highlight: Color): MapScen
                 emphasized = p.id == model.selection,
                 alpha = if (ch.id == current.id) 1f else 0.4f,
                 image = model.tileImages.forPlacement(p, catalog),
+                unexplored = p.unexplored,
             )
         }
     } + listOfNotNull(c.ghost?.let { g ->

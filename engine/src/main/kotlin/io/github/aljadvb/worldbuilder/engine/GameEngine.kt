@@ -3,6 +3,7 @@ package io.github.aljadvb.worldbuilder.engine
 import io.github.aljadvb.worldbuilder.model.EventStep
 import io.github.aljadvb.worldbuilder.model.Scenario
 import io.github.aljadvb.worldbuilder.model.Trigger
+import io.github.aljadvb.worldbuilder.model.placementId
 import io.github.aljadvb.worldbuilder.model.TriggerCondition
 
 /**
@@ -59,6 +60,11 @@ class GameEngine(val scenario: Scenario) {
                 if (command.tokenId !in state.activeTokens) throw EngineException("Token '${command.tokenId}' liegt nicht aus.")
                 run.interact(command.tokenId)
             }
+            is Command.ExploreTile -> {
+                requireIdle(state)
+                if (command.placementId !in state.unexploredPlacements(scenario)) throw EngineException("Kachel '${command.placementId}' ist nicht unerforscht.")
+                run.explore(command.placementId)
+            }
             is Command.DefeatEnemyGroup -> {
                 requireIdle(state)
                 if (command.groupId !in state.activeEnemyGroups) throw EngineException("Gegnergruppe '${command.groupId}' ist nicht im Spiel.")
@@ -90,6 +96,7 @@ class GameEngine(val scenario: Scenario) {
         val activeObjectives = s.activeObjectives.toMutableList()
         val completedObjectives = s.completedObjectives.toMutableSet()
         val firedTriggers = s.firedTriggers.toMutableSet()
+        val explored = s.exploredPlacements.toMutableSet()
         val agenda = s.agenda.toMutableList()
         val prompts = s.prompts.toMutableList()
         val history = s.history.toMutableList()
@@ -100,7 +107,7 @@ class GameEngine(val scenario: Scenario) {
             unlockedChapters = unlockedChapters.toList(), activeTokens = activeTokens.toSet(),
             interactedTokens = interactedTokens.toSet(), activeEnemyGroups = activeGroups.toSet(),
             defeatedEnemyGroups = defeatedGroups.toSet(), activeObjectives = activeObjectives.toList(),
-            completedObjectives = completedObjectives.toSet(), firedTriggers = firedTriggers.toSet(),
+            completedObjectives = completedObjectives.toSet(), firedTriggers = firedTriggers.toSet(), exploredPlacements = explored.toSet(),
             agenda = agenda.toList(), prompts = prompts.toList(), history = history.toList(), resolution = resolution,
         )
 
@@ -123,6 +130,17 @@ class GameEngine(val scenario: Scenario) {
             if (token.inspectText != null) prompts += Prompt.Inspect(tokenId)
             token.onInteract?.let { agenda += Frame.EventFrame(it) }
             fireMatching { it is TriggerCondition.TokenInteracted && it.token == tokenId }
+        }
+
+        fun explore(placementId: String) {
+            val placement = scenario.placement(placementId) ?: return
+            explored += placementId
+            val revealed = scenario.chapters.filter { it.id in unlockedChapters }.flatMap { it.tokens }
+                .filter { it.initiallyActive && it.id !in interactedTokens && it.location.placementId == placementId }
+                .map { it.id }.filter { activeTokens.add(it) }
+            prompts += Prompt.Explored(placementId, revealed)
+            placement.onExplore?.let { agenda += Frame.EventFrame(it) }
+            fireMatching { it is TriggerCondition.TileExplored && it.placement == placementId }
         }
 
         fun defeat(groupId: String) {
@@ -203,6 +221,7 @@ class GameEngine(val scenario: Scenario) {
                     val trigger = scenario.trigger(step.trigger)
                     if (trigger?.on == TriggerCondition.Manual) fire(trigger)
                 }
+                is EventStep.GainInspiration -> prompts += Prompt.Inspiration(step.amount, step.who, step.text)
                 is EventStep.EndScenario -> {
                     resolution = step.resolution
                     agenda.clear()
@@ -215,7 +234,9 @@ class GameEngine(val scenario: Scenario) {
             val chapter = scenario.chapter(chapterId) ?: return
             if (chapterId in unlockedChapters) return
             unlockedChapters += chapterId
-            activeTokens += chapter.tokens.filter { it.initiallyActive }.map { it.id }
+            // Tokens on unexplored tiles appear only when the tile is explored.
+            val hidden = chapter.tiles.filter { it.unexplored && it.id !in explored }.map { it.id }.toSet()
+            activeTokens += chapter.tokens.filter { it.initiallyActive && it.location.placementId !in hidden }.map { it.id }
             prompts += Prompt.Setup(chapterId)
             chapter.onUnlock?.let { agenda.add(minOf(1, agenda.size), Frame.EventFrame(it)) }
         }

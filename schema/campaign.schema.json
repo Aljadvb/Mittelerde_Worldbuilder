@@ -292,6 +292,15 @@
           "maximum": 5,
           "default": 0,
           "description": "Drehung in 60°-Schritten im Uhrzeigersinn um den Anker."
+        },
+        "unexplored": {
+          "type": "boolean",
+          "default": false,
+          "description": "Kachel liegt zunächst ausgegraut mit Erkundungsmarker; ihre Token erscheinen erst beim Erkunden. Der erkundende oder ein naher Held erhält 1 Inspiration."
+        },
+        "onExplore": {
+          "$ref": "#/$defs/id",
+          "description": "Optional: Event, das beim Erkunden läuft."
         }
       }
     },
@@ -667,6 +676,38 @@
           }
         },
         {
+          "description": "Belohnung: Helden erhalten Inspiration (Marker am Tisch; die App zählt nicht mit).",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "const": "gainInspiration"
+            },
+            "amount": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 3,
+              "default": 1
+            },
+            "who": {
+              "enum": [
+                "active",
+                "each",
+                "chosen"
+              ],
+              "default": "active",
+              "description": "active = der handelnde Held, each = jeder Held, chosen = ein Held nach Wahl"
+            },
+            "text": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        {
           "description": "Szenario mit dieser Auflösung beenden. Nur als letzter Schritt.",
           "type": "object",
           "additionalProperties": false,
@@ -812,6 +853,23 @@
             "round": {
               "type": "integer",
               "minimum": 1
+            }
+          }
+        },
+        {
+          "description": "Eine unerforschte Kachel wurde erkundet.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "placement"
+          ],
+          "properties": {
+            "type": {
+              "const": "tileExplored"
+            },
+            "placement": {
+              "$ref": "#/$defs/id"
             }
           }
         },

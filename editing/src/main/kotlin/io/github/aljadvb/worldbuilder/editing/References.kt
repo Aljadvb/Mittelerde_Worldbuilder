@@ -89,6 +89,7 @@ private fun Scenario.mapReferences(sp: String, ref: RefFn): Scenario {
             val cp = "$sp.chapters[$ci]"
             ch.copy(
                 onUnlock = ch.onUnlock?.let { ref(ObjectKind.EVENT, it, "$cp.onUnlock", ch.id) },
+                tiles = ch.tiles.mapIndexed { pi, pl -> pl.copy(onExplore = pl.onExplore?.let { ref(ObjectKind.EVENT, it, "$cp.tiles[$pi].onExplore", pl.id) }) },
                 tokens = ch.tokens.mapIndexed { ti, t ->
                     val tp = "$cp.tokens[$ti]"
                     t.copy(
@@ -111,7 +112,7 @@ private fun Event.mapReferences(ep: String, ref: RefFn): Event = copy(
     steps = steps.mapIndexed { i, step ->
         val p = "$ep.steps[$i]"
         when (step) {
-            is EventStep.Text, is EventStep.ChangeThreat -> step
+            is EventStep.Text, is EventStep.ChangeThreat, is EventStep.GainInspiration -> step
             is EventStep.Choice -> step.copy(
                 options = step.options.mapIndexed { oi, o -> o.copy(event = ref(ObjectKind.EVENT, o.event, "$p.options[$oi].event", id)) },
             )
@@ -135,6 +136,7 @@ private fun Trigger.mapReferences(tp: String, ref: RefFn): Trigger = copy(
         is TriggerCondition.TokenInteracted -> on.copy(token = ref(ObjectKind.TOKEN, on.token, "$tp.on.token", id))
         is TriggerCondition.EnemyGroupDefeated -> on.copy(group = ref(ObjectKind.ENEMY_GROUP, on.group, "$tp.on.group", id))
         is TriggerCondition.ObjectiveCompleted -> on.copy(objective = ref(ObjectKind.OBJECTIVE, on.objective, "$tp.on.objective", id))
+        is TriggerCondition.TileExplored -> on.copy(placement = ref(ObjectKind.PLACEMENT, on.placement, "$tp.on.placement", id))
         is TriggerCondition.ThreatReached, TriggerCondition.ThreatMax, is TriggerCondition.RoundEnded, TriggerCondition.Manual -> on
     },
     events = events.mapIndexed { i, e -> ref(ObjectKind.EVENT, e, "$tp.events[$i]", id) },

@@ -24,6 +24,8 @@ data class GameState(
     val activeObjectives: List<String> = emptyList(),
     val completedObjectives: Set<String> = emptySet(),
     val firedTriggers: Set<String> = emptySet(),
+    /** Unexplored tiles that have been explored. */
+    val exploredPlacements: Set<String> = emptySet(),
     /** Work still to do; the first frame is the one currently running. */
     val agenda: List<Frame> = emptyList(),
     /** Prompts waiting for the players, oldest first. While non-empty, nothing else runs. */
@@ -39,6 +41,10 @@ data class GameState(
     /** True if the players may act freely (tap tokens, end the round, report defeated enemies). */
     val isIdle: Boolean get() = prompts.isEmpty() && !isOver
 }
+
+/** Tiles of unlocked chapters that still carry an exploration marker. */
+fun GameState.unexploredPlacements(scenario: io.github.aljadvb.worldbuilder.model.Scenario): Set<String> =
+    unlockedChapters.flatMap { scenario.chapter(it)?.tiles.orEmpty() }.filter { it.unexplored && it.id !in exploredPlacements }.map { it.id }.toSet()
 
 /** A sequence of steps being executed. */
 @Serializable
@@ -94,6 +100,13 @@ sealed interface Prompt {
     @Serializable @SerialName("objectiveCompleted")
     data class ObjectiveCompleted(val objectiveId: String) : Notice
 
+    /** A tile was explored: [tokenIds] are laid out now; the exploring or a near hero takes 1 inspiration. */
+    @Serializable @SerialName("explored")
+    data class Explored(val placementId: String, val tokenIds: List<String>) : Notice
+
+    @Serializable @SerialName("inspiration")
+    data class Inspiration(val amount: Int, val who: io.github.aljadvb.worldbuilder.model.InspirationTarget, val text: String? = null) : Notice
+
     /** Answer with [Command.Choose]. */
     @Serializable @SerialName("choice")
     data class Choice(val eventId: String?, val step: EventStep.Choice) : Prompt
@@ -118,6 +131,8 @@ sealed interface Command {
     data class ReportTest(val successes: Int) : Command
 
     data class InteractToken(val tokenId: String) : Command
+    /** Tap on the exploration marker of an unexplored tile. */
+    data class ExploreTile(val placementId: String) : Command
     data class DefeatEnemyGroup(val groupId: String) : Command
     data object EndRound : Command
 }

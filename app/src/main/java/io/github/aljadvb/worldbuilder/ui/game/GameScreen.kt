@@ -49,6 +49,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.aljadvb.worldbuilder.R
+import io.github.aljadvb.worldbuilder.engine.unexploredPlacements
 import io.github.aljadvb.worldbuilder.engine.Command
 import io.github.aljadvb.worldbuilder.engine.GameState
 import io.github.aljadvb.worldbuilder.engine.HistoryEntry
@@ -179,6 +180,7 @@ internal fun PlayContent(
                 onTokenTap = { onCommand(Command.InteractToken(it)) },
                 modifier = Modifier.weight(1f).fillMaxWidth(),
                 images = images,
+                onExploreTap = { onCommand(Command.ExploreTile(it)) },
             )
         }
         if (prompt != null) {
@@ -281,6 +283,7 @@ private fun ActionPanel(
         Text(
             when {
                 battle -> stringResource(R.string.game_tap_hint_battle)
+                game.unexploredPlacements(scenario).isNotEmpty() -> stringResource(R.string.game_tap_hint_explore)
                 tokens.isEmpty() -> stringResource(R.string.game_no_tokens)
                 else -> stringResource(R.string.game_tap_hint)
             },
@@ -366,6 +369,8 @@ private fun historyText(prompt: Prompt, scenario: Scenario): String = when (prom
     is Prompt.RoundEnded -> stringResource(R.string.prompt_round_title, prompt.round)
     is Prompt.ObjectiveSet -> stringResource(R.string.prompt_objective_set_title) + ": " + scenario.objective(prompt.objectiveId)?.title.orEmpty()
     is Prompt.ObjectiveCompleted -> stringResource(R.string.prompt_objective_done_title) + ": " + scenario.objective(prompt.objectiveId)?.title.orEmpty()
+    is Prompt.Explored -> stringResource(R.string.prompt_explored_short)
+    is Prompt.Inspiration -> inspirationText(prompt)
     is Prompt.Choice -> prompt.step.text
     is Prompt.Test -> prompt.step.text ?: ""
 }

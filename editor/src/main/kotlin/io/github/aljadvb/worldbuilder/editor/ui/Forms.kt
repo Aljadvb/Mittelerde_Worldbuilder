@@ -21,6 +21,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import io.github.aljadvb.worldbuilder.editing.updatePlacement
 import io.github.aljadvb.worldbuilder.editing.Definition
 import io.github.aljadvb.worldbuilder.editing.addChapter
 import io.github.aljadvb.worldbuilder.editing.addEnemyGroup
@@ -293,6 +294,7 @@ private fun TriggerForm(model: EditorModel, s: Scenario, def: Definition, ask: (
         is TriggerCondition.EnemyGroupDefeated -> "enemyGroupDefeated"
         is TriggerCondition.ObjectiveCompleted -> "objectiveCompleted"
         is TriggerCondition.RoundEnded -> "roundEnded"
+        is TriggerCondition.TileExplored -> "tileExplored"
         TriggerCondition.Manual -> "manual"
     }
     ChoiceInput(model, Texts.CONDITION, key, Texts.CONDITIONS.map { Choice(it.first, it.second) }, null) { v ->
@@ -304,6 +306,7 @@ private fun TriggerForm(model: EditorModel, s: Scenario, def: Definition, ask: (
                 "enemyGroupDefeated" -> TriggerCondition.EnemyGroupDefeated(s.enemyGroups.firstOrNull()?.id.orEmpty())
                 "objectiveCompleted" -> TriggerCondition.ObjectiveCompleted(s.objectives.firstOrNull()?.id.orEmpty())
                 "roundEnded" -> TriggerCondition.RoundEnded(1)
+                "tileExplored" -> TriggerCondition.TileExplored(s.placements.firstOrNull { it.unexplored }?.id ?: s.placements.firstOrNull()?.id.orEmpty())
                 else -> TriggerCondition.Manual
             },
         )
@@ -315,6 +318,9 @@ private fun TriggerForm(model: EditorModel, s: Scenario, def: Definition, ask: (
         is TriggerCondition.ObjectiveCompleted -> ChoiceInput(model, Texts.OBJECTIVE, on.objective, s.objectiveChoices(), "$p.objective") { v -> set(on.copy(objective = v.orEmpty())) }
         is TriggerCondition.ThreatReached -> IntInput(model, Texts.VALUE, on.value, "${t.id}.value", "$p.value") { v -> { it.updateTrigger(t.id) { x -> x.copy(on = on.copy(value = v)) } } }
         is TriggerCondition.RoundEnded -> IntInput(model, Texts.ROUND, on.round, "${t.id}.round", "$p.round") { v -> { it.updateTrigger(t.id) { x -> x.copy(on = on.copy(round = v)) } } }
+        is TriggerCondition.TileExplored -> ChoiceInput(
+            model, Texts.TILE, on.placement, s.placements.map { Choice(it.id, "${model.catalog.tile(it.tile)?.label ?: it.tile} ${it.side} · ${it.id}" + if (it.unexplored) "" else " (erforscht)") }, "$p.placement",
+        ) { v -> set(on.copy(placement = v.orEmpty())) }
         TriggerCondition.ThreatMax, TriggerCondition.Manual -> Unit
     }
 
@@ -348,6 +354,12 @@ private fun PlacementInfo(model: EditorModel, s: Scenario, def: Definition) {
     val p = s.placement(def.id) ?: return
     Text("${Texts.TILE}: ${model.catalog.tile(p.tile)?.label ?: p.tile} · ${Texts.SIDE} ${p.side} · ${Texts.ROTATION} ${p.rotation * 60}° · ${Texts.POSITION} ${p.position}")
     FieldIssues(model, def.path)
+    CheckInput(Texts.UNEXPLORED, p.unexplored) { v -> model.edit { it.updatePlacement(p.id) { x -> x.copy(unexplored = v) } } }
+    if (p.unexplored || p.onExplore != null) {
+        ChoiceInput(model, Texts.ON_EXPLORE, p.onExplore, s.eventChoices(), "${def.path}.onExplore", allowNone = true) { v ->
+            model.edit { it.updatePlacement(p.id) { x -> x.copy(onExplore = v) } }
+        }
+    }
     Text(Texts.MAP_HINT, style = MaterialTheme.typography.bodySmall)
 }
 

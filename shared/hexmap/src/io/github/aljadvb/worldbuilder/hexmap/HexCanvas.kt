@@ -38,7 +38,16 @@ data class MapTile(
     val alpha: Float = 1f,
     /** Picture of the tile (own scan); drawn clipped to [cells] instead of [fill]. */
     val image: MapTileImage? = null,
-)
+    /** Not yet explored: drawn greyed with an exploration marker. */
+    val unexplored: Boolean = false,
+) {
+    /** Cell for the label and the exploration marker: nearest to the tile's centroid. */
+    fun centerCell(): HexCoord? {
+        if (cells.isEmpty()) return null
+        val q = cells.map { it.q }.average(); val r = cells.map { it.r }.average()
+        return cells.minBy { (it.q - q) * (it.q - q) + (it.r - r) * (it.r - r) + (it.q - q) * (it.r - r) }
+    }
+}
 
 data class MapToken(val id: String, val cell: HexCoord, val type: TokenType, val letter: String, val selected: Boolean = false)
 
@@ -66,6 +75,8 @@ object MapColors {
     val Grid = Color(0x22000000)
     val Piece = Color(0xFFBCAA88)
     val Special = Color(0xFFE0A800)
+    val Unexplored = Color(0xFF6E6E6E)
+    val ExploreMarker = Color(0xFF2E7D32)
     val ChapterFills = listOf(Color(0xFFE8DCC4), Color(0xFFD5E3CF), Color(0xFFD9DCEB), Color(0xFFEBD9D9), Color(0xFFE3E0CC))
 
     fun chapterFill(index: Int) = ChapterFills[index.coerceAtLeast(0) % ChapterFills.size]
@@ -114,7 +125,13 @@ fun HexCanvas(
                 if (image == null) drawPath(path, tile.fill, alpha = tile.alpha)
                 drawPath(path, Color.Black.copy(alpha = (if (image == null) 0.25f else 0.18f) * tile.alpha), style = Stroke(thin))
             }
+            if (tile.unexplored) for (cell in coords) drawPath(hexPath(proj.corners(cell)), MapColors.Unexplored, alpha = 0.62f * tile.alpha)
             drawTileBorder(proj, coords, if (tile.emphasized) highlight else tile.border, if (tile.emphasized) 4.dp.toPx() else 2.dp.toPx(), tile.alpha)
+        }
+        for (tile in scene.tiles) {
+            if (!tile.unexplored) continue
+            val c = proj.center(tile.centerCell() ?: continue) - Offset(0f, proj.size * 0.15f)
+            drawExploreMarker(c, proj.size * 0.38f, tile.alpha)
         }
 
         for (cell in scene.errorCells) {
@@ -168,6 +185,26 @@ fun HexCanvas(
         }
     }
 }
+
+/** Exploration marker: a compass rose on a disc. */
+private fun DrawScope.drawExploreMarker(c: Offset, r: Float, alpha: Float) {
+    drawCircle(Color.White, r * 1.08f, c, alpha = alpha)
+    drawCircle(MapColors.ExploreMarker, r, c, alpha = alpha)
+    val star = Path().apply {
+        for (i in 0 until 8) {
+            val a = PI / 4 * i - PI / 2
+            val rr = if (i % 2 == 0) r * 0.78f else r * 0.26f
+            val p = c + Offset((cos(a) * rr).toFloat(), (sin(a) * rr).toFloat())
+            if (i == 0) moveTo(p.x, p.y) else lineTo(p.x, p.y)
+        }
+        close()
+    }
+    drawPath(star, Color.White, alpha = alpha)
+}
+
+/** The unexplored tile whose exploration marker contains [p], if any. */
+fun exploreMarkerAt(proj: HexProjection, tiles: List<MapTile>, p: Offset): MapTile? =
+    tiles.filter { it.unexplored }.firstOrNull { t -> t.centerCell()?.let { (proj.center(it) - Offset(0f, proj.size * 0.15f) - p).getDistance() <= proj.size * 0.5f } == true }
 
 /** Pixel centres of tokens; several tokens on one cell are spread around its centre. */
 fun tokenCenters(proj: HexProjection, tokens: List<MapToken>): List<Pair<MapToken, Offset>> =

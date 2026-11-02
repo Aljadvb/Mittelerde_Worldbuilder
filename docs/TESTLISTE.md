@@ -1,6 +1,6 @@
 # Testliste – was noch von Hand zu prüfen ist
 
-Stand: 2026-11-02 · Version 1.3.0 · Abhaken mit `[x]`. Rückmeldungen (Screenshots, Dateien) einfach im Chat schicken.
+Stand: 2026-11-02 · Version 1.4.0 · Abhaken mit `[x]`. Rückmeldungen (Screenshots, Dateien) einfach im Chat schicken.
 
 Alles hier ist automatisch getestet (Unit-Tests, simulierte Maus, gerenderte Screenshots), aber **noch nie auf echter
 Hardware bzw. mit einer echten KI gelaufen**. Die wichtigsten Punkte stehen oben.
@@ -37,6 +37,16 @@ Hardware bzw. mit einer echten KI gelaufen**. Die wichtigsten Punkte stehen oben
 - [ ] KI-Generator mit „Automatisch“: Wählt die KI bei einer Geschichte an einem Ort einen Schlachtplan? Begründung sinnvoll?
 - [ ] KI-Generator mit „Schlacht“: gültiges Szenario, sinnvoll platzierte Geländeteile?
 - [ ] Neue Kacheln 200–227: Bilder gerade, Raster passt, Nummern stimmen
+
+## 1d. Erkunden und Inspiration (neu in 1.4.0)
+
+- [ ] Im Editor eine Kachel auf „Unerforscht“ setzen, Token darauf legen, Erkundungs-Event wählen
+- [ ] App/Probespiel: Kachel ausgegraut mit grünem Kompass, Token darauf unsichtbar
+- [ ] Kompass antippen: Hinweis „erkundet“ mit Inspiration und neuen Token, danach Erkundungs-Event
+- [ ] Trigger „Kachel erkundet“ erfüllt ein Ziel
+- [ ] Event-Schritt „Inspiration erhalten“ (jeder Held / handelnder Held / Wahl) erscheint als Hinweis
+- [ ] KI-Generator: Nutzt er unerforschte Kacheln und Inspiration sinnvoll?
+- [ ] Proben zeigen die Attribute wie im Regelbuch (Körperkraft, Beweglichkeit, Weisheit, Willen, Scharfsinn)
 
 ## 2. Windows-Editor
 

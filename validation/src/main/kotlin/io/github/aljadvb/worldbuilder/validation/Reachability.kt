@@ -44,6 +44,7 @@ internal object Reachability {
             is TriggerCondition.EnemyGroupDefeated -> on.group in groups
             is TriggerCondition.ObjectiveCompleted -> on.objective in completedObjectives
             is TriggerCondition.RoundEnded -> true
+            is TriggerCondition.TileExplored -> chapters.any { ch -> s.chapter(ch)?.tiles.orEmpty().any { it.id == on.placement && it.unexplored } }
             TriggerCondition.Manual -> t.id in manuallyFired
         }
 
@@ -55,12 +56,13 @@ internal object Reachability {
             for (id in chapters.toList()) {
                 val ch = s.chapter(id) ?: continue
                 ch.onUnlock?.let(events::add)
+                ch.tiles.filter { it.unexplored }.forEach { p -> p.onExplore?.let(events::add) }
                 ch.tokens.filter { it.initiallyActive }.forEach { tokens += it.id }
             }
             for (id in tokens.toList()) s.token(id)?.onInteract?.let(events::add)
             for (id in events.toList()) {
                 for (step in s.event(id)?.steps.orEmpty()) when (step) {
-                    is EventStep.Text, is EventStep.RemoveToken -> Unit
+                    is EventStep.Text, is EventStep.RemoveToken, is EventStep.GainInspiration -> Unit
                     is EventStep.Choice -> step.options.forEach { events += it.event }
                     is EventStep.Test -> { events += step.onSuccess; step.onFailure?.let(events::add) }
                     is EventStep.SpawnEnemies -> groups += step.group

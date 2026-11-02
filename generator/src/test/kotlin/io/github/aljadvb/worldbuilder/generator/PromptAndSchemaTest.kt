@@ -35,7 +35,7 @@ class PromptAndSchemaTest {
     fun `scenario schema leaves the layout to the app`() {
         val root = OutputSchemas.parse(OutputSchemas.scenario).jsonObject
         val placement = root.getValue("\$defs").jsonObject.getValue("tilePlacement").jsonObject
-        assertEquals(setOf("id", "tile", "side"), placement.getValue("properties").jsonObject.keys)
+        assertEquals(setOf("id", "tile", "side", "unexplored", "onExplore"), placement.getValue("properties").jsonObject.keys)
         assertEquals(JsonArray(listOf("id", "tile", "side").map(::JsonPrimitive)), placement["required"])
         assertTrue("chapters" in root.getValue("properties").jsonObject)
     }

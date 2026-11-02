@@ -68,11 +68,29 @@ sealed interface EventStep {
     @SerialName("fireTrigger")
     data class FireTrigger(val trigger: String) : EventStep
 
+    /** Reward: heroes take inspiration markers (the app does not count them). */
+    @Serializable
+    @SerialName("gainInspiration")
+    data class GainInspiration(
+        val amount: Int = 1,
+        val who: InspirationTarget = InspirationTarget.ACTIVE,
+        val text: String? = null,
+    ) : EventStep
+
     @Serializable
     @SerialName("endScenario")
     data class EndScenario(val resolution: String) : EventStep {
         override val isTerminal get() = true
     }
+}
+
+@Serializable
+enum class InspirationTarget {
+    /** The hero who is acting (e.g. made the test or interacted). */
+    @SerialName("active") ACTIVE,
+    @SerialName("each") EACH,
+    /** One hero chosen by the group. */
+    @SerialName("chosen") CHOSEN,
 }
 
 @Serializable

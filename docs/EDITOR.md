@@ -96,6 +96,16 @@ Material-Katalog (`hexSizeMm`).
 
 Frühere Kapitel werden blass angezeigt, spätere ausgeblendet. Überlappungen werden rot markiert und nicht übernommen.
 
+## Unerforschte Kacheln und Inspiration
+
+Im Kachel-Formular (Kachel auf der Karte anklicken) macht das Häkchen **„Unerforscht“** die Kachel zu einer Kachel mit
+Erkundungsmarker: In der App liegt sie ausgegraut, Token darauf erscheinen erst beim Erkunden, und der erkundende oder ein
+naher Held erhält 1 Inspiration. Optional läuft ein **Erkundungs-Event**; Trigger vom Typ **„Kachel erkundet“** reagieren
+darauf (z. B. für Ziele). Die Startkachel sollte erforscht bleiben.
+
+Der Event-Schritt **„Inspiration erhalten“** belohnt die Helden (Anzahl, Empfänger: handelnder Held / jeder Held / Held
+nach Wahl, optionaler Text). Die App zeigt nur den Hinweis – die Marker liegen am Tisch.
+
 ## Schlachtpläne
 
 Im Kapitel-Formular unter **Kartenart** auf *Schlacht* umschalten (nur bei einem Kapitel ohne Kacheln). Dann zeigt der

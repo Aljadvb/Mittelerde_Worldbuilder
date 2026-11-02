@@ -118,7 +118,7 @@ class ScreenshotTest {
         var s = millSetup().ackUntil { it.isIdle }
         s = engine.apply(s, Command.InteractToken("tok_muehlentor")).ackUntil { it.currentPrompt is Prompt.Test }
         show(s)
-        compose.onNodeWithText("Probe: Stärke").assertExists()
+        compose.onNodeWithText("Probe: Körperkraft").assertExists()
         snapshot("05_test_tor")
     }
 
@@ -249,5 +249,28 @@ class ScreenshotTest {
             }
         }
         snapshot("11_private_terrain_dialog")
+    }
+
+    @Test
+    fun unexploredTileAndExploring() {
+        val sc = scenario.copy(chapters = scenario.chapters.map { ch -> ch.copy(tiles = ch.tiles.map { if (it.id == "pl_dorfweg") it.copy(unexplored = true) else it }) })
+        val eng = GameEngine(sc)
+        var st = eng.start(2)
+        while (!st.isIdle) st = eng.apply(st, Command.Acknowledge)
+        compose.setContent { Screen { PlayContent(sc, catalog, st, campaignChanged = false, onCommand = {}) } }
+        compose.onNodeWithText("Tippe auf ein Token oder einen Erkundungsmarker (grüner Kompass).").assertExists()
+        snapshot("12_unexplored")
+    }
+
+    @Test
+    fun exploredPrompt() {
+        val sc = scenario.copy(chapters = scenario.chapters.map { ch -> ch.copy(tiles = ch.tiles.map { if (it.id == "pl_dorfplatz") it.copy(unexplored = true) else it }) })
+        val eng = GameEngine(sc)
+        var st = eng.start(2)
+        while (!st.isIdle) st = eng.apply(st, Command.Acknowledge)
+        st = eng.apply(st, Command.ExploreTile("pl_dorfplatz"))
+        compose.setContent { Screen { PlayContent(sc, catalog, st, campaignChanged = false, onCommand = {}) } }
+        compose.onNodeWithText("Der erkundende Held oder ein naher Held erhält 1 Inspiration (Marker nehmen). Entfernt den Erkundungsmarker.").assertExists()
+        snapshot("13_explored")
     }
 }

@@ -43,6 +43,7 @@ fun playScene(
                 fill = MapColors.chapterFill(chapterIndex),
                 emphasized = p.id in highlight.placements,
                 image = images?.forPlacement(p, catalog),
+                unexplored = p.unexplored && p.id !in state.exploredPlacements,
             )
         }
     }
@@ -67,6 +68,10 @@ fun highlightFor(prompt: Prompt?, scenario: Scenario): MapHighlight = when (prom
         )
     } ?: MapHighlight()
     is Prompt.PlaceToken -> tokenHighlight(scenario, prompt.tokenId)
+    is Prompt.Explored -> MapHighlight(
+        placements = setOf(prompt.placementId),
+        cells = prompt.tokenIds.mapNotNull { scenario.token(it)?.let { t -> scenario.mapCell(t.location) } }.toSet(),
+    )
     is Prompt.RemoveToken -> tokenHighlight(scenario, prompt.tokenId)
     is Prompt.Inspect -> tokenHighlight(scenario, prompt.tokenId)
     is Prompt.SpawnEnemies -> scenario.enemyGroup(prompt.groupId)?.let { g ->

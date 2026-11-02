@@ -1,6 +1,7 @@
 package io.github.aljadvb.worldbuilder.validation
 
 import io.github.aljadvb.worldbuilder.model.TileLocation
+import io.github.aljadvb.worldbuilder.validation.Severity
 import io.github.aljadvb.worldbuilder.model.EventStep
 import io.github.aljadvb.worldbuilder.model.HexCoord
 import io.github.aljadvb.worldbuilder.model.Scenario
@@ -169,5 +170,30 @@ class CampaignValidatorTest {
         )
         val report = CampaignValidator.validate(campaign, Examples.catalog)
         assertEquals("transitions[0].resolution", report.single(IssueCode.UNKNOWN_REFERENCE).path)
+    }
+}
+
+class ExplorationValidationTest {
+    private fun validate(edit: (io.github.aljadvb.worldbuilder.model.Scenario) -> io.github.aljadvb.worldbuilder.model.Scenario) =
+        CampaignValidator.validate(Examples.campaign.editScenario(edit), Examples.catalog)
+
+    @Test
+    fun `unexplored tiles and inspiration are checked`() {
+        val ok = validate { s ->
+            s.copy(chapters = s.chapters.map { ch -> ch.copy(tiles = ch.tiles.map { if (it.id == "pl_muehle") it.copy(unexplored = true) else it }) })
+                .editEvent("evt_brunnen") { e -> e.copy(steps = listOf(io.github.aljadvb.worldbuilder.model.EventStep.GainInspiration()) + e.steps) }
+        }
+        assertEquals("", ok.format())
+        val bad = validate { s ->
+            s.copy(
+                chapters = s.chapters.map { ch -> ch.copy(tiles = ch.tiles.map { it.copy(unexplored = ch.id == "ch_dorf", onExplore = if (it.id == "pl_muehle") "evt_weg" else null) }) },
+                triggers = s.triggers + io.github.aljadvb.worldbuilder.model.Trigger("trg_x", TriggerCondition.TileExplored("pl_muehle")),
+            ).editEvent("evt_brunnen") { e -> e.copy(steps = listOf(io.github.aljadvb.worldbuilder.model.EventStep.GainInspiration(amount = 5)) + e.steps) }
+        }
+        val codes = bad.issues.map { it.code to it.severity }
+        assertTrue((IssueCode.NO_EXPLORED_START to Severity.WARNING) in codes, bad.format())
+        assertTrue((IssueCode.NOT_UNEXPLORED to Severity.WARNING) in codes, bad.format())
+        assertTrue((IssueCode.UNKNOWN_REFERENCE to Severity.ERROR) in codes, bad.format())
+        assertTrue((IssueCode.INVALID_NUMBER to Severity.ERROR) in codes, bad.format())
     }
 }

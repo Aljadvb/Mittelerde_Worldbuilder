@@ -108,6 +108,7 @@ private fun stepLabel(step: EventStep): String {
         is EventStep.UnlockChapter -> "unlockChapter"
         is EventStep.SetObjective -> "setObjective"
         is EventStep.FireTrigger -> "fireTrigger"
+        is EventStep.GainInspiration -> "gainInspiration"
         is EventStep.EndScenario -> "endScenario"
     }
     return Texts.STEP_TYPES.first { it.first == type }.second
@@ -126,6 +127,7 @@ fun newStep(type: String, s: Scenario): EventStep = when (type) {
     "setObjective" -> EventStep.SetObjective(s.objectives.firstOrNull()?.id.orEmpty())
     "fireTrigger" -> EventStep.FireTrigger(s.triggers.firstOrNull { it.on == TriggerCondition.Manual }?.id.orEmpty())
     "endScenario" -> EventStep.EndScenario(s.resolutions.firstOrNull()?.id.orEmpty())
+    "gainInspiration" -> EventStep.GainInspiration()
     else -> error("unknown step type $type")
 }
 
@@ -186,6 +188,15 @@ private fun StepFields(
         is EventStep.FireTrigger -> ChoiceInput(
             model, Texts.TRIGGER, step.trigger, s.triggers.filter { it.on == TriggerCondition.Manual }.map { Choice(it.id, it.id) }, "$p.trigger",
         ) { v -> set(step.copy(trigger = v.orEmpty())) }
+        is EventStep.GainInspiration -> {
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                IntInput(model, Texts.AMOUNT, step.amount, "$key.amount", "$p.amount") { v -> setText(step.copy(amount = v)) }
+                ChoiceInput(model, Texts.INSPIRATION_WHO, step.who.name, Texts.INSPIRATION_TARGETS.map { Choice(it.first, it.second) }, null, modifier = Modifier.weight(1f)) { v ->
+                    set(step.copy(who = io.github.aljadvb.worldbuilder.model.InspirationTarget.valueOf(v!!)))
+                }
+            }
+            TextInput(model, Texts.OPTIONAL_TEXT, step.text.orEmpty(), "$key.text", "$p.text") { v -> setText(step.copy(text = v.ifEmpty { null })) }
+        }
         is EventStep.EndScenario -> ChoiceInput(model, Texts.RESOLUTION, step.resolution, s.resolutions.map { Choice(it.id, "${it.title} · ${it.id}") }, "$p.resolution") { v ->
             set(step.copy(resolution = v.orEmpty()))
         }

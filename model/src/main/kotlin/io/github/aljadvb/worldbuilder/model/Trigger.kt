@@ -40,6 +40,11 @@ sealed interface TriggerCondition {
     @SerialName("roundEnded")
     data class RoundEnded(val round: Int) : TriggerCondition
 
+    /** Fires when the players explore an unexplored tile. */
+    @Serializable
+    @SerialName("tileExplored")
+    data class TileExplored(val placement: String) : TriggerCondition
+
     /** Fired explicitly by an [EventStep.FireTrigger] step. */
     @Serializable
     @SerialName("manual")

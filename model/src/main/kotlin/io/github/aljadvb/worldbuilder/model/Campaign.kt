@@ -112,6 +112,10 @@ data class TilePlacement(
     val position: HexCoord,
     /** 0–5, steps of 60° clockwise around the anchor. */
     val rotation: Int = 0,
+    /** Laid out greyed with an exploration marker; its tokens appear when it is explored. */
+    val unexplored: Boolean = false,
+    /** Event run when the tile is explored. */
+    val onExplore: String? = null,
 ) {
     /** Converts a tile-local cell into a map coordinate. */
     fun toMap(local: HexCoord): HexCoord = local.rotateClockwise(rotation) + position

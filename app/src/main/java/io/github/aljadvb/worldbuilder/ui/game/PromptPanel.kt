@@ -113,7 +113,9 @@ private fun NoticeContent(prompt: Prompt.Notice, scenario: Scenario, catalog: Ma
             }
             if (chapter.tiles.isNotEmpty()) {
                 Text(stringResource(R.string.prompt_setup_tiles), fontWeight = FontWeight.Bold)
-                chapter.tiles.forEach { Text("• " + stringResource(R.string.prompt_setup_tile_line, tileLabel(it.id), it.side.name)) }
+                chapter.tiles.forEach {
+                    Text("• " + stringResource(if (it.unexplored) R.string.prompt_setup_tile_unexplored else R.string.prompt_setup_tile_line, tileLabel(it.id), it.side.name))
+                }
             }
             val tokens = chapter.tokens.filter { it.initiallyActive }
             if (tokens.isNotEmpty()) {
@@ -167,6 +169,22 @@ private fun NoticeContent(prompt: Prompt.Notice, scenario: Scenario, catalog: Ma
             Title(objective.title)
             Body(objective.reminder)
         }
+        is Prompt.Explored -> {
+            Title(stringResource(R.string.prompt_explored_title, tileLabel(prompt.placementId)))
+            Body(stringResource(R.string.prompt_explored_inspiration))
+            val tokens = prompt.tokenIds.mapNotNull { scenario.token(it) }
+            if (tokens.isNotEmpty()) {
+                Text(stringResource(R.string.prompt_setup_tokens), fontWeight = FontWeight.Bold)
+                tokens.forEach { t -> Text("• " + stringResource(R.string.prompt_setup_token_line, t.label, tokenTypeLabel(t), tileLabel(prompt.placementId))) }
+            }
+            Hint(stringResource(R.string.prompt_explored_hint))
+        }
+        is Prompt.Inspiration -> {
+            Title(stringResource(R.string.prompt_inspiration_title))
+            prompt.text?.let { Body(it) }
+            Body(inspirationText(prompt))
+            Hint(stringResource(R.string.prompt_inspiration_hint))
+        }
         is Prompt.ObjectiveCompleted -> {
             val objective = scenario.objective(prompt.objectiveId) ?: return
             Hint(stringResource(R.string.prompt_objective_done_title))
@@ -190,4 +208,12 @@ private fun TestContent(prompt: Prompt.Test, onCommand: (Command) -> Unit) {
     Button(onClick = { onCommand(Command.ReportTest(successes)) }, modifier = Modifier.fillMaxWidth()) {
         Text(stringResource(R.string.confirm))
     }
+}
+
+
+@Composable
+internal fun inspirationText(prompt: Prompt.Inspiration): String = when (prompt.who) {
+    io.github.aljadvb.worldbuilder.model.InspirationTarget.ACTIVE -> stringResource(R.string.inspiration_active, prompt.amount)
+    io.github.aljadvb.worldbuilder.model.InspirationTarget.EACH -> stringResource(R.string.inspiration_each, prompt.amount)
+    io.github.aljadvb.worldbuilder.model.InspirationTarget.CHOSEN -> stringResource(R.string.inspiration_chosen, prompt.amount)
 }

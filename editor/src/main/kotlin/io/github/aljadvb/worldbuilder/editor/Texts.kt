@@ -139,6 +139,7 @@ object Texts {
         "enemyGroupDefeated" to "Gegnergruppe besiegt",
         "objectiveCompleted" to "Ziel erfüllt",
         "roundEnded" to "Runde beendet",
+        "tileExplored" to "Kachel erkundet",
         "manual" to "Nur durch Event-Schritt „Trigger auslösen“",
     )
 
@@ -172,9 +173,22 @@ object Texts {
         "unlockChapter" to "Kapitel freischalten",
         "setObjective" to "Ziel setzen",
         "fireTrigger" to "Trigger auslösen",
+        "gainInspiration" to "Inspiration erhalten",
         "endScenario" to "Szenario beenden",
     )
-    val ATTRIBUTES = listOf("MIGHT" to "Stärke", "AGILITY" to "Geschick", "WISDOM" to "Weisheit", "SPIRIT" to "Geist", "WIT" to "Verstand")
+    val INSPIRATION_TARGETS = listOf("ACTIVE" to "der handelnde Held", "EACH" to "jeder Held", "CHOSEN" to "ein Held eurer Wahl")
+    const val INSPIRATION_WHO = "Wer erhält sie?"
+    const val OPTIONAL_TEXT = "Text (optional)"
+    fun inspiration(amount: Int, who: io.github.aljadvb.worldbuilder.model.InspirationTarget) = when (who) {
+        io.github.aljadvb.worldbuilder.model.InspirationTarget.ACTIVE -> "Der handelnde Held erhält $amount Inspiration."
+        io.github.aljadvb.worldbuilder.model.InspirationTarget.EACH -> "Jeder Held erhält $amount Inspiration."
+        io.github.aljadvb.worldbuilder.model.InspirationTarget.CHOSEN -> "Ein Held eurer Wahl erhält $amount Inspiration."
+    }
+    fun explored(tile: String) = "Kachel $tile erkundet. Der erkundende Held oder ein naher Held erhält 1 Inspiration."
+    const val UNEXPLORED = "Unerforscht (ausgegraut, mit Erkundungsmarker)"
+    const val ON_EXPLORE = "Beim Erkunden (Event)"
+    const val EXPLORE_HINT = "Klick auf den Erkundungsmarker erkundet die Kachel."
+    val ATTRIBUTES = listOf("MIGHT" to "Körperkraft", "AGILITY" to "Beweglichkeit", "WISDOM" to "Weisheit", "SPIRIT" to "Willen", "WIT" to "Scharfsinn")
 
     // Map editor
     const val MAP_SELECT = "Auswählen"
