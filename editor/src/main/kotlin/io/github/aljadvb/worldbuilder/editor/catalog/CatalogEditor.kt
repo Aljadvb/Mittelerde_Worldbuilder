@@ -250,6 +250,13 @@ private fun TerrainEditor(model: CatalogEditorModel, id: String, modifier: Modif
             minLines = 2,
             modifier = Modifier.fillMaxWidth(),
         )
+        fun cells(l: List<io.github.aljadvb.worldbuilder.model.HexCoord>) = l.joinToString(" ") { "(${it.q},${it.r})" }
+        listOf(
+            Texts.SYMBOL_DARKNESS to cells(shape.darkness),
+            Texts.SYMBOL_FORTIFIED to cells(shape.fortified),
+            Texts.SYMBOL_ROUGH to cells(shape.rough),
+            Texts.SYMBOL_UNDERGROUND to if (shape.walled.isEmpty()) "" else cells(shape.walled) + " · " + Texts.passages(shape.passages.size),
+        ).filter { it.second.isNotEmpty() }.forEach { (k, v) -> Text("$k: $v", style = MaterialTheme.typography.bodySmall) }
     }
 }
 
