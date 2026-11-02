@@ -69,15 +69,17 @@ object OutputSchemas {
         }
         fun str(desc: String) = buildJsonObject { put("type", "string"); put("description", desc) }
         fun arr(items: JsonElement) = buildJsonObject { put("type", "array"); put("items", items) }
-        val root = obj(listOf("title", "intro", "chapters", "objectives", "enemies", "endings")) {
+        val root = obj(listOf("title", "intro", "chapters", "objectives", "enemies", "endings", "mapReason")) {
             put("title", str("Titel des Szenarios"))
             put("intro", str("Einleitungstext, 3–6 Sätze, eigene Worte"))
-            put("chapters", arr(obj(listOf("title", "summary", "locations", "terrain")) {
+            put("chapters", arr(obj(listOf("title", "summary", "locations", "terrain", "battle")) {
                 put("title", str("Kapiteltitel"))
                 put("summary", str("Was in diesem Kapitel geschieht, 2–4 Sätze"))
                 put("locations", arr(str("Schauplatz, z. B. „Turmruine am Waldrand“")))
                 put("terrain", arr(buildJsonObject { putJsonArray("enum") { Terrain.TAGS.forEach { add(JsonPrimitive(it.id)) } } }))
+                put("battle", buildJsonObject { put("type", "boolean"); put("description", "true = Kapitel spielt auf Schlachtplänen statt auf Reise-Kacheln") })
             }))
+            put("mapReason", str("Kurze Begründung, warum die Kapitel Reise- oder Schlachtkarten nutzen"))
             put("objectives", arr(obj(listOf("title", "howToComplete")) {
                 put("title", str("Ziel in Kurzform"))
                 put("howToComplete", str("Wie die Gruppe das Ziel erfüllt"))

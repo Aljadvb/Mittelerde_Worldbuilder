@@ -44,6 +44,7 @@ class GeneratorModel(
     var source by mutableStateOf("")
     var length by mutableStateOf(GenerationInput.Length.MEDIUM)
     var difficulty by mutableStateOf(GenerationInput.Difficulty.NORMAL)
+    var map by mutableStateOf(GenerationInput.MapChoice.AUTO)
     var wishes by mutableStateOf("")
     var allowedTiles by mutableStateOf(ownedTiles())
     var allowedEnemies by mutableStateOf(ownedEnemies())
@@ -77,7 +78,7 @@ class GeneratorModel(
     private fun ownedTiles() = catalog.tiles.filter { catalog.expansion(it.expansion)?.owned != false }.map { it.id }.toSet()
     private fun ownedEnemies() = catalog.enemyTypes.filter { catalog.expansion(it.expansion)?.owned != false }.map { it.id }.toSet()
 
-    private fun input() = GenerationInput(source, length, difficulty, allowedTiles, allowedEnemies, wishes, table)
+    private fun input() = GenerationInput(source, length, difficulty, allowedTiles, allowedEnemies, wishes, table, map)
 
     val canCreateStory get() = !busy && source.isNotBlank() && allowedTiles.isNotEmpty()
 

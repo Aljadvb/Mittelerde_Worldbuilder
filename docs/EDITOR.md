@@ -64,8 +64,10 @@ weiter. Kosten entstehen dabei keine zusätzlichen; für Szenarien am besten die
 
 **KI → Szenario generieren … (Strg+G)** führt in drei Schritten zum Szenario:
 
-1. **Vorlage**: eigene Notizen, eine Zusammenfassung oder gemeinfreier Text, dazu Länge, Schwierigkeit, Wünsche und
-   das erlaubte Material (Kacheln mit ihren Kategorien, Gegnertypen).
+1. **Vorlage**: eigene Notizen, eine Zusammenfassung oder gemeinfreier Text, dazu Länge, Schwierigkeit, Wünsche,
+   **Kartenart** (Automatisch / Reise / Schlacht) und das erlaubte Material (Kacheln mit ihren Kategorien, Gegnertypen).
+   Bei *Automatisch* entscheidet die KI: Spielt die Geschichte an einem Ort, nimmt sie Schlachtpläne, bei Erkundung,
+   Reise oder Flucht die Reisekarte. Die Begründung steht im Entwurf, die Kartenart ist dort pro Kapitel umstellbar.
 2. **Story-Entwurf**: Titel, Einleitung, Kapitel mit Schauplätzen und Landschaft, Ziele, Gegner, Enden – alles bearbeitbar,
    oder „Neu vorschlagen“.
 3. **Szenario**: Die KI erzeugt das Szenario, die App ordnet die Kacheln an und prüft alles; Fehler gehen bis zu
@@ -93,6 +95,27 @@ Material-Katalog (`hexSizeMm`).
 | Ansicht | Mausrad = Zoom, leere Fläche oder mittlere Maustaste ziehen = verschieben, „Einpassen“ |
 
 Frühere Kapitel werden blass angezeigt, spätere ausgeblendet. Überlappungen werden rot markiert und nicht übernommen.
+
+## Schlachtpläne
+
+Im Kapitel-Formular unter **Kartenart** auf *Schlacht* umschalten (nur bei einem Kapitel ohne Kacheln). Dann zeigt der
+Editor statt der Sechseck-Karte den **Schlachtplan-Editor**:
+
+| Aktion | Bedienung |
+|---|---|
+| Plan legen | „Schlachtplan ▾“ → Plan und Seite wählen → Klick; Pläne rasten bündig Kante an Kante ein |
+| Geländeteil legen | „Geländeteil ▾“ (zeigt, wie viele noch frei sind) → Klick in ein Feld bzw. nahe an eine Feldgrenze; mehrere nacheinander, Esc beendet |
+| Token / Gegner | „Token setzen ▾“ / „Gegner setzen“ → Klick auf ein Feld |
+| Verschieben | ziehen (Pläne, Teile, Token, Gegner) |
+| Drehen / Wenden | **R** dreht den Plan um 90°, **F** wendet Plan oder Geländeteil |
+
+Ein gewähltes Geländeteil bekommt im Formular optional einen **eigenen Namen** und eine **eigene Regel** für dieses
+Szenario – entweder *ersetzt* sie die Geländekarte oder sie *gilt zusätzlich*. In der App erscheint das Teil mit goldenem
+Stern; beim Antippen sieht man Name, Bild, die eigene Regel und den Kartentext.
+
+Im **Katalog-Fenster** werden Schlachtpläne (Anzahl, Seiten, Beschreibung, Kategorien) und Geländeteile (Name und Lage je
+Seite, Anzahl der Pappteile, Wirkung in eigenen Worten, Kartentext, „versperrt“) gepflegt. Kartentexte und Bilder
+bleiben in deinem privaten Katalog.
 
 ## Tastenkürzel
 

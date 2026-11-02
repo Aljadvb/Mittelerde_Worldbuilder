@@ -163,6 +163,13 @@ private fun InputStep(model: GeneratorModel, catalog: MaterialCatalog, hasOpenCa
                 GenerationInput.Difficulty.entries.forEach { d -> FilterChip(model.difficulty == d, { model.difficulty = d }, label = { Text(d.label) }) }
             }
         }
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Heading(Texts.AI_MAP_KIND)
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                GenerationInput.MapChoice.entries.forEach { c -> FilterChip(model.map == c, { model.map = c }, label = { Text(c.label) }) }
+            }
+            if (model.map == GenerationInput.MapChoice.AUTO) Text(Texts.AI_MAP_AUTO_HINT, style = MaterialTheme.typography.bodySmall, modifier = Modifier.width(360.dp))
+        }
     }
     Heading(Texts.AI_MATERIAL)
     Text(Texts.AI_TILES, style = MaterialTheme.typography.labelLarge)
@@ -205,6 +212,7 @@ private fun InputStep(model: GeneratorModel, catalog: MaterialCatalog, hasOpenCa
 fun DraftEditor(draft: StoryDraft, catalog: MaterialCatalog, onChange: (StoryDraft) -> Unit) {
     OutlinedTextField(draft.title, { onChange(draft.copy(title = it)) }, Modifier.fillMaxWidth(), label = { Text(Texts.AI_DRAFT_TITLE) })
     OutlinedTextField(draft.intro, { onChange(draft.copy(intro = it)) }, Modifier.fillMaxWidth(), label = { Text(Texts.AI_DRAFT_INTRO) }, minLines = 3)
+    if (draft.mapReason.isNotBlank()) Text("${Texts.AI_MAP_REASON}: ${draft.mapReason}", style = MaterialTheme.typography.bodyMedium)
 
     Heading(Texts.AI_DRAFT_CHAPTERS)
     draft.chapters.forEachIndexed { i, ch ->
@@ -213,6 +221,10 @@ fun DraftEditor(draft: StoryDraft, catalog: MaterialCatalog, onChange: (StoryDra
             Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 OutlinedTextField(ch.title, { set(ch.copy(title = it)) }, Modifier.fillMaxWidth(), label = { Text("${i + 1}. ${Texts.AI_DRAFT_TITLE}") })
                 OutlinedTextField(ch.summary, { set(ch.copy(summary = it)) }, Modifier.fillMaxWidth(), label = { Text(Texts.AI_DRAFT_SUMMARY) }, minLines = 2)
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    FilterChip(!ch.battle, { set(ch.copy(battle = false)) }, label = { Text(Texts.MAP_KIND_TRAVEL) })
+                    FilterChip(ch.battle, { set(ch.copy(battle = true)) }, label = { Text(Texts.MAP_KIND_BATTLE) })
+                }
                 OutlinedTextField(ch.locations.joinToString(", "), { v -> set(ch.copy(locations = v.split(",").map { it.trim() }.filter { it.isNotEmpty() })) }, Modifier.fillMaxWidth(), label = { Text(Texts.AI_DRAFT_LOCATIONS) })
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Terrain.TAGS.forEach { tag ->

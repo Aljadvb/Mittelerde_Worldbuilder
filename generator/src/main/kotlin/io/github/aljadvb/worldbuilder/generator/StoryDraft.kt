@@ -16,7 +16,10 @@ data class GenerationInput(
     val wishes: String = "",
     /** The whole map (all chapters) must fit on this table. */
     val table: io.github.aljadvb.worldbuilder.editing.TableSize = io.github.aljadvb.worldbuilder.editing.TableSize.DEFAULT,
+    /** Travel map, battle map, or let the AI decide from the story. */
+    val map: MapChoice = MapChoice.AUTO,
 ) {
+    enum class MapChoice(val label: String) { AUTO("Automatisch"), TRAVEL("Reise"), BATTLE("Schlacht") }
     enum class Length(val chapters: Int, val label: String) { SHORT(2, "kurz"), MEDIUM(3, "mittel"), LONG(4, "lang") }
     enum class Difficulty(val label: String) { EASY("leicht"), NORMAL("normal"), HARD("schwer") }
 }
@@ -30,6 +33,8 @@ data class StoryDraft(
     val objectives: List<DraftObjective>,
     val enemies: List<DraftEnemy>,
     val endings: List<DraftEnding>,
+    /** Why the chapters use a travel or a battle map (shown to the user). */
+    val mapReason: String = "",
 )
 
 @Serializable
@@ -40,6 +45,8 @@ data class DraftChapter(
     val locations: List<String>,
     /** Terrain category IDs the chapter's tiles should show. */
     val terrain: List<String>,
+    /** Played on battle boards instead of travel tiles. */
+    val battle: Boolean = false,
 )
 
 @Serializable

@@ -1,6 +1,6 @@
 # Testliste – was noch von Hand zu prüfen ist
 
-Stand: 2026-11-01 · Version 1.2.0 · Abhaken mit `[x]`. Rückmeldungen (Screenshots, Dateien) einfach im Chat schicken.
+Stand: 2026-11-02 · Version 1.3.0 · Abhaken mit `[x]`. Rückmeldungen (Screenshots, Dateien) einfach im Chat schicken.
 
 Alles hier ist automatisch getestet (Unit-Tests, simulierte Maus, gerenderte Screenshots), aber **noch nie auf echter
 Hardware bzw. mit einer echten KI gelaufen**. Die wichtigsten Punkte stehen oben.
@@ -24,6 +24,19 @@ Hardware bzw. mit einer echten KI gelaufen**. Die wichtigsten Punkte stehen oben
 - [ ] **Ausweich-Option „Bei Ablehnung …“**: Läuft die Anfrage damit ohne Fehlermeldung? (ungetestet gegen die echte API – falls Fehler: Option abschalten und mir den Text schicken)
 - [ ] Abbrechen während der Erzeugung funktioniert
 - [ ] Falscher Schlüssel → verständliche Meldung
+
+## 1c. Schlachtpläne (neu in 1.3.0)
+
+- [ ] Neuen Katalog `mein-katalog.zip` laden (Editor: Datei → Katalog wählen; App: ⋮ → Material-Katalog importieren)
+- [ ] Kapitel auf „Schlacht“ umschalten, beide Pläne legen (bündig, gedreht, Seite gewechselt)
+- [ ] Geländeteile legen: Fluss/Mauer/Graben/Zaun nur auf Feldgrenzen, andere in Feldern; Zähler „frei“ stimmt
+- [ ] Eigenen Namen und eigene Regel vergeben (ersetzen / zusätzlich)
+- [ ] Probespiel (F5): Schlachtplan erscheint, Antippen eines Teils zeigt Kartentext und eigene Regel
+- [ ] App: Aufbau-Anweisung (Pläne, Teile, Token) stimmt mit dem echten Tisch überein; Teile in richtiger Größe
+- [ ] App: Antippen eines Geländeteils am Handy – Text gut lesbar?
+- [ ] KI-Generator mit „Automatisch“: Wählt die KI bei einer Geschichte an einem Ort einen Schlachtplan? Begründung sinnvoll?
+- [ ] KI-Generator mit „Schlacht“: gültiges Szenario, sinnvoll platzierte Geländeteile?
+- [ ] Neue Kacheln 200–227: Bilder gerade, Raster passt, Nummern stimmen
 
 ## 2. Windows-Editor
 
@@ -54,7 +67,7 @@ Hardware bzw. mit einer echten KI gelaufen**. Die wichtigsten Punkte stehen oben
 
 ## Offene Punkte / später
 
-- Restliche Kacheln scannen (dann ergänze ich den Katalog)
+- Restliche Kacheln scannen: 3xx, 4xx, 5xx (dann ergänze ich den Katalog)
 - Gegnertypen in den Katalog eintragen (fehlen noch)
 - Installer verkleinern (große Icon-Bibliothek entfernen, ca. –35 MB)
 - Pull Requests für Phase 1 und 2 zusammenführen (Branch `phase2-editor` → `main`)

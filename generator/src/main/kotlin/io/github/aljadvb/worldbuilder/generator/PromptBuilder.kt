@@ -25,6 +25,9 @@ class PromptBuilder(private val catalog: MaterialCatalog, private val input: Gen
 
     val allowedTileIds: Set<String> get() = tiles.map { it.id }.toSet()
 
+    private val boards = catalog.battleBoards.filter { catalog.expansion(it.expansion)?.owned != false }.sortedBy { it.label }
+    private val pieces = catalog.terrainPieces.filter { catalog.expansion(it.expansion)?.owned != false }
+
     /** Rules, game format and material – identical for all requests of one generation. */
     fun stableSystem(): String = buildString {
         appendLine(ROLE)
@@ -43,6 +46,26 @@ class PromptBuilder(private val catalog: MaterialCatalog, private val input: Gen
                 appendLine("- Kachel-ID `${t.id}` (Nummer ${t.label}), Seite $side: Felder $cells; Landschaft: $terrain" +
                     if (shape.description.isNotBlank()) "; ${shape.description}" else "")
             }
+        }
+        appendLine()
+        appendLine("## Schlachtpläne")
+        if (boards.isEmpty()) appendLine("- (keine – verwende keine Schlacht-Kapitel)")
+        for (b in boards) {
+            for ((side, s) in b.sides.toSortedMap()) {
+                val fields = s.fields().joinToString(" ") { f -> "[" + f.joinToString(" ") { "(${it.x},${it.y})" } + "]" }
+                val terrain = s.terrain.joinToString(", ") { "${Terrain.label(it)} [$it]" }.ifEmpty { "–" }
+                appendLine("- Plan-ID `${b.id}` (${b.label}, ${b.count}× vorhanden), Seite $side: ${s.width}×${s.height} Quadrate; Felder $fields; Landschaft: $terrain" +
+                    if (s.description.isNotBlank()) "; ${s.description}" else "")
+            }
+        }
+        appendLine()
+        appendLine("## Geländeteile")
+        if (pieces.isEmpty()) appendLine("- (keine)")
+        for (p in pieces) {
+            val sides = p.sides.toSortedMap().entries.joinToString(" | ") { (side, s) ->
+                "Seite $side „${s.name}“ (${if (s.placement.name == "EDGE") "auf Feldgrenze" else "im Feld"})" + if (s.effect.isNotBlank()) ": ${s.effect}" else ""
+            }
+            appendLine("- Teil-ID `${p.id}`, ${p.count} Stück (beide Seiten zusammen): $sides")
         }
         appendLine()
         appendLine("## Gegnertypen")
@@ -71,7 +94,8 @@ class PromptBuilder(private val catalog: MaterialCatalog, private val input: Gen
         appendLine("- Länge: ${input.length.label} (${input.length.chapters} Kapitel)")
         appendLine("- Schwierigkeit: ${input.difficulty.label}")
         if (input.wishes.isNotBlank()) appendLine("- Wünsche: ${input.wishes.trim()}")
-        appendLine("- Jedes Kapitel bekommt Landschafts-Kategorien, die zu den verfügbaren Kacheln passen.")
+        appendLine("- Jedes Kapitel bekommt Landschafts-Kategorien, die zu den verfügbaren Kacheln bzw. Schlachtplänen passen.")
+        appendLine("- Kartenart: " + mapInstruction())
         appendLine("- Mindestens ein Sieg- und ein Niederlage-Ende; Niederlage, wenn die Bedrohung ihr Maximum erreicht.")
         appendLine()
         appendLine("Vorlage (nur als Inspiration – Handlung und Namen dürfen übernommen werden, Formulierungen nicht):")
@@ -93,7 +117,11 @@ class PromptBuilder(private val catalog: MaterialCatalog, private val input: Gen
         appendLine("Setze diesen freigegebenen Entwurf als vollständiges Szenario im beschriebenen Format um.")
         appendLine()
         appendLine("Vorgaben:")
-        appendLine("- Genau ${draft.chapters.size} Kapitel in der Reihenfolge des Entwurfs; pro Kapitel 1–3 Kacheln, deren Landschaft zum Kapitel passt.")
+        appendLine("- Genau ${draft.chapters.size} Kapitel in der Reihenfolge des Entwurfs; pro Reise-Kapitel 1–3 Kacheln, deren Landschaft zum Kapitel passt.")
+        val battles = draft.chapters.mapIndexedNotNull { i, c -> (i + 1).takeIf { c.battle } }
+        if (battles.isNotEmpty()) {
+            appendLine("- Schlacht-Kapitel (Nr. ${battles.joinToString(", ")}): statt Kacheln ein battlefield mit 1–2 Schlachtplänen und passenden Geländeteilen (siehe Regeln 10–14); Token und Gegner dort mit {\"square\": …}.")
+        }
         appendLine("- Jede Kachel höchstens einmal im ganzen Szenario.")
         appendLine("- Am Ende liegen alle Kapitel gleichzeitig auf einem Tisch von ${input.table}: alle Kacheln zusammen höchstens etwa ${input.table.cellCapacity(catalog.hexSizeMm)} Felder (Felder je Kachel siehe Material).")
         appendLine("- Pro Kapitel 2–5 Token mit eigenen Texten; Proben und Auswahlen sorgen für Abwechslung.")
@@ -124,6 +152,13 @@ class PromptBuilder(private val catalog: MaterialCatalog, private val input: Gen
             maxTokens = 64_000,
             effort = Effort.HIGH,
         )
+    }
+
+    private fun mapInstruction(): String = when (input.map) {
+        GenerationInput.MapChoice.TRAVEL -> "alle Kapitel sind Reise-Kapitel (battle = false)."
+        GenerationInput.MapChoice.BATTLE -> "alle Kapitel sind Schlacht-Kapitel (battle = true)."
+        GenerationInput.MapChoice.AUTO -> "entscheide pro Kapitel. Spielt es an EINEM Ort (Verteidigung, Überfall, Kampf in einer Halle oder auf einer Lichtung) → Schlacht (battle = true). Geht es um Erkundung, Reise, Flucht, Suche über mehrere Orte → Reise (battle = false). Begründe kurz in mapReason." +
+            if (boards.isEmpty()) " Es gibt keine Schlachtpläne, also nur Reise." else ""
     }
 
     private fun difficultyHint() = when (input.difficulty) {
@@ -164,9 +199,16 @@ Pflichtregeln (werden automatisch geprüft):
 3. Jedes Ziel muss erfüllbar sein: sein completedBy-Trigger muss auf einem Weg auslösbar sein, während das Ziel aktiv ist.
 4. Es gibt einen Trigger vom Typ threatMax, der in ein Event mit endScenario (Niederlage) führt. Ein Sieg-Ende muss erreichbar sein.
 5. Token mit initiallyActive=false erscheinen nur durch addToken – dieser Schritt muss irgendwo vorkommen.
-6. Token- und Gegner-Felder (location.cell) müssen zu den Feldern der gewählten Kachelseite gehören (siehe Material). Verwende nur die angegebenen Kachel-IDs und Gegnertyp-IDs.
+6. In Reise-Kapiteln müssen Token- und Gegner-Felder (location.cell) zu den Feldern der gewählten Kachelseite gehören (siehe Material). Verwende nur die angegebenen Kachel-IDs und Gegnertyp-IDs.
 7. Jede Kachel höchstens einmal. Kachel-Platzierungen nennen nur Kachel und Seite – die Anordnung auf der Karte berechnet die App.
 8. Gegnergruppen brauchen eine Anzahl für 1, 2, 3, 4 und 5 Helden.
-9. Kein Text darf leer sein (Titel, Einleitung, Ereignistexte, Erinnerungstexte, Auflösungstexte)."""
+9. Kein Text darf leer sein (Titel, Einleitung, Ereignistexte, Erinnerungstexte, Auflösungstexte).
+
+Schlacht-Kapitel (Kapitel mit "battlefield", ohne "tiles"):
+10. battlefield.boards: Schlachtpläne mit ID-Präfix bp_, Plan-ID, Seite und position in GANZEN Plänen ({"x":0,"y":0}, daneben {"x":1,"y":0}); rotation 0–3. Nie mehr Pläne als vorhanden.
+11. Raster: Alle Pläne bilden ein gemeinsames Quadratraster (x nach rechts, y nach unten); Quadrat (x,y) des Plans an position (px,py) mit Breite w, Höhe h ist (px·w + x, py·h + y). Ein Feld ist eine Gruppe von Quadraten (siehe Material).
+12. battlefield.terrain: Geländeteile mit ID-Präfix gt_, Teil-ID und Seite. Teile „im Feld“ mit "area": ein Quadrat des Feldes. Teile „auf Feldgrenze“ mit "edge": {"x","y","side": north/east/south/west} – die Kante muss zwischen zwei VERSCHIEDENEN Feldern liegen, höchstens ein Teil pro Kante. Nie mehr Teile einer Teil-ID als vorhanden (beide Seiten zählen zusammen).
+13. Token und Gegner stehen in Schlacht-Kapiteln mit "location": {"square": {"x","y"}} auf einem Quadrat eines Plans.
+14. Geländeteile dürfen im Szenario eine eigene Bedeutung bekommen: "customName" (z. B. „Altar der Schatten“) und "customRule": {"mode": "replace" oder "add", "text": eigene kurze Regel}. Nutze das sparsam und passend zur Geschichte."""
     }
 }
