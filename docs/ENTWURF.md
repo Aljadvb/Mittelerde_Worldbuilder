@@ -289,6 +289,13 @@ Gegnertyps: Bewegung, Schaden, Furcht, Text; erschöpfte Gruppen erholen sich st
 `attacks` [{damage, fear, text}]. Die App führt die Gesundheit jedes Gegners; Angriffe mit Treffern und den Modifikatoren
 Durchbohren, Zerschlagen, Zerfallen, Spalten, Betäuben, Tödlich.
 
+**Schmuckstücke (1.11.0):** Der Katalog hat eine Liste `items` (`id`, `name`, `expansion`, `kind` = `trinket`, `effect` in
+eigenen Worten, `cardText` und `image` nur im privaten Katalog). Event-Schritt `{"type": "gainItem", "item": "…", "who":
+"active"}`; ohne `item` wählt die App ein zufälliges Schmuckstück, das die Gruppe noch nicht besitzt (ein schon besessenes
+festes wird ebenfalls ersetzt). Die App führt das Gruppeninventar über die Kampagne (`CampaignProgress.inventory`) und
+zeigt es im Lager und in der Kampagnenübersicht. Abwehr-Proben: Gegnerangriffe haben optional `negate` (Eigenschaft; jeder
+Erfolg verhindert 1 Schaden oder 1 Furcht).
+
 **Kampfregeln (1.9.0, Plan: `docs/KAMPFREGELN_PLAN.md`):** Nach einem Angriff fragt die App „Kann der Feind angreifen?“
 (nicht bei erschöpften Gruppen) und gibt bei Ja einen Gegenangriff vor. Bereite Gruppen lassen sich provozieren. Die
 Aktivierung kennt „Kein Ziel“ (neue Anweisung: Bewegung zum nächsten Helden ohne Angriff) und „Bewegung beendet“ (Halt an

@@ -20,7 +20,10 @@ data class MaterialCatalog(
     val terrainPieces: List<TerrainPiece> = emptyList(),
     /** Optional own map picture for the campaign map (private catalog only). */
     val campaignMap: CampaignMapImage? = null,
+    /** Items heroes can find in adventures (for now trinkets). */
+    val items: List<Item> = emptyList(),
 ) {
+    fun item(id: String): Item? = items.firstOrNull { it.id == id }
     fun battleBoard(id: String): BattleBoard? = battleBoards.firstOrNull { it.id == id }
     fun terrainPiece(id: String): TerrainPiece? = terrainPieces.firstOrNull { it.id == id }
     fun tile(id: String): TileDefinition? = tiles.firstOrNull { it.id == id }
@@ -147,6 +150,26 @@ data class EnemyAttack(
     /** Attribute of the test that negates it: each success prevents 1 damage or 1 fear. Null = cannot be negated. */
     val negate: Attribute? = null,
 )
+
+/** An item card heroes can find; card text and picture only in the private catalog. */
+@Serializable
+data class Item(
+    val id: String,
+    val name: String,
+    val expansion: String,
+    val kind: ItemKind = ItemKind.TRINKET,
+    /** Short effect in own words (for the editor and the AI). */
+    val effect: String = "",
+    /** The user's own transcription of the card (private catalog only). */
+    val cardText: String = "",
+    val image: ItemImage? = null,
+)
+
+@Serializable
+enum class ItemKind { @SerialName("trinket") TRINKET }
+
+@Serializable
+data class ItemImage(val file: String)
 
 /** A map picture of Middle-earth; places use relative coordinates (0–1) on it. */
 @Serializable

@@ -17,6 +17,7 @@ import java.io.File
 sealed interface CatalogSelection {
     data class Tile(val id: String) : CatalogSelection
     data class Enemy(val id: String) : CatalogSelection
+    data class Item(val id: String) : CatalogSelection
     data class Expansion(val id: String) : CatalogSelection
     data class Board(val id: String) : CatalogSelection
     data class Piece(val id: String) : CatalogSelection

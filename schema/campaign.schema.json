@@ -742,6 +742,36 @@
           }
         },
         {
+          "description": "Belohnung: Die Gruppe findet einen Gegenstand (Schmuckstück). Ohne 'item' wählt die App ein zufälliges Schmuckstück, das die Gruppe noch nicht besitzt. Die App führt das Gruppeninventar.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "const": "gainItem"
+            },
+            "item": {
+              "$ref": "#/$defs/id",
+              "description": "Gegenstands-ID aus dem Material-Katalog; weglassen = zufälliges Schmuckstück."
+            },
+            "who": {
+              "enum": [
+                "active",
+                "each",
+                "chosen"
+              ],
+              "default": "active",
+              "description": "Wer die Karte nimmt: active = der handelnde Held, chosen = ein Held nach Wahl."
+            },
+            "text": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        {
           "description": "Folge: Helden erleiden Schaden und/oder Furcht (Karten am Tisch; die App zählt nicht mit).",
           "type": "object",
           "additionalProperties": false,

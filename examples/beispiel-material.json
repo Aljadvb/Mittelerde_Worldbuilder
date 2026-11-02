@@ -70,5 +70,9 @@
         "B": { "name": "Sperrholz", "placement": "area", "effect": "Feld kann nicht betreten werden.", "blocksMovement": true }
       }
     }
+  ],
+  "items": [
+    { "id": "silberne_feder", "name": "Silberne Feder", "expansion": "beispiel", "effect": "Einmal pro Abenteuer: eine Probe auf Weisheit wiederholen." },
+    { "id": "rauchkraut_beutel", "name": "Beutel Rauchkraut", "expansion": "beispiel", "effect": "In der Erholungsphase: 1 Furcht ablegen." }
   ]
 }

@@ -248,4 +248,11 @@
     <string name="negate_title">Abwehr: Probe auf %1$s</string>
     <string name="negate_hint">Der angegriffene Held legt die Probe ab. Jeder Erfolg verhindert 1 Schaden oder 1 Furcht, ihr wählt.</string>
     <string name="negate_none">Dieser Angriff lässt sich nicht abwehren.</string>
+    <string name="item_found_title">Schmuckstück gefunden</string>
+    <string name="item_found_active">Der handelnde Held nimmt die Karte und rüstet sie aus.</string>
+    <string name="item_found_chosen">Ein Held eurer Wahl nimmt die Karte und rüstet sie aus.</string>
+    <string name="item_found_hint">Schmuckstücke gehören der ganzen Gruppe. Die App merkt sich den Fund für die Kampagne.</string>
+    <string name="item_found_none">Ihr findet nichts Neues – alle Schmuckstücke besitzt die Gruppe schon.</string>
+    <string name="camp_inventory">Gruppeninventar (Schmuckstücke)</string>
+    <string name="camp_inventory_empty">Noch keine Schmuckstücke gefunden.</string>
 </resources>

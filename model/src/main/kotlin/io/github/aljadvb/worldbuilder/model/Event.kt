@@ -99,6 +99,15 @@ sealed interface EventStep {
     @SerialName("gainLore")
     data class GainLore(val amount: Int = 1, val text: String? = null) : EventStep
 
+    /** The group finds an item: [item] from the catalog, or a random trinket not owned yet if null. */
+    @Serializable
+    @SerialName("gainItem")
+    data class GainItem(
+        val item: String? = null,
+        val who: HeroTarget = HeroTarget.ACTIVE,
+        val text: String? = null,
+    ) : EventStep
+
     /** Heroes suffer damage and/or fear (cards at the table; the app does not count them). */
     @Serializable
     @SerialName("sufferHarm")

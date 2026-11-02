@@ -159,6 +159,15 @@ class CampaignValidatorTest {
     }
 
     @Test
+    fun `gainItem must name a catalog item`() {
+        fun withStep(step: EventStep) = validate { s -> s.copy(events = s.events.map { e -> if (e.id == "evt_brunnen") e.copy(steps = listOf(step) + e.steps) else e }) }
+        withStep(EventStep.GainItem("gibt_es_nicht")).single(IssueCode.UNKNOWN_ITEM)
+        val ok = withStep(EventStep.GainItem("silberne_feder"))
+        assertTrue(ok.issues.none { it.code == IssueCode.UNKNOWN_ITEM || it.code == IssueCode.NO_ITEMS }, ok.format())
+        assertTrue(withStep(EventStep.GainItem()).issues.none { it.code == IssueCode.NO_ITEMS })
+    }
+
+    @Test
     fun `missing threat max trigger`() {
         val report = validate { s -> s.copy(triggers = s.triggers.filterNot { it.on == TriggerCondition.ThreatMax }) }
         report.single(IssueCode.NO_THREAT_MAX_TRIGGER)

@@ -1,5 +1,6 @@
 package io.github.aljadvb.worldbuilder.editor.catalog
 
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -44,6 +45,9 @@ import androidx.compose.ui.unit.dp
 import io.github.aljadvb.worldbuilder.editing.addBattleBoard
 import io.github.aljadvb.worldbuilder.editing.addTerrainPiece
 import io.github.aljadvb.worldbuilder.editing.addEnemyType
+import io.github.aljadvb.worldbuilder.editing.addItem
+import io.github.aljadvb.worldbuilder.editing.removeItem
+import io.github.aljadvb.worldbuilder.editing.updateItem
 import io.github.aljadvb.worldbuilder.editing.addExpansion
 import io.github.aljadvb.worldbuilder.editing.addTile
 import io.github.aljadvb.worldbuilder.editing.mirrorAToB
@@ -135,6 +139,18 @@ fun CatalogEditor(model: CatalogEditorModel) {
                     ListRow(e.name, model.selection == CatalogSelection.Enemy(e.id)) { model.selection = CatalogSelection.Enemy(e.id) }
                 }
                 item {
+                    ListHeader(Texts.CATALOG_ITEMS) {
+                        creating = Texts.CATALOG_NEW_ITEM to { name ->
+                            var id = ""
+                            model.edit { c -> c.addItem(name, defaultExpansion).also { id = it.second }.first }
+                            model.selection = CatalogSelection.Item(id)
+                        }
+                    }
+                }
+                items(catalog.items, key = { "i_" + it.id }) { i ->
+                    ListRow(i.name, model.selection == CatalogSelection.Item(i.id)) { model.selection = CatalogSelection.Item(i.id) }
+                }
+                item {
                     ListHeader(Texts.CATALOG_EXPANSIONS) {
                         creating = Texts.CATALOG_NEW_EXPANSION to { name ->
                             var id = ""
@@ -154,6 +170,7 @@ fun CatalogEditor(model: CatalogEditorModel) {
                 when (val sel = model.selection) {
                     is CatalogSelection.Tile -> TileDetail(model, sel.id)
                     is CatalogSelection.Enemy -> EnemyDetail(model, sel.id)
+                    is CatalogSelection.Item -> ItemDetail(model, sel.id)
                     is CatalogSelection.Expansion -> ExpansionDetail(model, sel.id)
                     is CatalogSelection.Board -> BoardDetail(model, sel.id)
                     is CatalogSelection.Piece -> PieceDetail(model, sel.id)
@@ -310,6 +327,18 @@ private fun EnemyDetail(model: CatalogEditorModel, id: String) {
     ExpansionChoice(model, e.expansion) { x -> model.edit { it.updateEnemyType(id) { t -> t.copy(expansion = x) } } }
     EnemyStats(model, e)
     OutlinedButton(onClick = { model.edit { it.removeEnemyType(id) }; model.selection = null }) { Text(Texts.DELETE) }
+}
+
+@Composable
+private fun ItemDetail(model: CatalogEditorModel, id: String) {
+    val item = model.catalog.item(id) ?: return
+    Text("${Texts.CATALOG_ITEMS} · ${item.id}", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+    OutlinedTextField(item.name, { v -> model.edit("$id.name") { it.updateItem(id) { x -> x.copy(name = v) } } }, label = { Text(Texts.NAME) }, singleLine = true)
+    ExpansionChoice(model, item.expansion) { x -> model.edit { it.updateItem(id) { t -> t.copy(expansion = x) } } }
+    OutlinedTextField(item.effect, { v -> model.edit("$id.effect") { it.updateItem(id) { x -> x.copy(effect = v) } } }, label = { Text(Texts.ITEM_EFFECT) }, modifier = Modifier.fillMaxWidth())
+    OutlinedTextField(item.cardText, { v -> model.edit("$id.cardText") { it.updateItem(id) { x -> x.copy(cardText = v) } } }, label = { Text(Texts.ITEM_CARD_TEXT) }, minLines = 3, modifier = Modifier.fillMaxWidth())
+    item.image?.let { img -> model.tileImages.bitmap(img.file)?.let { androidx.compose.foundation.Image(it, contentDescription = item.name, modifier = Modifier.heightIn(max = 260.dp)) } }
+    OutlinedButton(onClick = { model.edit { it.removeItem(id) }; model.selection = null }) { Text(Texts.DELETE) }
 }
 
 @Composable

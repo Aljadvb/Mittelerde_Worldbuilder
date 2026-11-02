@@ -111,6 +111,7 @@ private fun stepLabel(step: EventStep): String {
         is EventStep.FireTrigger -> "fireTrigger"
         is EventStep.GainInspiration -> "gainInspiration"
         is EventStep.SufferHarm -> "sufferHarm"
+        is EventStep.GainItem -> "gainItem"
         is EventStep.GainLore -> "gainLore"
         is EventStep.SetDarkness -> "setDarkness"
         is EventStep.SetFlag -> "setFlag"
@@ -135,6 +136,7 @@ fun newStep(type: String, s: Scenario): EventStep = when (type) {
     "endScenario" -> EventStep.EndScenario(s.resolutions.firstOrNull()?.id.orEmpty())
     "gainInspiration" -> EventStep.GainInspiration()
     "sufferHarm" -> EventStep.SufferHarm(damage = 1)
+    "gainItem" -> EventStep.GainItem()
     "gainLore" -> EventStep.GainLore(1)
     "setDarkness" -> EventStep.SetDarkness(1)
     "setFlag" -> EventStep.SetFlag("")
@@ -227,6 +229,18 @@ private fun StepFields(
                     set(step.copy(who = io.github.aljadvb.worldbuilder.model.HeroTarget.valueOf(v!!)))
                 }
                 CheckInput(Texts.HIDDEN, step.hidden) { v -> set(step.copy(hidden = v)) }
+            }
+            TextInput(model, Texts.OPTIONAL_TEXT, step.text.orEmpty(), "$key.text", "$p.text") { v -> setText(step.copy(text = v.ifEmpty { null })) }
+        }
+        is EventStep.GainItem -> {
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                ChoiceInput(model, Texts.ITEM, step.item.orEmpty(),
+                    listOf(Choice("", Texts.RANDOM_TRINKET)) + model.catalog.items.map { Choice(it.id, it.name) }, "$p.item", modifier = Modifier.weight(1f)) { v ->
+                    set(step.copy(item = v?.ifEmpty { null }))
+                }
+                ChoiceInput(model, Texts.ITEM_WHO, step.who.name, Texts.INSPIRATION_TARGETS.filter { it.first != "EACH" }.map { Choice(it.first, it.second) }, null, modifier = Modifier.weight(1f)) { v ->
+                    set(step.copy(who = io.github.aljadvb.worldbuilder.model.HeroTarget.valueOf(v!!)))
+                }
             }
             TextInput(model, Texts.OPTIONAL_TEXT, step.text.orEmpty(), "$key.text", "$p.text") { v -> setText(step.copy(text = v.ifEmpty { null })) }
         }

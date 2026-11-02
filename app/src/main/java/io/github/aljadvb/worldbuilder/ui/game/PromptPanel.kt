@@ -45,6 +45,7 @@ fun PromptPanel(
     onCommand: (Command) -> Unit,
     modifier: Modifier = Modifier,
     heroNames: List<String> = emptyList(),
+    images: io.github.aljadvb.worldbuilder.hexmap.TileImageCache? = null,
 ) {
     ElevatedCard(modifier.fillMaxWidth()) {
         Column(
@@ -53,7 +54,7 @@ fun PromptPanel(
         ) {
             when (prompt) {
                 is Prompt.Notice -> {
-                    NoticeContent(prompt, scenario, catalog, heroNames)
+                    NoticeContent(prompt, scenario, catalog, heroNames, images)
                     if (prompt is Prompt.EnemyActivation) {
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             OutlinedButton(onClick = { onCommand(Command.NoTarget) }, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.enemy_no_target)) }
@@ -108,7 +109,7 @@ private fun Body(text: String) = Text(text, style = MaterialTheme.typography.bod
 private fun Hint(text: String) = Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
 @Composable
-private fun NoticeContent(prompt: Prompt.Notice, scenario: Scenario, catalog: MaterialCatalog, heroNames: List<String> = emptyList()) {
+private fun NoticeContent(prompt: Prompt.Notice, scenario: Scenario, catalog: MaterialCatalog, heroNames: List<String> = emptyList(), images: io.github.aljadvb.worldbuilder.hexmap.TileImageCache? = null) {
     fun tileLabel(placementId: String): String {
         val p = scenario.placement(placementId) ?: return placementId
         return catalog.tile(p.tile)?.label ?: p.tile
@@ -278,6 +279,22 @@ private fun NoticeContent(prompt: Prompt.Notice, scenario: Scenario, catalog: Ma
             prompt.text?.let { Body(it) }
             Body(harmText(prompt))
             Hint(stringResource(R.string.prompt_harm_hint))
+        }
+        is Prompt.ItemFound -> {
+            Title(stringResource(R.string.item_found_title))
+            prompt.text?.let { Body(it) }
+            val item = prompt.itemId?.let { catalog.item(it) }
+            if (prompt.itemId == null) {
+                Body(stringResource(R.string.item_found_none))
+            } else {
+                Text(item?.name ?: prompt.itemId.orEmpty(), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                Body(stringResource(if (prompt.who == io.github.aljadvb.worldbuilder.model.HeroTarget.CHOSEN) R.string.item_found_chosen else R.string.item_found_active))
+                item?.image?.let { images?.bitmap(it.file) }?.let {
+                    androidx.compose.foundation.Image(it, contentDescription = item?.name, contentScale = androidx.compose.ui.layout.ContentScale.Fit, modifier = Modifier.fillMaxWidth().heightIn(max = 220.dp))
+                }
+                item?.cardText?.takeIf { it.isNotBlank() }?.let { Body(it) } ?: item?.effect?.takeIf { it.isNotBlank() }?.let { Body(it) }
+                Hint(stringResource(R.string.item_found_hint))
+            }
         }
         is Prompt.Inspiration -> {
             Title(stringResource(R.string.prompt_inspiration_title))

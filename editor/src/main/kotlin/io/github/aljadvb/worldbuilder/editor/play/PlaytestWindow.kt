@@ -360,6 +360,8 @@ fun describe(prompt: Prompt, scenario: Scenario, catalog: MaterialCatalog): Stri
         is Prompt.EnemyHalted -> Texts.halted(enemy(prompt.groupId), prompt.damage, prompt.fear) + (if (prompt.text.isNotBlank()) "\n${prompt.text}" else "") + Texts.negate(attr(prompt.negate))
         is Prompt.EnemyAttack -> Texts.enemyAttack(enemy(prompt.groupId), prompt.reason == AttackReason.COUNTER, prompt.damage, prompt.fear) +
             (if (prompt.text.isNotBlank()) "\n${prompt.text}" else "") + Texts.negate(attr(prompt.negate))
+        is Prompt.ItemFound -> listOfNotNull(prompt.text, Texts.itemFound(prompt.itemId?.let { catalog.item(it)?.name ?: it },
+            if (prompt.who == io.github.aljadvb.worldbuilder.model.HeroTarget.CHOSEN) "Ein Held eurer Wahl" else "Der handelnde Held")).joinToString("\n")
         is Prompt.CounterQuestion -> Texts.counterQuestion(enemy(prompt.groupId))
         is Prompt.LastStandTest -> Texts.lastStand(prompt.hero, prompt.kind == LimitKind.DAMAGE)
         is Prompt.HeroSurvives -> Texts.heroSurvives(prompt.hero, prompt.kind == LimitKind.DAMAGE)

@@ -31,6 +31,7 @@ object CatalogValidator {
         checkIds(catalog.enemyTypes.map { it.id }, "enemyTypes", "Gegnertyp")
         checkIds(catalog.battleBoards.map { it.id }, "battleBoards", "Schlachtplan")
         checkIds(catalog.terrainPieces.map { it.id }, "terrainPieces", "Geländeteil")
+        checkIds(catalog.items.map { it.id }, "items", "Gegenstand")
 
         fun checkImage(file: String, path: String, owner: String) {
             if (file.isBlank() || file.startsWith("/") || file.contains("..") || file.contains('\\')) {
@@ -74,6 +75,14 @@ object CatalogValidator {
             }
         }
         catalog.campaignMap?.let { checkImage(it.file, "campaignMap.file", "campaignMap") }
+        catalog.items.forEachIndexed { i, item ->
+            val path = "items[$i]"
+            if (item.expansion !in expansionIds) {
+                c.error(IssueCode.UNKNOWN_EXPANSION, "$path.expansion", item.id, "Gegenstand '${item.id}' gehört zu unbekannter Erweiterung '${item.expansion}'.")
+            }
+            if (item.name.isBlank()) c.error(IssueCode.BLANK_TEXT, "$path.name", item.id, "Gegenstand '${item.id}' hat keinen Namen.")
+            item.image?.let { checkImage(it.file, "$path.image.file", item.id) }
+        }
         catalog.battleBoards.forEachIndexed { i, board ->
             val path = "battleBoards[$i]"
             if (board.expansion !in expansionIds) {

@@ -400,6 +400,17 @@ private class CampaignChecks(
                     }
                     step.text?.let { blank(it, "$p.text", eventId, "$what: Text") }
                 }
+                is EventStep.GainItem -> {
+                    val item = step.item
+                    if (item != null) {
+                        val def = catalog.item(item)
+                        if (def == null) c.error(IssueCode.UNKNOWN_ITEM, "$p.item", eventId, "$what: Gegenstand '$item' ist nicht im Material-Katalog.")
+                        else checkExpansionOwned(def.expansion, "$p.item", eventId, "Gegenstand '${def.name}'")
+                    } else if (catalog.items.isEmpty()) {
+                        c.warn(IssueCode.NO_ITEMS, p, eventId, "$what: Der Katalog enthält keine Schmuckstücke – die Helden finden nichts.")
+                    }
+                    step.text?.let { blank(it, "$p.text", eventId, "$what: Text") }
+                }
                 is EventStep.GainInspiration -> {
                     if (step.amount !in 1..3) c.error(IssueCode.INVALID_NUMBER, "$p.amount", eventId, "$what: Inspiration muss 1–3 betragen.")
                     step.text?.let { blank(it, "$p.text", eventId, "$what: Text") }
@@ -453,5 +464,6 @@ internal fun stepName(step: EventStep): String = when (step) {
     is EventStep.CheckFlag -> "checkFlag"
     is EventStep.GainLore -> "gainLore"
     is EventStep.SufferHarm -> "sufferHarm"
+    is EventStep.GainItem -> "gainItem"
     is EventStep.EndScenario -> "endScenario"
 }

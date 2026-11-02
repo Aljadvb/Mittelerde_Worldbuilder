@@ -69,6 +69,13 @@
           "minLength": 1
         }
       }
+    },
+    "items": {
+      "type": "array",
+      "description": "Gegenstände, die Helden im Abenteuer finden können (vorerst Schmuckstücke).",
+      "items": {
+        "$ref": "#/$defs/item"
+      }
     }
   },
   "$defs": {
@@ -356,7 +363,13 @@
               },
               "negate": {
                 "type": "string",
-                "enum": ["might", "agility", "wisdom", "spirit", "wit"],
+                "enum": [
+                  "might",
+                  "agility",
+                  "wisdom",
+                  "spirit",
+                  "wit"
+                ],
                 "description": "Eigenschaft der Probe, mit der der angegriffene Held den Angriff abwehren kann: jeder Erfolg verhindert 1 Schaden oder 1 Furcht. Fehlt das Feld, ist der Angriff nicht abwehrbar (selten)."
               }
             }
@@ -630,6 +643,55 @@
             },
             "B": {
               "$ref": "#/$defs/terrainPieceSide"
+            }
+          }
+        }
+      }
+    },
+    "item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "expansion"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expansion": {
+          "$ref": "#/$defs/id"
+        },
+        "kind": {
+          "enum": [
+            "trinket"
+          ],
+          "default": "trinket",
+          "description": "trinket = Schmuckstück"
+        },
+        "effect": {
+          "type": "string",
+          "description": "Kurze Wirkung in eigenen Worten (für Editor und KI)."
+        },
+        "cardText": {
+          "type": "string",
+          "description": "Eigene Abschrift der Karte – nur im privaten Katalog."
+        },
+        "image": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "file"
+          ],
+          "properties": {
+            "file": {
+              "type": "string",
+              "minLength": 1
             }
           }
         }

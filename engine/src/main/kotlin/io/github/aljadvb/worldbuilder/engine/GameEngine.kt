@@ -21,6 +21,10 @@ class GameEngine(
     private val campaignFlags: Set<String> = emptySet(),
     /** Enemy statistics from the material catalog (health, armor, attacks). */
     private val enemyTypes: Map<String, io.github.aljadvb.worldbuilder.model.EnemyType> = emptyMap(),
+    /** Items of the material catalog. */
+    private val items: List<io.github.aljadvb.worldbuilder.model.Item> = emptyList(),
+    /** Items the group already owns (campaign inventory). */
+    private val ownedItems: Set<String> = emptySet(),
 ) {
 
     fun start(heroCount: Int): GameState {
@@ -29,6 +33,7 @@ class GameEngine(
             scenarioId = scenario.id,
             heroCount = heroCount,
             flags = campaignFlags,
+            ownedItems = ownedItems,
             rng = scenario.id.hashCode().toLong() * 2654435761L + 1,
             agenda = listOf(
                 Frame.InlineFrame(
@@ -153,6 +158,8 @@ class GameEngine(
         var rng = s.rng
         val defeatedHeroes = s.defeatedHeroes.toMutableSet()
         val lastStandUsed = s.lastStandUsed.toMutableSet()
+        val ownedItemsAtStart = s.ownedItems
+        val itemsFound = s.itemsFound.toMutableList()
 
         /** Deterministic random number in 0 until [n]. */
         fun random(n: Int): Int {
@@ -173,6 +180,7 @@ class GameEngine(
             enemyHealth = enemyHealth.toMap(), armorLoss = armorLoss.toMap(), exhaustedGroups = exhausted.toSet(),
             darknessFear = darknessFear, rng = rng,
             defeatedHeroes = defeatedHeroes.toSet(), lastStandUsed = lastStandUsed.toSet(),
+            ownedItems = ownedItemsAtStart, itemsFound = itemsFound.toList(),
             agenda = agenda.toList(), prompts = prompts.toList(), history = history.toList(), resolution = resolution,
         )
 
@@ -391,6 +399,15 @@ class GameEngine(
                     prompts += Prompt.Lore(step.amount, step.text)
                 }
                 is EventStep.GainInspiration -> prompts += Prompt.Inspiration(step.amount, step.who, step.text)
+                is EventStep.GainItem -> {
+                    val taken = ownedItemsAtStart + itemsFound
+                    val wanted = step.item?.takeIf { it !in taken && items.any { i -> i.id == it } }
+                    // A fixed item already owned (e.g. a replayed scenario) is replaced by a random trinket.
+                    val pool = items.filter { it.kind == io.github.aljadvb.worldbuilder.model.ItemKind.TRINKET && it.id !in taken }
+                    val found = wanted ?: pool.takeIf { it.isNotEmpty() }?.let { it[random(it.size)].id }
+                    found?.let { itemsFound += it }
+                    prompts += Prompt.ItemFound(found, step.who, step.text)
+                }
                 is EventStep.SufferHarm -> if (step.damage > 0 || step.fear > 0) prompts += Prompt.Harm(step.damage, step.fear, step.who, step.hidden, step.text)
                 is EventStep.EndScenario -> {
                     resolution = step.resolution

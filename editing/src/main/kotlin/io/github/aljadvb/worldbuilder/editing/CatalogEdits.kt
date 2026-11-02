@@ -3,6 +3,7 @@ package io.github.aljadvb.worldbuilder.editing
 import io.github.aljadvb.worldbuilder.model.CURRENT_FORMAT_VERSION
 import io.github.aljadvb.worldbuilder.model.EnemyType
 import io.github.aljadvb.worldbuilder.model.Expansion
+import io.github.aljadvb.worldbuilder.model.Item
 import io.github.aljadvb.worldbuilder.model.HexCoord
 import io.github.aljadvb.worldbuilder.model.HexOrientation
 import io.github.aljadvb.worldbuilder.model.MaterialCatalog
@@ -83,6 +84,15 @@ fun MaterialCatalog.updateEnemyType(id: String, edit: (EnemyType) -> EnemyType) 
 
 fun MaterialCatalog.removeEnemyType(id: String) = copy(enemyTypes = enemyTypes.filterNot { it.id == id })
 
+fun MaterialCatalog.addItem(name: String, expansion: String): Pair<MaterialCatalog, String> {
+    val id = catalogId(name, items.map { it.id }.toSet())
+    return copy(items = items + Item(id, name, expansion)) to id
+}
+
+fun MaterialCatalog.updateItem(id: String, edit: (Item) -> Item) = copy(items = items.map { if (it.id == id) edit(it) else it })
+
+fun MaterialCatalog.removeItem(id: String) = copy(items = items.filterNot { it.id == id })
+
 fun MaterialCatalog.addExpansion(name: String): Pair<MaterialCatalog, String> {
     val id = catalogId(name, expansions.map { it.id }.toSet())
     return copy(expansions = expansions + Expansion(id, name, owned = true)) to id
@@ -93,7 +103,7 @@ fun MaterialCatalog.updateExpansion(id: String, edit: (Expansion) -> Expansion) 
 
 /** Removes an expansion; refused while tiles or enemy types still belong to it. */
 fun MaterialCatalog.removeExpansion(id: String): MaterialCatalog {
-    val used = tiles.count { it.expansion == id } + enemyTypes.count { it.expansion == id }
+    val used = tiles.count { it.expansion == id } + enemyTypes.count { it.expansion == id } + items.count { it.expansion == id }
     if (used > 0) throw EditException("Die Erweiterung wird noch von $used Kacheln/Gegnertypen verwendet.")
     return copy(expansions = expansions.filterNot { it.id == id })
 }

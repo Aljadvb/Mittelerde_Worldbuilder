@@ -349,4 +349,19 @@ class ScreenshotTest {
         compose.onNodeWithText("Letztes Aufbäumen: Held 2").assertExists()
         snapshot("17_last_stand")
     }
+
+    @Test
+    fun itemFound() {
+        val sc = scenario.copy(events = scenario.events.map { e ->
+            if (e.id == "evt_brunnen") e.copy(steps = listOf(io.github.aljadvb.worldbuilder.model.EventStep.GainItem(text = "Zwischen den Steinen glitzert etwas.")) + e.steps) else e
+        })
+        val e = GameEngine(sc, items = catalog.items)
+        var st = e.start(3)
+        while (!st.isIdle) st = e.apply(st, Command.Acknowledge)
+        st = e.apply(st, Command.InteractToken("tok_brunnen"))
+        while (st.currentPrompt !is Prompt.ItemFound) st = e.apply(st, Command.Acknowledge)
+        compose.setContent { Screen { PlayContent(sc, catalog, st, campaignChanged = false, onCommand = {}) } }
+        compose.onNodeWithText("Schmuckstück gefunden").assertExists()
+        snapshot("18_item_found")
+    }
 }

@@ -13,6 +13,8 @@ data class CampaignProgress(
     /** Total lore of the group; it never decreases. */
     val lore: Int = 0,
     val flags: Set<String> = emptySet(),
+    /** Items of the group (trinkets) in the order they were found; they belong to the whole group. */
+    val inventory: List<String> = emptyList(),
     /** True between two scenarios until the group leaves the camp. */
     val inCamp: Boolean = false,
 ) {
@@ -24,7 +26,7 @@ data class CampaignProgress(
 
 /** One scenario played, with what it brought. */
 @Serializable
-data class CompletedScenario(val scenarioId: String, val resolutionId: String, val lore: Int = 0, val xp: Int = 0)
+data class CompletedScenario(val scenarioId: String, val resolutionId: String, val lore: Int = 0, val xp: Int = 0, val items: List<String> = emptyList())
 
 /** A hero of the group. Experience is kept per role, as in the rules. */
 @Serializable
@@ -50,10 +52,11 @@ data class SkillPurchase(val role: String, val name: String, val cost: Int, val 
 /** Moves a group through the scenarios of a campaign, following its transitions. */
 class CampaignRunner(val campaign: Campaign, catalog: io.github.aljadvb.worldbuilder.model.MaterialCatalog? = null) {
     private val enemyTypes = catalog?.enemyTypes.orEmpty().associateBy { it.id }
+    private val items = catalog?.items.orEmpty()
 
 
-    fun engineFor(scenarioId: String, flags: Set<String> = emptySet()): GameEngine =
-        GameEngine(campaign.scenario(scenarioId) ?: throw EngineException("Szenario '$scenarioId' fehlt in der Kampagne."), flags, enemyTypes)
+    fun engineFor(scenarioId: String, flags: Set<String> = emptySet(), owned: Set<String> = emptySet()): GameEngine =
+        GameEngine(campaign.scenario(scenarioId) ?: throw EngineException("Szenario '$scenarioId' fehlt in der Kampagne."), flags, enemyTypes, items, owned)
 
     fun start(heroCount: Int, heroes: List<Hero> = emptyList()): Pair<CampaignProgress, GameState> {
         val progress = CampaignProgress(heroCount, campaign.startScenario, heroes = heroes.take(heroCount))
@@ -75,13 +78,14 @@ class CampaignRunner(val campaign: Campaign, catalog: io.github.aljadvb.worldbui
         val next = campaign.nextScenario(finished.scenarioId, resolutionId, flags)
         val updated = progress.copy(
             currentScenario = next,
-            completed = progress.completed + CompletedScenario(finished.scenarioId, resolutionId, lore, xp),
+            completed = progress.completed + CompletedScenario(finished.scenarioId, resolutionId, lore, xp, finished.itemsFound),
+            inventory = (progress.inventory + finished.itemsFound).distinct(),
             heroes = heroes,
             lore = progress.lore + lore,
             flags = flags,
             inCamp = true,
         )
-        return updated to next?.let { engineFor(it, flags).start(progress.heroCount) }
+        return updated to next?.let { engineFor(it, flags, updated.inventory.toSet()).start(progress.heroCount) }
     }
 }
 

@@ -54,7 +54,7 @@ object CatalogPackage {
         (catalog.tiles.flatMap { t -> t.sides.values.mapNotNull { it.image?.file } } +
             catalog.battleBoards.flatMap { b -> b.sides.values.mapNotNull { it.image?.file } } +
             catalog.terrainPieces.flatMap { p -> p.sides.values.mapNotNull { it.image?.file } } +
-            listOfNotNull(catalog.campaignMap?.file)).distinct()
+            listOfNotNull(catalog.campaignMap?.file) + catalog.items.mapNotNull { it.image?.file }).distinct()
 
     /** Writes material.json plus every referenced picture found in [imageDir]. */
     fun pack(catalogJson: String, catalog: MaterialCatalog, imageDir: File?, out: OutputStream) {

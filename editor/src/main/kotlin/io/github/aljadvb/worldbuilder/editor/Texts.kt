@@ -175,6 +175,7 @@ object Texts {
         "fireTrigger" to "Trigger auslösen",
         "gainInspiration" to "Inspiration erhalten",
         "sufferHarm" to "Schaden/Furcht erleiden",
+        "gainItem" to "Schmuckstück finden",
         "gainLore" to "Wissen erhalten",
         "setDarkness" to "Dunkelheit festlegen",
         "setFlag" to "Kampagnen-Merker setzen",
@@ -184,6 +185,11 @@ object Texts {
     val INSPIRATION_TARGETS = listOf("ACTIVE" to "der handelnde Held", "EACH" to "jeder Held", "CHOSEN" to "ein Held eurer Wahl")
     const val INSPIRATION_WHO = "Wer erhält sie?"
     const val HARM_WHO = "Wer ist betroffen?"
+    const val ITEM = "Schmuckstück"
+    const val RANDOM_TRINKET = "zufälliges Schmuckstück (noch nicht im Besitz)"
+    const val ITEM_WHO = "Wer nimmt die Karte?"
+    fun itemFound(name: String?, who: String) = if (name == null) "Ihr findet nichts Neues – alle Schmuckstücke sind schon im Besitz der Gruppe."
+        else "Ihr findet: $name. $who nimmt die Karte und rüstet sie aus."
     const val FLAG = "Kampagnen-Merker"
     const val CAMPAIGN_MAP = "Kampagnenkarte"
     const val IMPORT_SCENARIOS = "Szenarien aus Datei hinzufügen …"
@@ -299,6 +305,10 @@ object Texts {
     const val CATALOG_EXPANSIONS = "Erweiterungen"
     const val CATALOG_NEW_TILE = "Neue Kachel (aufgedruckte Nummer)"
     const val CATALOG_NEW_ENEMY = "Neuer Gegnertyp"
+    const val CATALOG_ITEMS = "Schmuckstücke"
+    const val CATALOG_NEW_ITEM = "Neues Schmuckstück"
+    const val ITEM_EFFECT = "Wirkung (eigene Worte, für Editor und KI)"
+    const val ITEM_CARD_TEXT = "Kartentext (nur privater Katalog)"
     const val CATALOG_NEW_EXPANSION = "Neue Erweiterung"
     const val CATALOG_CELLS = "Felder"
     const val CATALOG_NOT_OWNED = "nicht vorhanden"

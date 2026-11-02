@@ -1,6 +1,6 @@
 # Testliste – was noch von Hand zu prüfen ist
 
-Stand: 2026-11-02 · Version 1.10.0 · Abhaken mit `[x]`. Rückmeldungen (Screenshots, Dateien) einfach im Chat schicken.
+Stand: 2026-11-02 · Version 1.11.0 · Abhaken mit `[x]`. Rückmeldungen (Screenshots, Dateien) einfach im Chat schicken.
 
 Alles hier ist automatisch getestet (Unit-Tests, simulierte Maus, gerenderte Screenshots), aber **noch nie auf echter
 Hardware bzw. mit einer echten KI gelaufen**. Die wichtigsten Punkte stehen oben.
@@ -93,6 +93,14 @@ Hardware bzw. mit einer echten KI gelaufen**. Die wichtigsten Punkte stehen oben
 - [ ] Besiegter Held wird in der Schattenphase nicht mehr als Ziel genannt
 - [ ] Gegnerangriffe zeigen „Abwehr: Probe auf …“ (jeder Erfolg verhindert 1 Schaden oder 1 Furcht); einzelne Angriffe sind nicht abwehrbar (neu in 1.10.0)
 - [ ] Katalog-Fenster → Gegner: pro Angriff „Abwehr“ einstellbar
+
+## 1j. Schmuckstücke und Gruppeninventar (neu in 1.11.0)
+
+- [ ] Katalog-Fenster → Schmuckstücke: anlegen, Name, Erweiterung, Wirkung, Kartentext
+- [ ] Event-Schritt „Schmuckstück finden“: bestimmtes oder zufälliges Schmuckstück, wer die Karte nimmt
+- [ ] App: Meldung „Schmuckstück gefunden“ mit Name, Wirkung bzw. Kartentext (und Kartenbild, sobald gescannt)
+- [ ] Nach dem Szenario: Lager und ⋮ → Kampagne zeigen das Gruppeninventar; im nächsten Szenario kommt dasselbe Schmuckstück nicht noch einmal
+- [ ] KI-Generator: 1–2 Funde pro Szenario an passenden Stellen
 
 ## 1i. Alle Kacheln, Symbole und Höhlen-Durchgänge (Katalog vom 2.11.)
 

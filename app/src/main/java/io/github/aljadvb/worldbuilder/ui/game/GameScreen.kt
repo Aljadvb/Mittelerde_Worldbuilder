@@ -115,7 +115,7 @@ fun GameScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                 is GameLoad.CampaignMissing -> Message(stringResource(R.string.game_campaign_missing, l.title))
                 is GameLoad.Ready -> when {
                     game == null -> CampaignOver(l.ui.campaign, l.ui.save.progress, mapBackground, onBack)
-                    l.ui.save.progress.inCamp -> CampContent(l.ui.campaign, l.ui.save.progress, mapBackground, viewModel::camp)
+                    l.ui.save.progress.inCamp -> CampContent(l.ui.campaign, l.ui.save.progress, mapBackground, l.ui.catalog, viewModel::camp)
                     scenario == null -> Message(stringResource(R.string.game_load_failed))
                     game.isOver -> ResolutionContent(scenario, game, onContinue = viewModel::continueCampaign)
                     else -> PlayContent(scenario, l.ui.catalog, game, l.ui.campaignChanged, viewModel::send, tileImages, l.ui.save.progress.party.map { it.name })
@@ -131,7 +131,7 @@ fun GameScreen(viewModel: GameViewModel, onBack: () -> Unit) {
             title = { Text(ui.campaign.title) },
             text = {
                 Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    CampaignOverview(ui.campaign, ui.save.progress, mapBackground)
+                    CampaignOverview(ui.campaign, ui.save.progress, mapBackground, ui.catalog)
                     HeroesSection(ui.save.progress, editable = false)
                 }
             },
@@ -206,7 +206,7 @@ internal fun PlayContent(
             )
         }
         if (prompt != null) {
-            PromptPanel(prompt, scenario, catalog, game.heroCount, onCommand, Modifier.padding(bottom = 12.dp), heroNames)
+            PromptPanel(prompt, scenario, catalog, game.heroCount, onCommand, Modifier.padding(bottom = 12.dp), heroNames, images)
         } else {
             ActionPanel(
                 scenario = scenario,
@@ -451,6 +451,7 @@ private fun historyText(prompt: Prompt, scenario: Scenario): String = when (prom
     is Prompt.ObjectiveCompleted -> stringResource(R.string.prompt_objective_done_title) + ": " + scenario.objective(prompt.objectiveId)?.title.orEmpty()
     is Prompt.Explored -> stringResource(R.string.prompt_explored_short)
     is Prompt.Inspiration -> inspirationText(prompt)
+    is Prompt.ItemFound -> stringResource(R.string.item_found_title) + ": " + (prompt.itemId ?: "–")
     is Prompt.Harm -> harmText(prompt)
     is Prompt.Lore -> stringResource(R.string.prompt_lore_text, prompt.amount)
     is Prompt.EnemyActivation -> stringResource(R.string.shadow_phase) + ": " + (scenario.enemyGroup(prompt.groupId)?.id ?: prompt.groupId) + " · " + stringResource(R.string.enemy_attack_values, prompt.damage, prompt.fear)

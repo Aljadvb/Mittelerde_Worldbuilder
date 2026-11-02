@@ -44,6 +44,10 @@ data class GameState(
     val defeatedHeroes: Set<Int> = emptySet(),
     /** Heroes that already had their one last stand in this scenario. */
     val lastStandUsed: Set<Int> = emptySet(),
+    /** Items the group owned when the scenario started (from the campaign inventory). */
+    val ownedItems: Set<String> = emptySet(),
+    /** Items found in this scenario, in order (added to the campaign inventory at the end). */
+    val itemsFound: List<String> = emptyList(),
     /** Work still to do; the first frame is the one currently running. */
     val agenda: List<Frame> = emptyList(),
     /** Prompts waiting for the players, oldest first. While non-empty, nothing else runs. */
@@ -149,6 +153,10 @@ sealed interface Prompt {
     /** A hero is defeated; [secondTime] if the hero had used the last stand already. */
     @Serializable @SerialName("heroDefeated")
     data class HeroDefeated(val hero: Int, val kind: LimitKind, val secondTime: Boolean) : Notice
+
+    /** The group found item [itemId]; null if every trinket is already owned. */
+    @Serializable @SerialName("itemFound")
+    data class ItemFound(val itemId: String?, val who: io.github.aljadvb.worldbuilder.model.HeroTarget, val text: String? = null) : Notice
 
     @Serializable @SerialName("darkness")
     data class Darkness(val fear: Int) : Notice
