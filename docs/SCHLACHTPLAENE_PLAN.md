@@ -45,6 +45,8 @@ zusammen (z. B. Fluss/Steinmauer: 10 Teile → 7 Flüsse + 3 Mauern erlaubt, 7 +
 | rund Ø 3,8 cm | Spinnenweben | Geröll | 9 | Bereich |
 | rund Ø 3,8 cm | Gebüsch | Felsen | 9 | Bereich |
 | rund Ø 3,8 cm | Lagerfeuer | Statue | 4 | Bereich |
+| groß ca. 8 × 8 cm | Nebel | Grube | 3 | Bereich |
+| groß ca. 8 × 8 cm | Brunnen | Teich | 1 | Bereich |
 
 ## 1. Ziel
 
