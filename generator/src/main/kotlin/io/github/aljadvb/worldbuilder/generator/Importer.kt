@@ -12,7 +12,8 @@ import io.github.aljadvb.worldbuilder.validation.ObjectKind
 /** Puts a generated scenario into a campaign. */
 object Importer {
     /** New campaign containing only [scenario]. */
-    fun newCampaign(scenario: Scenario): Campaign {
+    fun newCampaign(generated: Scenario): Campaign {
+        val scenario = generated.copy(place = null)
         val id = Ids.fromTitle(ObjectKind.CAMPAIGN, scenario.title, wrap(scenario).allIds())
         return Campaign(CURRENT_FORMAT_VERSION, id, scenario.title, description = "", startScenario = scenario.id, scenarios = listOf(scenario))
     }
@@ -21,7 +22,9 @@ object Importer {
      * Adds [scenario] to [campaign]. IDs already used in the campaign are renamed in the
      * new scenario (all references follow). Returns the campaign and the scenario's final ID.
      */
-    fun addTo(campaign: Campaign, scenario: Scenario): Pair<Campaign, String> {
+    fun addTo(campaign: Campaign, generated: Scenario): Pair<Campaign, String> {
+        // A place is only kept if the campaign has it.
+        val scenario = generated.copy(place = generated.place?.takeIf { campaign.place(it) != null })
         var temp = wrap(scenario)
         val taken = campaign.allIds().toMutableSet()
         for (def in temp.definitions()) {

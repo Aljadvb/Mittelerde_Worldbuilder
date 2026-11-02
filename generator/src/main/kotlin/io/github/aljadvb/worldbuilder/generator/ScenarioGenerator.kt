@@ -113,7 +113,8 @@ class ScenarioGenerator(
             return Parsed(null, listOf("- Die Antwort ist kein gültiges JSON: ${e.message}"))
         }
         val scenario = try {
-            FormatJson.json.decodeFromJsonElement(Scenario.serializer(), withPositions(element))
+            // The place on the campaign map is chosen in the editor, not by the model.
+            FormatJson.json.decodeFromJsonElement(Scenario.serializer(), withPositions(element)).copy(place = null)
         } catch (e: Exception) {
             return Parsed(null, listOf("- Das JSON passt nicht zum Format: ${e.message}"))
         }

@@ -55,7 +55,9 @@ object OutputSchemas {
                 "required" to JsonArray(listOf("id", "tile", "side").map(::JsonPrimitive)),
             ),
         )
-        val scenario = defs.getValue("scenario").jsonObject
+        val scenarioDef = defs.getValue("scenario").jsonObject
+        // The place on the campaign map is chosen in the editor.
+        val scenario = JsonObject(scenarioDef + ("properties" to JsonObject(scenarioDef.getValue("properties").jsonObject - "place")))
         val root = JsonObject(scenario + mapOf("\$defs" to JsonObject(defs - "scenario")))
         json.encodeToString(JsonElement.serializer(), sanitize(root))
     }
