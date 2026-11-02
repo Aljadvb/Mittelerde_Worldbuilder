@@ -7,6 +7,10 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntSize
+import kotlin.math.roundToInt
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -25,27 +29,32 @@ enum class PlaceState { OPEN, CURRENT, VICTORY, DEFEAT, NEUTRAL }
 
 data class MapPlace(val id: String, val name: String, val x: Float, val y: Float, val state: PlaceState = PlaceState.OPEN, val selected: Boolean = false)
 
-/** Places plus the route travelled so far (place IDs in order). */
-data class CampaignMapScene(val places: List<MapPlace>, val route: List<String> = emptyList())
+/**
+ * Places plus the route travelled so far (place IDs in order). With a [background] (the user's
+ * own map picture from the private catalog) that picture is drawn instead of the schematic map.
+ */
+data class CampaignMapScene(val places: List<MapPlace>, val route: List<String> = emptyList(), val background: ImageBitmap? = null) {
+    val aspect: Float get() = background?.let { it.width.toFloat() / it.height } ?: (4f / 3f)
+}
 
-/** Pixel rectangle of the map inside a canvas: kept at aspect 4:3, centred. */
-fun campaignMapRect(size: Size): Rect {
-    val w = min(size.width, size.height * 4f / 3f)
-    val h = w * 3f / 4f
+/** Pixel rectangle of the map inside a canvas: kept at the map's aspect, centred. */
+fun campaignMapRect(size: Size, aspect: Float = 4f / 3f): Rect {
+    val w = min(size.width, size.height * aspect)
+    val h = w / aspect
     return Rect(Offset((size.width - w) / 2f, (size.height - h) / 2f), Size(w, h))
 }
 
 fun placeCenter(rect: Rect, x: Float, y: Float) = Offset(rect.left + x * rect.width, rect.top + y * rect.height)
 
 /** Relative map coordinates (0–1) of pixel [p]. */
-fun mapCoordinates(size: Size, p: Offset): Pair<Float, Float> {
-    val r = campaignMapRect(size)
+fun mapCoordinates(size: Size, scene: CampaignMapScene, p: Offset): Pair<Float, Float> {
+    val r = campaignMapRect(size, scene.aspect)
     return ((p.x - r.left) / r.width).coerceIn(0f, 1f) to ((p.y - r.top) / r.height).coerceIn(0f, 1f)
 }
 
 /** The place under [p], if any. */
 fun placeAt(size: Size, scene: CampaignMapScene, p: Offset): MapPlace? {
-    val r = campaignMapRect(size)
+    val r = campaignMapRect(size, scene.aspect)
     val radius = r.width * 0.025f
     return scene.places.minByOrNull { (placeCenter(r, it.x, it.y) - p).getDistance() }
         ?.takeIf { (placeCenter(r, it.x, it.y) - p).getDistance() <= radius * 1.8f }
@@ -74,15 +83,22 @@ private object MapInk {
 fun CampaignMapCanvas(scene: CampaignMapScene, highlight: Color, modifier: Modifier = Modifier) {
     val measurer = rememberTextMeasurer()
     Canvas(modifier) {
-        val r = campaignMapRect(size)
+        val r = campaignMapRect(size, scene.aspect)
         fun at(x: Float, y: Float) = placeCenter(r, x, y)
-        drawLandscape(r, ::at)
+        val bg = scene.background
+        if (bg != null) {
+            drawImage(bg, IntOffset.Zero, IntSize(bg.width, bg.height), IntOffset(r.left.roundToInt(), r.top.roundToInt()), IntSize(r.width.roundToInt(), r.height.roundToInt()))
+        } else {
+            drawLandscape(r, ::at)
+        }
 
-        // Region names
+        // Region names (schematic map only)
+        if (bg == null) {
         val regionStyle = TextStyle(fontSize = (r.width / 55f).toSp(), color = MapInk.Ink.copy(alpha = 0.55f), fontStyle = FontStyle.Italic, letterSpacing = (r.width / 400f).toSp())
         for ((name, x, y) in REGIONS) {
             val m = measurer.measure(name, regionStyle)
             drawText(m, topLeft = at(x, y) - Offset(m.size.width / 2f, m.size.height / 2f))
+        }
         }
 
         // Route travelled so far
@@ -94,8 +110,9 @@ fun CampaignMapCanvas(scene: CampaignMapScene, highlight: Color, modifier: Modif
         }
 
         // Places
-        val radius = r.width * 0.016f
-        val nameStyle = TextStyle(fontSize = (r.width / 48f).toSp(), color = MapInk.Ink, fontWeight = FontWeight.Bold)
+        // Smaller markers on a detailed own map picture.
+        val radius = r.width * (if (bg != null) 0.009f else 0.016f)
+        val nameStyle = TextStyle(fontSize = (r.width / (if (bg != null) 75f else 48f)).toSp(), color = MapInk.Ink, fontWeight = FontWeight.Bold)
         for (p in scene.places) {
             val c = at(p.x, p.y)
             val fill = when (p.state) {
@@ -210,6 +227,7 @@ fun campaignMapScene(
     completed: List<Pair<String, String>>,
     current: String?,
     selected: String? = null,
+    background: ImageBitmap? = null,
 ): CampaignMapScene {
     val stateByPlace = mutableMapOf<String, PlaceState>()
     for ((scenarioId, resolutionId) in completed) {
@@ -227,5 +245,6 @@ fun campaignMapScene(
     return CampaignMapScene(
         places = campaign.places.map { MapPlace(it.id, it.name, it.x.toFloat(), it.y.toFloat(), stateByPlace[it.id] ?: PlaceState.OPEN, it.id == selected) },
         route = route,
+        background = background,
     )
 }

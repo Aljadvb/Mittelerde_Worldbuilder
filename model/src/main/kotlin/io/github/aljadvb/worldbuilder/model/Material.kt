@@ -18,6 +18,8 @@ data class MaterialCatalog(
     val enemyTypes: List<EnemyType> = emptyList(),
     val battleBoards: List<BattleBoard> = emptyList(),
     val terrainPieces: List<TerrainPiece> = emptyList(),
+    /** Optional own map picture for the campaign map (private catalog only). */
+    val campaignMap: CampaignMapImage? = null,
 ) {
     fun battleBoard(id: String): BattleBoard? = battleBoards.firstOrNull { it.id == id }
     fun terrainPiece(id: String): TerrainPiece? = terrainPieces.firstOrNull { it.id == id }
@@ -88,3 +90,7 @@ data class EnemyType(
     val name: String,
     val expansion: String,
 )
+
+/** A map picture of Middle-earth; places use relative coordinates (0–1) on it. */
+@Serializable
+data class CampaignMapImage(val file: String)

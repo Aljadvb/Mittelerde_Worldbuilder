@@ -75,6 +75,8 @@ fun GameScreen(viewModel: GameViewModel, onBack: () -> Unit) {
     val ui = (load as? GameLoad.Ready)?.ui
     val game = ui?.game
     val scenario = ui?.scenario
+    val tileImages = rememberTileImages(ui?.catalogImageDir)
+    val mapBackground = ui?.catalog?.campaignMap?.let { tileImages.bitmap(it.file) }
 
     Scaffold(
         topBar = {
@@ -111,11 +113,11 @@ fun GameScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                 GameLoad.SaveMissing -> Message(stringResource(R.string.game_load_failed))
                 is GameLoad.CampaignMissing -> Message(stringResource(R.string.game_campaign_missing, l.title))
                 is GameLoad.Ready -> when {
-                    game == null -> CampaignOver(l.ui.campaign, l.ui.save.progress, onBack)
-                    l.ui.save.progress.inCamp -> CampContent(l.ui.campaign, l.ui.save.progress, viewModel::camp)
+                    game == null -> CampaignOver(l.ui.campaign, l.ui.save.progress, mapBackground, onBack)
+                    l.ui.save.progress.inCamp -> CampContent(l.ui.campaign, l.ui.save.progress, mapBackground, viewModel::camp)
                     scenario == null -> Message(stringResource(R.string.game_load_failed))
                     game.isOver -> ResolutionContent(scenario, game, onContinue = viewModel::continueCampaign)
-                    else -> PlayContent(scenario, l.ui.catalog, game, l.ui.campaignChanged, viewModel::send, rememberTileImages(l.ui.catalogImageDir))
+                    else -> PlayContent(scenario, l.ui.catalog, game, l.ui.campaignChanged, viewModel::send, tileImages)
                 }
             }
         }
@@ -128,7 +130,7 @@ fun GameScreen(viewModel: GameViewModel, onBack: () -> Unit) {
             title = { Text(ui.campaign.title) },
             text = {
                 Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    CampaignOverview(ui.campaign, ui.save.progress)
+                    CampaignOverview(ui.campaign, ui.save.progress, mapBackground)
                     HeroesSection(ui.save.progress, editable = false)
                 }
             },
@@ -331,7 +333,7 @@ internal fun ResolutionContent(scenario: Scenario, game: GameState, onContinue: 
 }
 
 @Composable
-private fun CampaignOver(campaign: Campaign, progress: io.github.aljadvb.worldbuilder.engine.CampaignProgress, onBack: () -> Unit) {
+private fun CampaignOver(campaign: Campaign, progress: io.github.aljadvb.worldbuilder.engine.CampaignProgress, background: androidx.compose.ui.graphics.ImageBitmap?, onBack: () -> Unit) {
     val played = progress.completed.map { it.scenarioId to it.resolutionId }
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp),
@@ -344,7 +346,7 @@ private fun CampaignOver(campaign: Campaign, progress: io.github.aljadvb.worldbu
             val s = campaign.scenario(scenarioId)
             Text("• " + stringResource(R.string.campaign_over_line, s?.title ?: scenarioId, s?.resolution(resolutionId)?.title ?: resolutionId))
         }
-        CampaignOverview(campaign, progress)
+        CampaignOverview(campaign, progress, background)
         HeroesSection(progress, editable = false)
         Button(onClick = onBack, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.game_to_menu)) }
     }

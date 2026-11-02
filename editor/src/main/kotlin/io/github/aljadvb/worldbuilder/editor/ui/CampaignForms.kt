@@ -50,7 +50,8 @@ internal fun CampaignMapEditor(model: EditorModel, c: Campaign, ask: (String, (S
     Text(Texts.CAMPAIGN_MAP_HINT, style = MaterialTheme.typography.bodySmall)
     var adding by remember { mutableStateOf(false) }
     val selected = model.selection?.takeIf { c.place(it) != null }
-    val scene = CampaignMapScene(c.places.map { MapPlace(it.id, it.name, it.x.toFloat(), it.y.toFloat(), selected = it.id == selected) })
+    val background = model.catalog.campaignMap?.let { model.tileImages.bitmap(it.file) }
+    val scene = CampaignMapScene(c.places.map { MapPlace(it.id, it.name, it.x.toFloat(), it.y.toFloat(), selected = it.id == selected) }, background = background)
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
         FilterChip(adding, { adding = !adding }, label = { Text(Texts.ADD_PLACE) })
         selected?.let { id -> OutlinedButton(onClick = { if (model.edit { it.delete(id) }) model.selection = c.id }) { Text(Texts.DELETE) } }
@@ -73,7 +74,7 @@ internal fun CampaignMapEditor(model: EditorModel, c: Campaign, ask: (String, (S
                                 if (hit != null) {
                                     model.selection = hit.id; dragging = hit.id
                                 } else if (adding) {
-                                    val (x, y) = mapCoordinates(sz, pos)
+                                    val (x, y) = mapCoordinates(sz, sceneState[0], pos)
                                     ask(Texts.NEW_PLACE) { name ->
                                         var id: String? = null
                                         if (model.edit { cc -> cc.addPlace(name, x.toDouble(), y.toDouble()).also { id = it.id }.campaign }) model.selection = id
@@ -82,7 +83,7 @@ internal fun CampaignMapEditor(model: EditorModel, c: Campaign, ask: (String, (S
                                 }
                             }
                             PointerEventType.Move -> dragging?.let { id ->
-                                val (x, y) = mapCoordinates(sz, pos)
+                                val (x, y) = mapCoordinates(sz, sceneState[0], pos)
                                 model.edit(coalesceKey = "$id.move") { it.updatePlace(id) { p -> p.copy(x = x.toDouble(), y = y.toDouble()) } }
                             }
                             PointerEventType.Release -> dragging = null

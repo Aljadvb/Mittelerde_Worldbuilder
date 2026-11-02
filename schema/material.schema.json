@@ -55,6 +55,20 @@
       "items": {
         "$ref": "#/$defs/terrainPiece"
       }
+    },
+    "campaignMap": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "file"
+      ],
+      "description": "Optional: eigenes Kartenbild für die Kampagnenkarte (nur im privaten Katalog). Orte liegen relativ (0–1) darauf.",
+      "properties": {
+        "file": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
     }
   },
   "$defs": {

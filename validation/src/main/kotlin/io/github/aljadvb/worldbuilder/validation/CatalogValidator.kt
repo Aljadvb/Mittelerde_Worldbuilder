@@ -69,6 +69,7 @@ object CatalogValidator {
                 c.error(IssueCode.UNKNOWN_EXPANSION, "enemyTypes[$i].expansion", enemy.id, "Gegnertyp '${enemy.id}' gehört zu unbekannter Erweiterung '${enemy.expansion}'.")
             }
         }
+        catalog.campaignMap?.let { checkImage(it.file, "campaignMap.file", "campaignMap") }
         catalog.battleBoards.forEachIndexed { i, board ->
             val path = "battleBoards[$i]"
             if (board.expansion !in expansionIds) {

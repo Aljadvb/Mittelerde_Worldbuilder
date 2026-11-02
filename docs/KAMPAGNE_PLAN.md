@@ -9,6 +9,10 @@ Gesamtwissen (2a), alle Helden erhalten gleich viele EP (3).
 - **Erfahrung (EP)** sammelt jeder Held für seine aktuelle Rolle; sie wird für Fertigkeiten ausgegeben, beim Verkauf
   einer Fertigkeit gibt es sie zurück. Nach einem Rollenwechsel bleibt die EP der alten Rolle erhalten.
 
+**Eigenes Kartenbild (02.11.):** Der Material-Katalog kann ein Kartenbild enthalten (`"campaignMap": {"file":
+"bilder/kampagnenkarte.jpg"}`) – nur im privaten Katalog, nie im Repo. App und Editor zeigen es dann statt der
+schematischen Karte; die Orte liegen relativ (0–1) darauf und werden im Editor auf dem Bild gesetzt.
+
 ## Format
 ```json
 "places": [{"id": "pt_bree", "name": "Bree", "x": 0.27, "y": 0.38}],

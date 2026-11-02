@@ -42,7 +42,7 @@ import io.github.aljadvb.worldbuilder.model.Campaign
 
 /** Camp between two scenarios: rewards, lore, heroes' experience, then on to the next adventure. */
 @Composable
-fun CampContent(campaign: Campaign, progress: CampaignProgress, onAction: ((CampaignProgress) -> CampaignProgress) -> Unit) {
+fun CampContent(campaign: Campaign, progress: CampaignProgress, background: androidx.compose.ui.graphics.ImageBitmap? = null, onAction: ((CampaignProgress) -> CampaignProgress) -> Unit) {
     val last = progress.completed.lastOrNull()
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
@@ -54,7 +54,7 @@ fun CampContent(campaign: Campaign, progress: CampaignProgress, onAction: ((Camp
             Text(stringResource(R.string.camp_last, s?.title ?: c.scenarioId, s?.resolution(c.resolutionId)?.title ?: c.resolutionId))
             if (c.lore > 0 || c.xp > 0) Text(stringResource(R.string.camp_rewards, c.lore, c.xp), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
         }
-        CampaignOverview(campaign, progress)
+        CampaignOverview(campaign, progress, background)
         HeroesSection(progress, editable = true, onAction = onAction)
         val next = progress.currentScenario?.let { campaign.scenario(it) }
         Button(onClick = { onAction(Camp::leave) }, modifier = Modifier.fillMaxWidth()) {
@@ -65,10 +65,10 @@ fun CampContent(campaign: Campaign, progress: CampaignProgress, onAction: ((Camp
 
 /** Map, lore and the list of played scenarios. Shared by camp, campaign end and the in-game overview. */
 @Composable
-fun CampaignOverview(campaign: Campaign, progress: CampaignProgress) {
+fun CampaignOverview(campaign: Campaign, progress: CampaignProgress, background: androidx.compose.ui.graphics.ImageBitmap? = null) {
     var selected by remember { mutableStateOf<String?>(null) }
     if (campaign.places.isNotEmpty()) {
-        val scene = campaignMapScene(campaign, progress.completed.map { it.scenarioId to it.resolutionId }, progress.currentScenario, selected)
+        val scene = campaignMapScene(campaign, progress.completed.map { it.scenarioId to it.resolutionId }, progress.currentScenario, selected, background)
         val size = remember { arrayOf(Size.Zero) }
         CampaignMapCanvas(
             scene, MaterialTheme.colorScheme.primary,

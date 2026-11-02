@@ -104,6 +104,9 @@ seinen Ort. Jede **Auflösung** vergibt Wissen (Gruppe) und EP (jeder Held) und 
 von einem Merker abhängen – so folgt je nach Ausgang ein anderes Szenario. Mit den Event-Schritten „Merker setzen“ und
 „Merker prüfen“ passt sich ein Szenario an frühere Ergebnisse an; „Wissen erhalten“ belohnt Funde.
 
+Enthält dein Katalog ein eigenes Kartenbild, wird es als Kampagnenkarte gezeigt (sonst die schematische Karte) – Orte
+dann auf dem Bild neu platzieren.
+
 In der App gibt es zwischen den Szenarien das **Lager** mit Karte, Gesamtwissen und den EP der Helden.
 
 ## Unerforschte Kacheln und Inspiration
