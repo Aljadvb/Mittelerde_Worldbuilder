@@ -59,6 +59,10 @@ object CatalogValidator {
                     if (img.hexSize <= 0) c.error(IssueCode.INVALID_IMAGE, "$path.sides.$side.image.hexSize", tile.id, "Feldgröße des Bildes muss größer als 0 sein.")
                 }
                 checkTerrainTags(shape.terrain, "$path.sides.$side.terrain", tile.id, "Seite $side von Kachel '${tile.id}'")
+                val featureCells = shape.darkness + shape.fortified + shape.rough + shape.walled + shape.passages.map { it.cell }
+                featureCells.filter { it !in shape.cells }.distinct().forEach { cell ->
+                    c.error(IssueCode.CELL_NOT_ON_TILE, "$path.sides.$side", tile.id, "Seite $side von Kachel '${tile.id}': Merkmal auf Feld $cell, das nicht zur Kachel gehört.")
+                }
                 shape.cells.groupBy { it }.filterValues { it.size > 1 }.keys.forEach { cell ->
                     c.error(IssueCode.TILE_SHAPE_DUPLICATE_CELL, sidePath, tile.id, "Seite $side von Kachel '${tile.id}' enthält Feld $cell mehrfach.")
                 }

@@ -189,6 +189,65 @@
         "description": {
           "description": "Kurze Beschreibung der Landschaft in eigenen Worten.",
           "type": "string"
+        },
+        "darkness": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/hex"
+          },
+          "description": "Felder mit aufgedrucktem Dunkelheitssymbol."
+        },
+        "fortified": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/hex"
+          },
+          "description": "Felder mit aufgedrucktem Symbol für Befestigt."
+        },
+        "rough": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/hex"
+          },
+          "description": "Felder mit aufgedrucktem Symbol für unwegsamen Untergrund."
+        },
+        "walled": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/hex"
+          },
+          "description": "Unterirdische Felder mit schwarzem Außenrand: geschlossen außer an den Durchgängen."
+        },
+        "passages": {
+          "type": "array",
+          "description": "Durchgänge (mit Pfeilen markiert) am Außenrand der unterirdischen Felder.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "q",
+              "r",
+              "side"
+            ],
+            "properties": {
+              "q": {
+                "type": "integer"
+              },
+              "r": {
+                "type": "integer"
+              },
+              "side": {
+                "enum": [
+                  "N",
+                  "NE",
+                  "SE",
+                  "S",
+                  "SW",
+                  "NW"
+                ]
+              }
+            }
+          }
         }
       }
     },

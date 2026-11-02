@@ -43,7 +43,15 @@ class PromptBuilder(private val catalog: MaterialCatalog, private val input: Gen
             for ((side, shape) in t.sides.toSortedMap()) {
                 val cells = shape.cells.joinToString(" ") { "(${it.q},${it.r})" }
                 val terrain = shape.terrain.joinToString(", ") { "${Terrain.label(it)} [$it]" }.ifEmpty { "–" }
+                fun list(l: List<io.github.aljadvb.worldbuilder.model.HexCoord>) = l.joinToString(" ") { "(${it.q},${it.r})" }
+                val marks = listOfNotNull(
+                    shape.darkness.takeIf { it.isNotEmpty() }?.let { "Dunkelheit ${list(it)}" },
+                    shape.fortified.takeIf { it.isNotEmpty() }?.let { "befestigt ${list(it)}" },
+                    shape.rough.takeIf { it.isNotEmpty() }?.let { "unwegsam ${list(it)}" },
+                    shape.walled.takeIf { it.isNotEmpty() }?.let { "unterirdisch ${list(it)} mit ${shape.passages.size} Durchgängen" },
+                ).joinToString("; ")
                 appendLine("- Kachel-ID `${t.id}` (Nummer ${t.label}), Seite $side: Felder $cells; Landschaft: $terrain" +
+                    (if (marks.isNotEmpty()) "; Symbole: $marks" else "") +
                     if (shape.description.isNotBlank()) "; ${shape.description}" else "")
             }
         }
@@ -131,6 +139,7 @@ class PromptBuilder(private val catalog: MaterialCatalog, private val input: Gen
         appendLine("- Jede Auflösung hat eine Belohnung: \"xp\" (EP für jeden Helden; Sieg meist 2–4, Niederlage 1–2) und \"lore\" (Wissen der Gruppe; Sieg 2–5, Niederlage 0–2). Zusätzlich 1–2 Mal pro Szenario gainLore (1–2) für das Lüften eines Geheimnisses oder einen wichtigen Fund.")
         appendLine("- Kampagnen-Merker (ID-Präfix fl_) halten Ergebnisse fest, die spätere Szenarien verändern können (z. B. fl_mueller_gerettet). Setze sie über resolution.setFlags oder setFlag, wenn ein Ausgang für die Fortsetzung wichtig ist." +
             if (input.campaignFlags.isEmpty()) "" else " Bestehende Merker der Kampagne: " + input.campaignFlags.joinToString(", ") { "${it.id} („${it.label}“)" } + " – nutze checkFlag, damit dieses Szenario darauf reagiert (z. B. andere Begrüßung, zusätzlicher Verbündeter oder Gegner).")
+        appendLine("- Kachel-Symbole nutzen: Dunkelheit-Felder für bedrückende Orte (Furcht in der Schattenphase), befestigte Felder für Verteidigung oder Wachposten, unwegsame Felder für mühsames Gelände. Unterirdische Kacheln (Höhlen, Gewölbe) brauchen eine Verbindung nach draußen; die App legt sie so an, dass Durchgänge (Pfeile) anschließen.")
         appendLine("- Belohne mit gainInspiration: nach bestandenen Proben (im onSuccess-Event), gelungenen Interaktionen, erfüllten Zielen oder besiegten Gegnern – sparsam, etwa 1–3 Mal pro Kapitel.")
         appendLine("- Schwierigkeit „${input.difficulty.label}“: ${difficultyHint()}")
         appendLine()

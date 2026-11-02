@@ -40,6 +40,7 @@ enum class IssueCode {
     LOCATION_ON_LATER_CHAPTER,
     NOT_UNEXPLORED,
     NO_EXPLORED_START,
+    NO_PASSAGE,
 
     // Battle map
     MIXED_MAP,

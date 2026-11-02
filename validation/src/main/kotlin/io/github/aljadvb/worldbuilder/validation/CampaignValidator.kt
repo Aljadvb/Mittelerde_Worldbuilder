@@ -10,6 +10,7 @@ import io.github.aljadvb.worldbuilder.model.Location
 import io.github.aljadvb.worldbuilder.model.SquareLocation
 import io.github.aljadvb.worldbuilder.model.TileLocation
 import io.github.aljadvb.worldbuilder.model.battleMap
+import io.github.aljadvb.worldbuilder.model.isUnderground
 import io.github.aljadvb.worldbuilder.model.battleSegmentOf
 import io.github.aljadvb.worldbuilder.model.TokenType
 import io.github.aljadvb.worldbuilder.model.TriggerCondition
@@ -186,6 +187,22 @@ private class CampaignChecks(
         }
     }
 
+    /** Underground tiles need at least one passage to the rest of the map, or heroes cannot get in and out. */
+    private fun checkPassages(s: Scenario, sp: String) {
+        val all = s.placements
+        if (all.size < 2) return
+        val links = io.github.aljadvb.worldbuilder.model.connections(all, catalog)
+        s.chapters.forEachIndexed { ci, ch ->
+            ch.tiles.forEachIndexed { pi, p ->
+                if (!p.isUnderground(catalog)) return@forEachIndexed
+                if (links.keys.none { p.id in it.toList() }) {
+                    c.warn(IssueCode.NO_PASSAGE, "$sp.chapters[$ci].tiles[$pi]", p.id,
+                        "Kachel '${p.id}' ist unterirdisch und hat keinen Durchgang (Pfeil) zu einer anderen Kachel – die Helden kommen nicht hinein oder heraus.")
+                }
+            }
+        }
+    }
+
     private fun checkExpansionOwned(expansionId: String, path: String, ownerId: String, what: String) {
         val expansion = catalog.expansion(expansionId)
         if (expansion != null && !expansion.owned) {
@@ -206,6 +223,7 @@ private class CampaignChecks(
             }
         }
         BattleChecks(s, sp, catalog, c, ::checkExpansionOwned).run()
+        checkPassages(s, sp)
         val occupied = mutableMapOf<HexCoord, String>()
         val tileUse = mutableMapOf<String, String>()
         s.chapters.forEachIndexed { ci, ch ->

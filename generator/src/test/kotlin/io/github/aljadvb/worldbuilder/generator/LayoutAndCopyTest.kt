@@ -55,3 +55,22 @@ class LayoutAndCopyTest {
         assertTrue(!tiny.fits)
     }
 }
+
+class CaveLayoutTest {
+    @Test
+    fun `layout connects a cave through its passage`() {
+        val base = Examples.catalog
+        val catalog = base.copy(tiles = base.tiles.map { t ->
+            if (t.id != "x01") t else t.copy(sides = t.sides.mapValues { (_, shape) ->
+                shape.copy(walled = shape.cells, passages = listOf(io.github.aljadvb.worldbuilder.model.HexEdge(0, 0, io.github.aljadvb.worldbuilder.model.HexDir.NW)))
+            })
+        })
+        val s = Examples.campaign.scenarios.single()
+        val laid = AutoLayout.layout(s, catalog).scenario
+        val links = io.github.aljadvb.worldbuilder.model.connections(laid.placements, catalog)
+        val cave = laid.placements.first { it.tile == "x01" }
+        kotlin.test.assertTrue(links.keys.any { cave.id in it.toList() }, "cave not connected: $links")
+        val report = io.github.aljadvb.worldbuilder.validation.CampaignValidator.validate(Examples.campaign.copy(scenarios = listOf(laid)), catalog)
+        kotlin.test.assertTrue(report.issues.none { it.code == io.github.aljadvb.worldbuilder.validation.IssueCode.NO_PASSAGE }, report.format())
+    }
+}

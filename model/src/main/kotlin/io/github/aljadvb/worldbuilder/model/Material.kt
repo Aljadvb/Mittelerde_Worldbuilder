@@ -68,7 +68,44 @@ data class TileSideShape(
     val terrain: List<String> = emptyList(),
     /** Short description of the landscape in own words. */
     val description: String = "",
-)
+    /** Cells with a printed darkness symbol. */
+    val darkness: List<HexCoord> = emptyList(),
+    /** Cells with a printed fortified symbol. */
+    val fortified: List<HexCoord> = emptyList(),
+    /** Cells with a printed rough-ground symbol. */
+    val rough: List<HexCoord> = emptyList(),
+    /** Underground cells: their outer border is black (closed) except at [passages]. */
+    val walled: List<HexCoord> = emptyList(),
+    /** Open edges (marked with arrows) on the outer border of walled cells. */
+    val passages: List<HexEdge> = emptyList(),
+) {
+    /** Can heroes leave tile-local [cell] across its side [dir] (outer border)? */
+    fun isOpen(cell: HexCoord, dir: HexDir): Boolean = cell !in walled || HexEdge(cell.q, cell.r, dir) in passages
+}
+
+/** One side of a hex cell; flat side up, so the sides are N, NE, SE, S, SW, NW. */
+@Serializable
+enum class HexDir(val offset: HexCoord) {
+    @SerialName("N") N(HexCoord(0, -1)),
+    @SerialName("NE") NE(HexCoord(1, -1)),
+    @SerialName("SE") SE(HexCoord(1, 0)),
+    @SerialName("S") S(HexCoord(0, 1)),
+    @SerialName("SW") SW(HexCoord(-1, 1)),
+    @SerialName("NW") NW(HexCoord(-1, 0));
+
+    /** The side after turning a tile [steps] × 60° clockwise. */
+    fun rotated(steps: Int): HexDir = entries[Math.floorMod(ordinal + steps, 6)]
+    val opposite: HexDir get() = rotated(3)
+
+    companion object {
+        fun of(offset: HexCoord): HexDir? = entries.firstOrNull { it.offset == offset }
+    }
+}
+
+@Serializable
+data class HexEdge(val q: Int, val r: Int, val side: HexDir) {
+    val cell: HexCoord get() = HexCoord(q, r)
+}
 
 /**
  * A picture of a tile side and how it lies on the hex grid. The picture shows the side
