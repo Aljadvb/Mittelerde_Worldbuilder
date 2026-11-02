@@ -26,8 +26,10 @@ Der Event-Schritt `test` bekommt zwei neue, optionale Felder:
 
 ### 1.2 KI-Generator
 
-- **Verteilung der Erfolge** statt fester Spanne. Bei „Normal“ zum Beispiel: etwa ein Drittel der Proben 1 Erfolg, die
-  Hälfte 2, der Rest 3–4. Bei „Leicht“ und „Schwer“ entsprechend verschoben.
+- **Erfolge nach Schwierigkeit der einzelnen Probe** (Vorgabe des Nutzers): **1 Erfolg = leicht**, **2 Erfolge =
+  normal**, **3 oder mehr = schwer**. Die KI wählt die Zahl nach dem, was die Probe in der Geschichte bedeutet (einen Zaun
+  übersteigen = 1, eine Spur im Regen lesen = 2, einen reißenden Fluss durchqueren = 3–4). Die Schwierigkeit des Szenarios
+  verschiebt nur den Anteil: „Leicht“ mehr 1er, „Schwer“ mehr 3er und 4er; jede Stufe enthält alle drei Arten.
 - Pro Szenario 1–2 verdeckte Proben (Unbekanntes, Rätsel, Gespür).
 - Höchstens 1 Sammelprobe pro Szenario, für besondere Momente (Stein wegrollen, Tor aufstemmen, Ritual). Benötigte
   Erfolge etwa 2 × Heldenzahl bzw. 4–8.
