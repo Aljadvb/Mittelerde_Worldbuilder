@@ -42,7 +42,9 @@ zusammen (z. B. Fluss/Steinmauer: 10 Teile → 7 Flüsse + 3 Mauern erlaubt, 7 +
 | Rechteck 7,2 × 3,5 cm | Truhe | Barrikade | 4 | Bereich |
 | Rechteck 7,2 × 3,5 cm | Tisch | Fässer | 4 | Bereich |
 | Rechteck 7,2 × 3,5 cm | Baumstamm | Anhöhe | 4 | Bereich |
-| rund Ø 3,8 cm | Statue, Lagerfeuer, Felsbrocken, Dickicht, Spinnenweben, Geröll | (Paare offen) | offen | Bereich |
+| rund Ø 3,8 cm | Spinnenweben | Geröll | 9 | Bereich |
+| rund Ø 3,8 cm | Gebüsch | Felsen | 9 | Bereich |
+| rund Ø 3,8 cm | Lagerfeuer | Statue | 4 | Bereich |
 
 ## 1. Ziel
 
