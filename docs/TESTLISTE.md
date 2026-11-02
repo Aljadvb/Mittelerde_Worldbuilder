@@ -1,6 +1,6 @@
 # Testliste – was noch von Hand zu prüfen ist
 
-Stand: 2026-11-02 · Version 1.8.0 · Abhaken mit `[x]`. Rückmeldungen (Screenshots, Dateien) einfach im Chat schicken.
+Stand: 2026-11-02 · Version 1.10.0 · Abhaken mit `[x]`. Rückmeldungen (Screenshots, Dateien) einfach im Chat schicken.
 
 Alles hier ist automatisch getestet (Unit-Tests, simulierte Maus, gerenderte Screenshots), aber **noch nie auf echter
 Hardware bzw. mit einer echten KI gelaufen**. Die wichtigsten Punkte stehen oben.
@@ -93,6 +93,14 @@ Hardware bzw. mit einer echten KI gelaufen**. Die wichtigsten Punkte stehen oben
 - [ ] Besiegter Held wird in der Schattenphase nicht mehr als Ziel genannt
 - [ ] Gegnerangriffe zeigen „Abwehr: Probe auf …“ (jeder Erfolg verhindert 1 Schaden oder 1 Furcht); einzelne Angriffe sind nicht abwehrbar (neu in 1.10.0)
 - [ ] Katalog-Fenster → Gegner: pro Angriff „Abwehr“ einstellbar
+
+## 1i. Alle Kacheln, Symbole und Höhlen-Durchgänge (Katalog vom 2.11.)
+
+- [ ] Katalog-Fenster: Kacheln 300–320, 400–404, 500 vorhanden, Bilder gerade, Raster passt, Nummer und Seite stimmen
+- [ ] Symbole auf den Kacheln (Dunkelheit, Befestigt, schwieriges Gelände) stichprobenartig mit der echten Kachel vergleichen; besonders 207B (0,0), 211B (2,-2), 224B (4,-2) und 227B (3,-1, jetzt „Befestigt“)
+- [ ] Höhlenkachel ohne Durchgang zu einer Nachbarkachel legen → Hinweis in der Prüfung; mit passendem Pfeil → Hinweis verschwindet
+- [ ] KI-Generator: Plant er Höhlenkacheln so, dass die Helden hinein- und wieder herauskommen?
+- [ ] Erweiterung der Kacheln 2xx–5xx stimmt? (derzeit alle „Grundspiel“)
 
 ## 2. Windows-Editor
 
