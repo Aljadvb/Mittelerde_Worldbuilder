@@ -2,7 +2,9 @@ package io.github.aljadvb.worldbuilder.hexmap
 
 import io.github.aljadvb.worldbuilder.engine.GameState
 import io.github.aljadvb.worldbuilder.engine.Prompt
+import io.github.aljadvb.worldbuilder.model.GridCoord
 import io.github.aljadvb.worldbuilder.model.HexCoord
+import io.github.aljadvb.worldbuilder.model.SquareLocation
 import io.github.aljadvb.worldbuilder.model.MaterialCatalog
 import io.github.aljadvb.worldbuilder.model.Scenario
 import io.github.aljadvb.worldbuilder.model.Location
@@ -10,8 +12,11 @@ import io.github.aljadvb.worldbuilder.model.TileLocation
 
 /** What the play map should emphasise for the current prompt. */
 data class MapHighlight(
+    /** IDs of tile placements, board placements or terrain pieces. */
     val placements: Set<String> = emptySet(),
     val cells: Set<HexCoord> = emptySet(),
+    /** Battle map squares. */
+    val squares: Set<GridCoord> = emptySet(),
 )
 
 /** Map cell of a tile-local location, or null if the placement is unknown or it is a battle-map location. */
@@ -56,18 +61,21 @@ fun playScene(
 fun highlightFor(prompt: Prompt?, scenario: Scenario): MapHighlight = when (prompt) {
     is Prompt.Setup -> scenario.chapter(prompt.chapterId)?.let { ch ->
         MapHighlight(
-            placements = ch.tiles.map { it.id }.toSet(),
+            placements = (ch.tiles.map { it.id } + ch.battlefield?.boards.orEmpty().map { it.id } + ch.battlefield?.terrain.orEmpty().map { it.id }).toSet(),
             cells = ch.tokens.filter { it.initiallyActive }.mapNotNull { scenario.mapCell(it.location) }.toSet(),
+            squares = ch.tokens.filter { it.initiallyActive }.mapNotNull { (it.location as? SquareLocation)?.square }.toSet(),
         )
     } ?: MapHighlight()
     is Prompt.PlaceToken -> tokenHighlight(scenario, prompt.tokenId)
     is Prompt.RemoveToken -> tokenHighlight(scenario, prompt.tokenId)
     is Prompt.Inspect -> tokenHighlight(scenario, prompt.tokenId)
     is Prompt.SpawnEnemies -> scenario.enemyGroup(prompt.groupId)?.let { g ->
-        MapHighlight(cells = setOfNotNull(scenario.mapCell(g.location)))
+        MapHighlight(cells = setOfNotNull(scenario.mapCell(g.location)), squares = setOfNotNull((g.location as? SquareLocation)?.square))
     } ?: MapHighlight()
     else -> MapHighlight()
 }
 
-private fun tokenHighlight(scenario: Scenario, tokenId: String) =
-    MapHighlight(cells = setOfNotNull(scenario.token(tokenId)?.let { scenario.mapCell(it.location) }))
+private fun tokenHighlight(scenario: Scenario, tokenId: String): MapHighlight {
+    val location = scenario.token(tokenId)?.location ?: return MapHighlight()
+    return MapHighlight(cells = setOfNotNull(scenario.mapCell(location)), squares = setOfNotNull((location as? SquareLocation)?.square))
+}

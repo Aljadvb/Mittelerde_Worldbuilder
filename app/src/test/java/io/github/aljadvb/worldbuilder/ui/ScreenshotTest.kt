@@ -5,6 +5,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.padding
+import androidx.compose.ui.unit.dp
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithText
@@ -16,6 +18,7 @@ import io.github.aljadvb.worldbuilder.engine.Command
 import io.github.aljadvb.worldbuilder.engine.GameEngine
 import io.github.aljadvb.worldbuilder.engine.GameState
 import io.github.aljadvb.worldbuilder.engine.Prompt
+import io.github.aljadvb.worldbuilder.hexmap.terrainInfo
 import io.github.aljadvb.worldbuilder.model.FormatJson
 import io.github.aljadvb.worldbuilder.ui.game.PlayContent
 import io.github.aljadvb.worldbuilder.ui.game.ResolutionContent
@@ -149,5 +152,102 @@ class ScreenshotTest {
             Screen { PlayContent(sc, own, st, campaignChanged = false, onCommand = {}, images = io.github.aljadvb.worldbuilder.ui.game.rememberTileImages(library.catalogImageDir)) }
         }
         snapshot("07_private_tiles")
+    }
+
+    // ---- battle maps -------------------------------------------------------------------
+
+    private val battle = FormatJson.decodeCampaign(assets.open("beispiel-schlacht.json").bufferedReader().readText()).scenarios.single()
+
+    private fun battleSetup(sc: io.github.aljadvb.worldbuilder.model.Scenario): Pair<GameEngine, GameState> {
+        val eng = GameEngine(sc)
+        var st = eng.start(2)
+        while (st.currentPrompt !is Prompt.Setup) st = eng.apply(st, Command.Acknowledge)
+        return eng to st
+    }
+
+    @Test
+    fun battleSetupShowsBoardsAndPieces() {
+        val (_, st) = battleSetup(battle)
+        compose.setContent { Screen { PlayContent(battle, catalog, st, campaignChanged = false, onCommand = {}) } }
+        compose.onNodeWithText("Schlachtpläne").assertExists()
+        compose.onNodeWithText("• SX1, Seite B").assertExists()
+        compose.onNodeWithText("• 1× Steinwall").assertExists()
+        snapshot("08_battle_setup")
+    }
+
+    @Test
+    fun terrainDialogShowsScenarioRule() {
+        val info = battle.terrainInfo("gt_busch", catalog)!!
+        assertEquals("Versteck der Späherin", info.title)
+        compose.setContent {
+            Screen {
+                androidx.compose.foundation.layout.Column(Modifier.padding(24.dp)) {
+                    androidx.compose.material3.Text(info.title, style = androidx.compose.material3.MaterialTheme.typography.headlineSmall)
+                    io.github.aljadvb.worldbuilder.ui.game.TerrainDetails(info, null)
+                }
+            }
+        }
+        compose.onNodeWithText("Geländeteil: Dornbusch").assertExists()
+        compose.onNodeWithText("In diesem Abenteuer – zusätzlich zur Geländekarte").assertExists()
+        compose.onNodeWithText("Bietet Deckung.").assertExists()
+        snapshot("09_terrain_dialog")
+    }
+
+    /** Local only: battle map with the user's own boards and pieces (WB_PRIVATE_CATALOG); never committed. */
+    @Test
+    fun privateBattleWithPictures() {
+        val path = System.getenv("WB_PRIVATE_CATALOG") ?: return
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val library = CampaignLibrary(context.filesDir, context.assets)
+        check(library.importCatalog(File(path).readBytes()) is CampaignLibrary.ImportResult.Success)
+        val own = library.catalog()
+        val json = assets.open("beispiel-schlacht.json").bufferedReader().readText()
+            .replace("\"sx1\"", "\"schlachtplan\"")
+            .replace("\"bach_wall\"", "\"fluss_mauer\"")
+            .replace("\"busch_kiste\"", "\"gebuesch_felsen\"")
+            .replace("\"nebelwolf\"", "\"x\"")
+        val sc = FormatJson.decodeCampaign(json).scenarios.single().let { s ->
+            val bf = s.chapters.single().battlefield!!
+            fun piece(id: String, piece: String, side: io.github.aljadvb.worldbuilder.model.TileSide, x: Int, y: Int) =
+                io.github.aljadvb.worldbuilder.model.TerrainPlacement(id, piece, side, area = io.github.aljadvb.worldbuilder.model.GridCoord(x, y))
+            val extra = listOf(
+                piece("gt_truhe", "truhe_barrikade", io.github.aljadvb.worldbuilder.model.TileSide.A, 0, 0),
+                piece("gt_nebel", "nebel_grube", io.github.aljadvb.worldbuilder.model.TileSide.A, 5, 2),
+                piece("gt_feuer", "feuerstelle_statue", io.github.aljadvb.worldbuilder.model.TileSide.A, 2, 2),
+                piece("gt_anhoehe", "baumstamm_anhoehe", io.github.aljadvb.worldbuilder.model.TileSide.B, 4, 0),
+            )
+            s.copy(chapters = listOf(s.chapters.single().copy(battlefield = bf.copy(terrain = bf.terrain + extra))))
+        }
+        val (_, st) = battleSetup(sc)
+        compose.setContent {
+            Screen { PlayContent(sc, own, st, campaignChanged = false, onCommand = {}, images = io.github.aljadvb.worldbuilder.ui.game.rememberTileImages(library.catalogImageDir)) }
+        }
+        snapshot("10_private_battle")
+    }
+
+    @Test
+    fun privateTerrainDetails() {
+        val path = System.getenv("WB_PRIVATE_CATALOG") ?: return
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val library = CampaignLibrary(context.filesDir, context.assets)
+        check(library.importCatalog(File(path).readBytes()) is CampaignLibrary.ImportResult.Success)
+        val own = library.catalog()
+        val sc = FormatJson.decodeCampaign(
+            assets.open("beispiel-schlacht.json").bufferedReader().readText().replace("\"busch_kiste\"", "\"feuerstelle_statue\"").replace("\"sx1\"", "\"schlachtplan\""),
+        ).scenarios.single()
+        val custom = sc.terrainInfo("gt_busch", own)!!
+        val plain = sc.terrainInfo("gt_busch", own)!!.copy(title = "Feuerstelle", pieceName = null, customRule = null)
+        compose.setContent {
+            Screen {
+                val images = io.github.aljadvb.worldbuilder.ui.game.rememberTileImages(library.catalogImageDir)
+                androidx.compose.foundation.layout.Column(Modifier.padding(24.dp), verticalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(24.dp)) {
+                    androidx.compose.material3.Text(plain.title, style = androidx.compose.material3.MaterialTheme.typography.headlineSmall)
+                    io.github.aljadvb.worldbuilder.ui.game.TerrainDetails(plain, images)
+                    androidx.compose.material3.Text(custom.title, style = androidx.compose.material3.MaterialTheme.typography.headlineSmall)
+                    io.github.aljadvb.worldbuilder.ui.game.TerrainDetails(custom.copy(customRule = custom.customRule!!.copy(mode = io.github.aljadvb.worldbuilder.model.RuleMode.REPLACE)), images)
+                }
+            }
+        }
+        snapshot("11_private_terrain_dialog")
     }
 }

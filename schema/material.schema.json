@@ -420,6 +420,11 @@
             "file": {
               "type": "string",
               "minLength": 1
+            },
+            "widthMm": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "description": "Echte Breite des Teils (waagerechte Bildseite) in Millimetern. Kantenteile: Bild verläuft entlang der Kante."
             }
           }
         },

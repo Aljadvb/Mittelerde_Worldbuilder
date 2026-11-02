@@ -103,6 +103,8 @@ enum class PiecePlacement {
 @Serializable
 data class PieceImage(
     val file: String,
+    /** Real width of the piece (the picture's horizontal side) in millimetres; edge pictures run along the edge. */
+    val widthMm: Double? = null,
 )
 
 // ---- Campaign: battlefield of a chapter --------------------------------------------------

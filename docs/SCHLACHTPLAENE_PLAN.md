@@ -1,6 +1,6 @@
 # Schlachtspielpläne – Plan und Formatentwurf zur Freigabe
 
-Stand: 2026-11-02 · **Schritt 1 umgesetzt** (Format, Schema, Validator, Tests; Beispiel `examples/beispiel-schlacht.json`).
+Stand: 2026-11-02 · **Schritte 1–3 umgesetzt**: Format, Schema, Validator; privater Katalog; Darstellung in App und Probespiel, Antippen eines Geländeteils zeigt Name, Kartentext und abweichende Regel. Beispiel: `examples/beispiel-schlacht.json`.
 
 **Abweichungen bei der Umsetzung von Schritt 1:**
 - Statt `"map": "battle"` gilt: Ein Kapitel mit `battlefield` ist ein Schlacht-Kapitel. So gibt es keinen widersprüchlichen Zustand.

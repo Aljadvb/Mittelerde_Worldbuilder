@@ -64,6 +64,8 @@ object MapColors {
     val Enemy = Color(0xFFB3261E)
     val Error = Color(0xFFD32F2F)
     val Grid = Color(0x22000000)
+    val Piece = Color(0xFFBCAA88)
+    val Special = Color(0xFFE0A800)
     val ChapterFills = listOf(Color(0xFFE8DCC4), Color(0xFFD5E3CF), Color(0xFFD9DCEB), Color(0xFFEBD9D9), Color(0xFFE3E0CC))
 
     fun chapterFill(index: Int) = ChapterFills[index.coerceAtLeast(0) % ChapterFills.size]

@@ -1,5 +1,7 @@
 package io.github.aljadvb.worldbuilder.ui.game
 
+import io.github.aljadvb.worldbuilder.hexmap.battleSetup
+import io.github.aljadvb.worldbuilder.model.SquareLocation
 import io.github.aljadvb.worldbuilder.model.placementId
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -99,6 +101,16 @@ private fun NoticeContent(prompt: Prompt.Notice, scenario: Scenario, catalog: Ma
             val chapter = scenario.chapter(prompt.chapterId) ?: return
             Title(stringResource(R.string.prompt_setup_title, chapter.title))
             if (chapter.setupText.isNotBlank()) Body(chapter.setupText)
+            scenario.battleSetup(chapter.id, catalog)?.let { setup ->
+                if (setup.boards.isNotEmpty()) {
+                    Text(stringResource(R.string.prompt_setup_boards), fontWeight = FontWeight.Bold)
+                    setup.boards.forEach { (label, side) -> Text("• " + stringResource(R.string.prompt_setup_board_line, label, side.name)) }
+                }
+                if (setup.pieces.isNotEmpty()) {
+                    Text(stringResource(R.string.prompt_setup_terrain), fontWeight = FontWeight.Bold)
+                    setup.pieces.forEach { (name, n) -> Text("• " + stringResource(R.string.prompt_setup_terrain_line, n, name)) }
+                }
+            }
             if (chapter.tiles.isNotEmpty()) {
                 Text(stringResource(R.string.prompt_setup_tiles), fontWeight = FontWeight.Bold)
                 chapter.tiles.forEach { Text("• " + stringResource(R.string.prompt_setup_tile_line, tileLabel(it.id), it.side.name)) }
@@ -107,26 +119,36 @@ private fun NoticeContent(prompt: Prompt.Notice, scenario: Scenario, catalog: Ma
             if (tokens.isNotEmpty()) {
                 Text(stringResource(R.string.prompt_setup_tokens), fontWeight = FontWeight.Bold)
                 tokens.forEach { t ->
-                    Text("• " + stringResource(R.string.prompt_setup_token_line, t.label, tokenTypeLabel(t), tileLabel(t.location.placementId.orEmpty())))
+                    Text("• " + if (t.location is SquareLocation) stringResource(R.string.prompt_setup_token_line_battle, t.label, tokenTypeLabel(t))
+                        else stringResource(R.string.prompt_setup_token_line, t.label, tokenTypeLabel(t), tileLabel(t.location.placementId.orEmpty())))
                 }
             }
-            Hint(stringResource(R.string.prompt_setup_hint))
+            Hint(stringResource(if (chapter.isBattle) R.string.prompt_setup_hint_battle else R.string.prompt_setup_hint))
         }
         is Prompt.SpawnEnemies -> {
             val group = scenario.enemyGroup(prompt.groupId) ?: return
             Title(stringResource(R.string.prompt_spawn_title))
             val name = catalog.enemyType(group.enemyType)?.name ?: group.enemyType
-            Body(stringResource(R.string.prompt_spawn_text, prompt.count, name, tileLabel(group.location.placementId.orEmpty())))
+            Body(
+                if (group.location is SquareLocation) stringResource(R.string.prompt_spawn_text_battle, prompt.count, name)
+                else stringResource(R.string.prompt_spawn_text, prompt.count, name, tileLabel(group.location.placementId.orEmpty())),
+            )
         }
         is Prompt.PlaceToken -> {
             val token = scenario.token(prompt.tokenId) ?: return
             Title(stringResource(R.string.prompt_place_token_title))
-            Body(stringResource(R.string.prompt_place_token_text, token.label, tokenTypeLabel(token), tileLabel(token.location.placementId.orEmpty())))
+            Body(
+                if (token.location is SquareLocation) stringResource(R.string.prompt_place_token_text_battle, token.label, tokenTypeLabel(token))
+                else stringResource(R.string.prompt_place_token_text, token.label, tokenTypeLabel(token), tileLabel(token.location.placementId.orEmpty())),
+            )
         }
         is Prompt.RemoveToken -> {
             val token = scenario.token(prompt.tokenId) ?: return
             Title(stringResource(R.string.prompt_remove_token_title))
-            Body(stringResource(R.string.prompt_remove_token_text, token.label, tileLabel(token.location.placementId.orEmpty())))
+            Body(
+                if (token.location is SquareLocation) stringResource(R.string.prompt_remove_token_text_battle, token.label)
+                else stringResource(R.string.prompt_remove_token_text, token.label, tileLabel(token.location.placementId.orEmpty())),
+            )
         }
         is Prompt.ThreatChanged -> {
             Title(stringResource(R.string.prompt_threat_title))

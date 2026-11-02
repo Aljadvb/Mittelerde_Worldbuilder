@@ -40,6 +40,21 @@ import io.github.aljadvb.worldbuilder.editor.Texts
 import io.github.aljadvb.worldbuilder.engine.Command
 import io.github.aljadvb.worldbuilder.engine.GameState
 import io.github.aljadvb.worldbuilder.engine.Prompt
+import io.github.aljadvb.worldbuilder.hexmap.BattleCanvas
+import io.github.aljadvb.worldbuilder.hexmap.BattleProjection
+import io.github.aljadvb.worldbuilder.hexmap.TerrainInfo
+import io.github.aljadvb.worldbuilder.hexmap.battlePlayScene
+import io.github.aljadvb.worldbuilder.hexmap.battleSetup
+import io.github.aljadvb.worldbuilder.hexmap.pieceAt
+import io.github.aljadvb.worldbuilder.hexmap.showsBattle
+import io.github.aljadvb.worldbuilder.hexmap.squareTokenAt
+import io.github.aljadvb.worldbuilder.hexmap.terrainInfo
+import io.github.aljadvb.worldbuilder.model.RuleMode
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CardDefaults
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
 import io.github.aljadvb.worldbuilder.hexmap.HexCanvas
 import io.github.aljadvb.worldbuilder.hexmap.HexProjection
 import io.github.aljadvb.worldbuilder.hexmap.TileImageCache
@@ -149,6 +164,10 @@ private fun Controls(game: PlaytestModel, onRestart: () -> Unit) {
 @Composable
 private fun PlayMap(game: PlaytestModel, scenario: Scenario, catalog: MaterialCatalog, state: GameState, images: TileImageCache?, modifier: Modifier) {
     val letters = scenario.tokens.associate { it.id to LETTERS.getValue(it.type) }
+    if (scenario.showsBattle(state)) {
+        BattlePlayMap(game, scenario, catalog, state, images, letters, modifier)
+        return
+    }
     val scene = playScene(scenario, catalog, state, highlightFor(state.currentPrompt, scenario), letters, images)
     val projection = remember { arrayOfNulls<HexProjection>(1) }
     HexCanvas(
@@ -162,6 +181,51 @@ private fun PlayMap(game: PlaytestModel, scenario: Scenario, catalog: MaterialCa
         },
         onProjection = { projection[0] = it },
     )
+}
+
+@Composable
+private fun BattlePlayMap(
+    game: PlaytestModel, scenario: Scenario, catalog: MaterialCatalog, state: GameState, images: TileImageCache?,
+    letters: Map<String, String>, modifier: Modifier,
+) {
+    val scene = battlePlayScene(scenario, catalog, state, highlightFor(state.currentPrompt, scenario), letters, images)
+    val projection = remember { arrayOfNulls<BattleProjection>(1) }
+    var info by remember { mutableStateOf<TerrainInfo?>(null) }
+    BattleCanvas(
+        scene, MaterialTheme.colorScheme.primary,
+        modifier.testTag(PLAY_MAP_TAG).pointerInput(state.isIdle, scene) {
+            detectTapGestures { pos ->
+                val proj = projection[0] ?: return@detectTapGestures
+                val token = if (state.isIdle) squareTokenAt(proj, scene.tokens, pos) else null
+                if (token != null) game.send(Command.InteractToken(token.id))
+                else pieceAt(proj, scene, pos)?.let { info = scenario.terrainInfo(it.id, catalog) }
+            }
+        },
+        onProjection = { projection[0] = it },
+    )
+    info?.let { i ->
+        AlertDialog(
+            onDismissRequest = { info = null },
+            confirmButton = { TextButton(onClick = { info = null }) { Text(Texts.OK) } },
+            title = { Text(i.title) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    i.pieceName?.let { Text(Texts.terrainPiece(it), style = MaterialTheme.typography.labelLarge) }
+                    i.customRule?.let { r ->
+                        Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)) {
+                            Column(Modifier.padding(10.dp)) {
+                                Text(if (r.mode == RuleMode.REPLACE) Texts.TERRAIN_RULE_REPLACE else Texts.TERRAIN_RULE_ADD, fontWeight = FontWeight.Bold)
+                                Text(r.text)
+                            }
+                        }
+                    }
+                    val ignored = i.customRule?.mode == RuleMode.REPLACE
+                    Text(if (ignored) Texts.TERRAIN_CARD_IGNORED else Texts.TERRAIN_CARD, style = MaterialTheme.typography.labelMedium)
+                    Text(i.cardText.ifBlank { i.effect }.ifBlank { Texts.TERRAIN_NO_TEXT }, color = if (ignored) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.onSurface)
+                }
+            },
+        )
+    }
 }
 
 @Composable
@@ -190,6 +254,10 @@ private fun PromptCard(game: PlaytestModel, scenario: Scenario, catalog: Materia
                     Text(describe(prompt, scenario, catalog), style = MaterialTheme.typography.bodyLarge)
                     if (prompt is Prompt.Setup) {
                         scenario.chapter(prompt.chapterId)?.tiles?.forEach { Text(Texts.tileLine(catalog.tile(it.tile)?.label ?: it.tile, it.side.name)) }
+                        scenario.battleSetup(prompt.chapterId, catalog)?.let { setup ->
+                            setup.boards.forEach { (label, side) -> Text(Texts.boardLine(label, side.name)) }
+                            setup.pieces.forEach { (name, n) -> Text(Texts.pieceLine(n, name)) }
+                        }
                     }
                     Button(onClick = { game.send(Command.Acknowledge) }, modifier = Modifier.align(Alignment.End)) { Text(Texts.CONTINUE) }
                 }

@@ -53,6 +53,8 @@ import io.github.aljadvb.worldbuilder.engine.Command
 import io.github.aljadvb.worldbuilder.engine.GameState
 import io.github.aljadvb.worldbuilder.engine.HistoryEntry
 import io.github.aljadvb.worldbuilder.engine.Prompt
+import io.github.aljadvb.worldbuilder.hexmap.showsBattle
+import io.github.aljadvb.worldbuilder.hexmap.terrainInfo
 import io.github.aljadvb.worldbuilder.model.Campaign
 import io.github.aljadvb.worldbuilder.model.MaterialCatalog
 import io.github.aljadvb.worldbuilder.model.Scenario
@@ -143,6 +145,7 @@ internal fun PlayContent(
 ) {
     var confirmEndRound by remember { mutableStateOf(false) }
     var confirmDefeat by remember { mutableStateOf<String?>(null) }
+    var terrainInfo by remember { mutableStateOf<io.github.aljadvb.worldbuilder.hexmap.TerrainInfo?>(null) }
     val prompt = game.currentPrompt
     val tokenLetters = scenario.tokens.associate { it.id to tokenTypeLabel(it).take(1).uppercase() }
 
@@ -152,17 +155,32 @@ internal fun PlayContent(
         }
         ThreatBar(scenario, game.threat)
         Objectives(scenario, game)
-        HexMap(
-            scenario = scenario,
-            catalog = catalog,
-            state = game,
-            highlight = highlightFor(prompt, scenario),
-            tokenLetters = tokenLetters,
-            tapEnabled = game.isIdle,
-            onTokenTap = { onCommand(Command.InteractToken(it)) },
-            modifier = Modifier.weight(1f).fillMaxWidth(),
-            images = images,
-        )
+        if (scenario.showsBattle(game)) {
+            BattleMapView(
+                scenario = scenario,
+                catalog = catalog,
+                state = game,
+                highlight = highlightFor(prompt, scenario),
+                tokenLetters = tokenLetters,
+                tapEnabled = game.isIdle,
+                onTokenTap = { onCommand(Command.InteractToken(it)) },
+                onPieceTap = { terrainInfo = scenario.terrainInfo(it, catalog) },
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+                images = images,
+            )
+        } else {
+            HexMap(
+                scenario = scenario,
+                catalog = catalog,
+                state = game,
+                highlight = highlightFor(prompt, scenario),
+                tokenLetters = tokenLetters,
+                tapEnabled = game.isIdle,
+                onTokenTap = { onCommand(Command.InteractToken(it)) },
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+                images = images,
+            )
+        }
         if (prompt != null) {
             PromptPanel(prompt, scenario, catalog, game.heroCount, onCommand, Modifier.padding(bottom = 12.dp))
         } else {
@@ -173,10 +191,12 @@ internal fun PlayContent(
                 onToken = { onCommand(Command.InteractToken(it)) },
                 onDefeat = { confirmDefeat = it },
                 onEndRound = { confirmEndRound = true },
+                battle = scenario.showsBattle(game),
             )
         }
     }
 
+    terrainInfo?.let { TerrainDialog(it, images, onDismiss = { terrainInfo = null }) }
     if (confirmEndRound) {
         ConfirmDialog(
             title = stringResource(R.string.game_end_round_confirm_title, game.round),
@@ -243,6 +263,7 @@ private fun ActionPanel(
     onToken: (String) -> Unit,
     onDefeat: (String) -> Unit,
     onEndRound: () -> Unit,
+    battle: Boolean = false,
 ) {
     Column(Modifier.padding(bottom = 12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         val groups = game.activeEnemyGroups.mapNotNull { scenario.enemyGroup(it) }
@@ -258,7 +279,11 @@ private fun ActionPanel(
         }
         val tokens = scenario.tokens.filter { it.id in game.activeTokens }
         Text(
-            if (tokens.isEmpty()) stringResource(R.string.game_no_tokens) else stringResource(R.string.game_tap_hint),
+            when {
+                battle -> stringResource(R.string.game_tap_hint_battle)
+                tokens.isEmpty() -> stringResource(R.string.game_no_tokens)
+                else -> stringResource(R.string.game_tap_hint)
+            },
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
