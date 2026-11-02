@@ -71,6 +71,7 @@ fun GameScreen(viewModel: GameViewModel, onBack: () -> Unit) {
     val load by viewModel.state.collectAsStateWithLifecycle()
     var menuOpen by remember { mutableStateOf(false) }
     var showLog by remember { mutableStateOf(false) }
+    var showCampaign by remember { mutableStateOf(false) }
     val ui = (load as? GameLoad.Ready)?.ui
     val game = ui?.game
     val scenario = ui?.scenario
@@ -96,6 +97,7 @@ fun GameScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                         IconButton(onClick = { menuOpen = true }) { Icon(Icons.Default.MoreVert, stringResource(R.string.more)) }
                         DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
                             DropdownMenuItem(text = { Text(stringResource(R.string.game_log)) }, onClick = { menuOpen = false; showLog = true })
+                            DropdownMenuItem(text = { Text(stringResource(R.string.campaign_overview)) }, onClick = { menuOpen = false; showCampaign = true })
                             DropdownMenuItem(text = { Text(stringResource(R.string.game_to_menu)) }, onClick = { menuOpen = false; onBack() })
                         }
                     }
@@ -109,7 +111,8 @@ fun GameScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                 GameLoad.SaveMissing -> Message(stringResource(R.string.game_load_failed))
                 is GameLoad.CampaignMissing -> Message(stringResource(R.string.game_campaign_missing, l.title))
                 is GameLoad.Ready -> when {
-                    game == null -> CampaignOver(l.ui.campaign, l.ui.save.progress.completed.map { it.scenarioId to it.resolutionId }, onBack)
+                    game == null -> CampaignOver(l.ui.campaign, l.ui.save.progress, onBack)
+                    l.ui.save.progress.inCamp -> CampContent(l.ui.campaign, l.ui.save.progress, viewModel::camp)
                     scenario == null -> Message(stringResource(R.string.game_load_failed))
                     game.isOver -> ResolutionContent(scenario, game, onContinue = viewModel::continueCampaign)
                     else -> PlayContent(scenario, l.ui.catalog, game, l.ui.campaignChanged, viewModel::send, rememberTileImages(l.ui.catalogImageDir))
@@ -118,6 +121,19 @@ fun GameScreen(viewModel: GameViewModel, onBack: () -> Unit) {
         }
     }
 
+    if (showCampaign && ui != null) {
+        AlertDialog(
+            onDismissRequest = { showCampaign = false },
+            confirmButton = { TextButton(onClick = { showCampaign = false }) { Text(stringResource(R.string.close)) } },
+            title = { Text(ui.campaign.title) },
+            text = {
+                Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    CampaignOverview(ui.campaign, ui.save.progress)
+                    HeroesSection(ui.save.progress, editable = false)
+                }
+            },
+        )
+    }
     if (showLog && game != null && scenario != null) {
         HistoryDialog(game.history, scenario, onDismiss = { showLog = false })
     }
@@ -315,7 +331,8 @@ internal fun ResolutionContent(scenario: Scenario, game: GameState, onContinue: 
 }
 
 @Composable
-private fun CampaignOver(campaign: Campaign, played: List<Pair<String, String>>, onBack: () -> Unit) {
+private fun CampaignOver(campaign: Campaign, progress: io.github.aljadvb.worldbuilder.engine.CampaignProgress, onBack: () -> Unit) {
+    val played = progress.completed.map { it.scenarioId to it.resolutionId }
     Column(
         Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -327,6 +344,8 @@ private fun CampaignOver(campaign: Campaign, played: List<Pair<String, String>>,
             val s = campaign.scenario(scenarioId)
             Text("• " + stringResource(R.string.campaign_over_line, s?.title ?: scenarioId, s?.resolution(resolutionId)?.title ?: resolutionId))
         }
+        CampaignOverview(campaign, progress)
+        HeroesSection(progress, editable = false)
         Button(onClick = onBack, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.game_to_menu)) }
     }
 }

@@ -96,6 +96,16 @@ class GameViewModel(
         update(ui, ui.save.copy(progress = progress, game = next))
     }
 
+    /** Camp action on the campaign progress (buy/sell skills, change roles, leave the camp). */
+    fun camp(action: (io.github.aljadvb.worldbuilder.engine.CampaignProgress) -> io.github.aljadvb.worldbuilder.engine.CampaignProgress) {
+        val ui = (state.value as? GameLoad.Ready)?.ui ?: return
+        try {
+            update(ui, ui.save.copy(progress = action(ui.save.progress)))
+        } catch (e: EngineException) {
+            _state.value = GameLoad.Ready(ui.copy(error = e.message))
+        }
+    }
+
     fun dismissError() {
         _state.update { if (it is GameLoad.Ready) GameLoad.Ready(it.ui.copy(error = null)) else it }
     }

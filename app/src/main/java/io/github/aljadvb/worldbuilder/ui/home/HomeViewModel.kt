@@ -100,12 +100,12 @@ class HomeViewModel(private val container: AppContainer) : ViewModel() {
     }
 
     /** Creates a new save for the campaign and reports its slot to [onCreated]. */
-    fun startNewGame(stored: CampaignLibrary.StoredCampaign, heroCount: Int, onCreated: (campaignId: String, slot: String) -> Unit) {
+    fun startNewGame(stored: CampaignLibrary.StoredCampaign, heroes: List<io.github.aljadvb.worldbuilder.engine.Hero>, onCreated: (campaignId: String, slot: String) -> Unit) {
         viewModelScope.launch {
             val now = System.currentTimeMillis()
             val slot = "spiel_$now"
             withContext(Dispatchers.IO) {
-                val (progress, game) = CampaignRunner(stored.campaign).start(heroCount)
+                val (progress, game) = CampaignRunner(stored.campaign).start(heroes.size, heroes)
                 container.saves.save(
                     SaveGame(
                         slot = slot,

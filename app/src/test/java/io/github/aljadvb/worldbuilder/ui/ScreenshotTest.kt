@@ -273,4 +273,25 @@ class ScreenshotTest {
         compose.onNodeWithText("Der erkundende Held oder ein naher Held erhält 1 Inspiration (Marker nehmen). Entfernt den Erkundungsmarker.").assertExists()
         snapshot("13_explored")
     }
+
+    @Test
+    fun campScreen() {
+        val camp = campaign.copy(places = campaign.places + listOf(
+            io.github.aljadvb.worldbuilder.model.Place("pt_bree", "Bree", 0.30, 0.38),
+            io.github.aljadvb.worldbuilder.model.Place("pt_wetter", "Wetterspitze", 0.36, 0.33),
+        ))
+        val progress = io.github.aljadvb.worldbuilder.engine.CampaignProgress(
+            heroCount = 2, currentScenario = scenario.id,
+            completed = listOf(io.github.aljadvb.worldbuilder.engine.CompletedScenario(scenario.id, "res_muehle_sieg", lore = 4, xp = 3)),
+            heroes = listOf(
+                io.github.aljadvb.worldbuilder.engine.Hero("Aragorn", "Hauptmann", xp = mapOf("Hauptmann" to io.github.aljadvb.worldbuilder.engine.RoleXp(5, 2)),
+                    skills = listOf(io.github.aljadvb.worldbuilder.engine.SkillPurchase("Hauptmann", "Anführen", 2))),
+                io.github.aljadvb.worldbuilder.engine.Hero("Bilbo", "Meisterdieb", xp = mapOf("Meisterdieb" to io.github.aljadvb.worldbuilder.engine.RoleXp(3, 0))),
+            ),
+            lore = 7, inCamp = true,
+        )
+        compose.setContent { Screen { io.github.aljadvb.worldbuilder.ui.game.CampContent(camp, progress) {} } }
+        compose.onNodeWithText("Gesamtwissen: 7").assertExists()
+        snapshot("14_camp")
+    }
 }

@@ -3,6 +3,8 @@ package io.github.aljadvb.worldbuilder.ui.home
 import android.text.format.DateFormat
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -287,22 +289,37 @@ private fun CampaignCard(
 }
 
 @Composable
-private fun NewGameDialog(title: String, onDismiss: () -> Unit, onStart: (Int) -> Unit) {
+private fun NewGameDialog(title: String, onDismiss: () -> Unit, onStart: (List<io.github.aljadvb.worldbuilder.engine.Hero>) -> Unit) {
     var heroes by remember { mutableIntStateOf(2) }
+    val names = remember { androidx.compose.runtime.mutableStateListOf("", "", "", "", "") }
+    val roles = remember { androidx.compose.runtime.mutableStateListOf("", "", "", "", "") }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.new_game_title, title)) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(stringResource(R.string.new_game_heroes))
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     (1..5).forEach { n ->
                         FilterChip(selected = heroes == n, onClick = { heroes = n }, label = { Text("$n") })
                     }
                 }
+                Text(stringResource(R.string.new_game_hero_hint), style = MaterialTheme.typography.bodySmall)
+                (0 until heroes).forEach { i ->
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        androidx.compose.material3.OutlinedTextField(names[i], { names[i] = it }, Modifier.weight(1f), singleLine = true,
+                            label = { Text(stringResource(R.string.new_game_hero_name, i + 1)) })
+                        androidx.compose.material3.OutlinedTextField(roles[i], { roles[i] = it }, Modifier.weight(1f), singleLine = true,
+                            label = { Text(stringResource(R.string.new_game_hero_role)) })
+                    }
+                }
             }
         },
-        confirmButton = { Button(onClick = { onStart(heroes) }) { Text(stringResource(R.string.new_game_start)) } },
+        confirmButton = {
+            Button(onClick = {
+                onStart((0 until heroes).map { i -> io.github.aljadvb.worldbuilder.engine.Hero(names[i].trim().ifEmpty { "Held ${i + 1}" }, roles[i].trim()) })
+            }) { Text(stringResource(R.string.new_game_start)) }
+        },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
     )
 }
