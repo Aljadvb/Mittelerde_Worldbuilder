@@ -108,9 +108,12 @@ private fun CampaignForm(model: EditorModel, c: Campaign, ask: (String, (String)
     ChoiceInput(model, Texts.START_SCENARIO, c.startScenario, scenarioChoices, "startScenario") { v ->
         model.edit { it.copy(startScenario = v.orEmpty()) }
     }
-    OutlinedButton(onClick = {
-        ask(Texts.NEW_SCENARIO) { name -> model.createThen({ it.addScenario(name) }) { model.selection = it } }
-    }) { Text(Texts.ADD_SCENARIO) }
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        OutlinedButton(onClick = {
+            ask(Texts.NEW_SCENARIO) { name -> model.createThen({ it.addScenario(name) }) { model.selection = it } }
+        }) { Text(Texts.ADD_SCENARIO) }
+        ImportScenariosButton(model)
+    }
 
     CampaignMapEditor(model, c, ask)
     FlagsEditor(model, c, ask)

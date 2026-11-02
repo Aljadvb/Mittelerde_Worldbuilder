@@ -14,6 +14,7 @@ import io.github.aljadvb.worldbuilder.hexmap.PlaceState
 import org.jetbrains.skia.EncodedImageFormat
 import java.io.File
 import io.github.aljadvb.worldbuilder.editing.addFlag
+import io.github.aljadvb.worldbuilder.editing.importScenarios
 import io.github.aljadvb.worldbuilder.editing.addPlace
 import io.github.aljadvb.worldbuilder.editing.updateResolution
 import kotlin.test.Test
@@ -56,5 +57,27 @@ class CampaignFormTest {
         try {
             File("build/screenshots").mkdirs(); s.render(); File("build/screenshots/e31_campaign_form.png").writeBytes(s.render(1_000_000_000L).encodeToData(EncodedImageFormat.PNG)!!.bytes)
         } finally { s.close() }
+    }
+}
+
+class ImportScenariosDialogTest {
+    @Test
+    fun dialogImportsTheChosenScenarios() {
+        val m = EditorModel(InMemoryEditorPrefs()).apply { openExample() }
+        val other = io.github.aljadvb.worldbuilder.model.FormatJson.decodeCampaign(File(System.getProperty("repoRoot") ?: "..", "examples/beispiel-schlacht.json").readText())
+        var open = true
+        val s = ImageComposeScene(1200, 800, Density(1f)) {
+            MaterialTheme(colorScheme = lightColorScheme()) {
+                if (open) io.github.aljadvb.worldbuilder.editor.ui.ImportScenariosDialog(m, other) { open = false }
+            }
+        }
+        try {
+            s.render()
+            File("build/screenshots").mkdirs()
+            File("build/screenshots/e32_import_scenarios.png").writeBytes(s.render(1_000_000_000L).encodeToData(EncodedImageFormat.PNG)!!.bytes)
+        } finally { s.close() }
+        // The dialog's action is importScenarios; check the result directly.
+        val merged = m.campaign!!.importScenarios(other, listOf("scn_ueberfall")).campaign
+        kotlin.test.assertEquals(listOf("scn_muehle", "scn_ueberfall"), merged.scenarios.map { it.id })
     }
 }

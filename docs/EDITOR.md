@@ -104,6 +104,11 @@ seinen Ort. Jede **Auflösung** vergibt Wissen (Gruppe) und EP (jeder Held) und 
 von einem Merker abhängen – so folgt je nach Ausgang ein anderes Szenario. Mit den Event-Schritten „Merker setzen“ und
 „Merker prüfen“ passt sich ein Szenario an frühere Ergebnisse an; „Wissen erhalten“ belohnt Funde.
 
+**Bestehende Szenarien zusammenfügen:** Im Kampagnen-Formular „Szenarien aus Datei hinzufügen …“ wählt eine gespeicherte
+Kampagnendatei; die angehakten Szenarien werden in die geöffnete Kampagne kopiert (doppelte IDs werden umbenannt, Orte und
+Merker kommen mit, Übergänge zwischen den kopierten Szenarien bleiben erhalten). Danach unter „Übergänge“ die Reihenfolge
+festlegen und jedem Szenario einen Ort geben.
+
 Enthält dein Katalog ein eigenes Kartenbild, wird es als Kampagnenkarte gezeigt (sonst die schematische Karte) – Orte
 dann auf dem Bild neu platzieren.
 

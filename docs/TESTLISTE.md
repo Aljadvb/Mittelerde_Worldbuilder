@@ -1,6 +1,6 @@
 # Testliste – was noch von Hand zu prüfen ist
 
-Stand: 2026-11-02 · Version 1.6.0 · Abhaken mit `[x]`. Rückmeldungen (Screenshots, Dateien) einfach im Chat schicken.
+Stand: 2026-11-02 · Version 1.7.0 · Abhaken mit `[x]`. Rückmeldungen (Screenshots, Dateien) einfach im Chat schicken.
 
 Alles hier ist automatisch getestet (Unit-Tests, simulierte Maus, gerenderte Screenshots), aber **noch nie auf echter
 Hardware bzw. mit einer echten KI gelaufen**. Die wichtigsten Punkte stehen oben.
@@ -68,6 +68,8 @@ Hardware bzw. mit einer echten KI gelaufen**. Die wichtigsten Punkte stehen oben
 - [ ] App: Spiel beenden und an einem anderen Abend fortsetzen – Wissen, EP und Merker sind noch da
 - [ ] App: ⋮ → Kampagne zeigt die Übersicht während des Spiels
 - [ ] KI: Vergibt sie Wissen/EP sinnvoll und reagiert ein Folgeszenario auf Merker?
+- [ ] Editor: „Szenarien aus Datei hinzufügen …“ – zwei einzeln gespeicherte Szenarien zu einer Kampagne zusammenfügen, Übergänge setzen, in der App durchspielen
+- [ ] Eigenes Kartenbild aus dem Katalog erscheint in Editor und App; Orte darauf neu platzieren
 
 ## 2. Windows-Editor
 

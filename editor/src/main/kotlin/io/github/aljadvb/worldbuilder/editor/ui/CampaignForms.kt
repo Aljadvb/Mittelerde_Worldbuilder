@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import io.github.aljadvb.worldbuilder.editing.addFlag
 import io.github.aljadvb.worldbuilder.editing.addPlace
 import io.github.aljadvb.worldbuilder.editing.delete
+import io.github.aljadvb.worldbuilder.editing.importScenarios
 import io.github.aljadvb.worldbuilder.editing.updateFlag
 import io.github.aljadvb.worldbuilder.editing.updatePlace
 import io.github.aljadvb.worldbuilder.editor.EditorModel
@@ -124,4 +125,45 @@ internal fun FlagChips(c: Campaign, selected: List<String>, onToggle: (String) -
     FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         c.flags.forEach { f -> FilterChip(f.id in selected, { onToggle(f.id) }, label = { Text(f.label) }) }
     }
+}
+
+
+/** Picks a saved campaign file and copies chosen scenarios into the open campaign. */
+@Composable
+internal fun ImportScenariosButton(model: EditorModel, pickFile: () -> java.io.File? = { io.github.aljadvb.worldbuilder.editor.FileDialogs.openJson(null) }) {
+    var source by remember { mutableStateOf<Campaign?>(null) }
+    OutlinedButton(onClick = {
+        val file = pickFile() ?: return@OutlinedButton
+        source = try {
+            io.github.aljadvb.worldbuilder.model.FormatJson.decodeCampaign(file.readText())
+        } catch (e: Exception) {
+            model.message = Texts.openFailed(file.name, e.message ?: e.javaClass.simpleName); null
+        }
+    }) { Text(Texts.IMPORT_SCENARIOS) }
+    source?.let { src -> ImportScenariosDialog(model, src) { source = null } }
+}
+
+@Composable
+internal fun ImportScenariosDialog(model: EditorModel, src: Campaign, onDone: () -> Unit) {
+    val chosen = remember(src) { androidx.compose.runtime.mutableStateListOf<String>().apply { addAll(src.scenarios.map { it.id }) } }
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDone,
+        title = { Text(Texts.importScenariosTitle(src.title)) },
+        text = {
+            androidx.compose.foundation.layout.Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(Texts.IMPORT_SCENARIOS_HINT, style = MaterialTheme.typography.bodySmall)
+                src.scenarios.forEach { s ->
+                    CheckInput("${s.title} · ${s.chapters.size} Kap. · ${s.id}", s.id in chosen) { v -> if (v) chosen += s.id else chosen -= s.id }
+                }
+            }
+        },
+        confirmButton = {
+            androidx.compose.material3.Button(enabled = chosen.isNotEmpty(), onClick = {
+                var first: String? = null
+                if (model.edit { c -> c.importScenarios(src, chosen.toList()).also { first = it.scenarioIds.firstOrNull() }.campaign }) model.selection = first
+                onDone()
+            }) { Text(Texts.ADD) }
+        },
+        dismissButton = { androidx.compose.material3.TextButton(onClick = onDone) { Text(Texts.CANCEL) } },
+    )
 }
