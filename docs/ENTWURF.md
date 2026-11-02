@@ -289,6 +289,14 @@ Gegnertyps: Bewegung, Schaden, Furcht, Text; erschöpfte Gruppen erholen sich st
 `attacks` [{damage, fear, text}]. Die App führt die Gesundheit jedes Gegners; Angriffe mit Treffern und den Modifikatoren
 Durchbohren, Zerschlagen, Zerfallen, Spalten, Betäuben, Tödlich.
 
+**Kampfregeln (1.9.0, Plan: `docs/KAMPFREGELN_PLAN.md`):** Nach einem Angriff fragt die App „Kann der Feind angreifen?“
+(nicht bei erschöpften Gruppen) und gibt bei Ja einen Gegenangriff vor. Bereite Gruppen lassen sich provozieren. Die
+Aktivierung kennt „Kein Ziel“ (neue Anweisung: Bewegung zum nächsten Helden ohne Angriff) und „Bewegung beendet“ (Halt an
+Fluss, Zaun oder Graben). „Limit erreicht“ startet beim ersten Mal das Letzte Aufbäumen (Körperkraft bzw. Willen,
+1 Erfolg; bestanden: alle Karten der Art ablegen), beim zweiten Mal ist der Held sofort besiegt. Ist ein Held besiegt,
+endet das Szenario zu Beginn der nächsten Schattenphase mit der ersten Niederlage-Auflösung; die Prüfung warnt, wenn es
+keine gibt. Kein neues Feld im Datenformat.
+
 ### 5.10 Schlacht-Kapitel
 
 Ein Kapitel mit `battlefield` spielt auf Schlachtplänen statt auf Kacheln (keine `tiles`). Token und Gegner stehen dort in

@@ -33,7 +33,8 @@ internal object Reachability {
         val activeObjectives = mutableSetOf(s.startObjective)
         val completedObjectives = mutableSetOf<String>()
         val groups = mutableSetOf<String>()
-        val resolutions = mutableSetOf<String>()
+        // A defeated hero ends the scenario with its first defeat resolution.
+        val resolutions = s.resolutions.firstOrNull { it.outcome == Outcome.DEFEAT }?.let { mutableSetOf(it.id) } ?: mutableSetOf()
         val perRound = s.threat.perRound
         var threatCanRise = perRound.base > 0 || perRound.perHero > 0
 
@@ -105,6 +106,10 @@ internal object Reachability {
             }
         }
 
+        if (s.resolutions.none { it.outcome == Outcome.DEFEAT }) {
+            c.warn(IssueCode.NO_DEFEAT_RESOLUTION, "$sp.resolutions", s.id,
+                "Es gibt keine Niederlage-Auflösung. Wird ein Held besiegt, kann das Abenteuer dann nicht verloren gehen.")
+        }
         val reachedResolutions = s.resolutions.filter { it.id in r.resolutions }
         if (reachedResolutions.isEmpty()) {
             c.error(IssueCode.NO_RESOLUTION_REACHABLE, "$sp.resolutions", s.id, "Keine Auflösung ist auf irgendeinem Weg erreichbar.")

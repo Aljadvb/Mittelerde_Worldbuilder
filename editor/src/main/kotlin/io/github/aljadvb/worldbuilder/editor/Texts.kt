@@ -211,6 +211,26 @@ object Texts {
     fun lore(amount: Int) = "Euer Wissen steigt um $amount."
     fun activation(name: String, move: Int, hero: String, damage: Int, fear: Int, ranged: Boolean) =
         "$name – Bewegung $move: greift $hero an${if (ranged) " (Fernkampf)" else ""}. $damage Schaden, $fear Furcht."
+    fun regroup(name: String, movement: Int) = "$name: kein Ziel. Die Gruppe bewegt sich bis zu $movement Felder auf den nächstgelegenen Helden zu und greift nicht an."
+    fun halted(name: String, damage: Int, fear: Int) = "$name bleibt an Fluss, Zaun oder Graben stehen. Ist ein Held in Reichweite, greift sie ihn an: $damage Schaden, $fear Furcht."
+    fun enemyAttack(name: String, counter: Boolean, damage: Int, fear: Int) =
+        (if (counter) "Gegenangriff: $name greift den angreifenden Helden an" else "$name wird provoziert und greift den Helden an") + ": $damage Schaden, $fear Furcht."
+    fun counterQuestion(name: String) = "$name: Kann der Feind angreifen? (Ja, wenn die Gruppe in Reichweite des Angreifers ist.)"
+    fun lastStand(hero: Int, damage: Boolean) = "Letztes Aufbäumen: Held ${hero + 1}, " + (if (damage) "Schadensprobe auf Körperkraft" else "Furchtprobe auf Willen") + ". 1 Erfolg genügt."
+    fun heroSurvives(hero: Int, damage: Boolean) = "Held ${hero + 1} hält stand und legt alle " + (if (damage) "Schadenkarten" else "Furchtkarten") + " ab. Beim nächsten Limit ist er besiegt."
+    fun heroDefeated(hero: Int, second: Boolean) = "Held ${hero + 1} ist besiegt" + (if (second) " (Letztes Aufbäumen schon verbraucht)" else "") +
+        ". Gewinnt ihr nicht vor der nächsten Schattenphase, ist das Abenteuer verloren."
+    const val NO_TARGET = "Kein Ziel"
+    const val MOVEMENT_ENDED = "Bewegung beendet"
+    const val DONE = "Erledigt"
+    const val YES = "Ja"
+    const val NO = "Nein"
+    const val PASSED = "Bestanden"
+    const val FAILED = "Nicht bestanden"
+    const val PROVOKE = "Provozieren"
+    const val LIMIT_REACHED = "Limit erreicht:"
+    const val LIMIT_DAMAGE = "Schaden"
+    const val LIMIT_FEAR = "Furcht"
     fun recovers(name: String) = "$name ist erschöpft und erholt sich (keine Aktivierung)."
     fun darkness(fear: Int) = "Dunkelheit: Helden auf Feldern mit Dunkelheitssymbol oder -marker erleiden $fear Furcht."
     fun attackResult(defeated: Int, remaining: Int, stunned: Boolean) =

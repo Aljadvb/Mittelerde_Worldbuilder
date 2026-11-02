@@ -81,6 +81,17 @@ Hardware bzw. mit einer echten KI gelaufen**. Die wichtigsten Punkte stehen oben
 - [ ] Gegnerwerte im Katalog-Fenster anpassen (Gesundheit, Rüstung, Angriffe) – sind meine Vorschläge zu stark/schwach?
 - [ ] KI: Schattenereignisse sinnvoll gemischt?
 
+## 1h. Kampfregeln (neu in 1.9.0)
+
+- [ ] Gegner angreifen → Frage „Kann der Feind angreifen?“ → Ja: Gegenangriff mit Schaden/Furcht; nach „Betäuben“ keine Frage
+- [ ] „Provozieren“ neben einer Gegnergruppe → Angriff auf den provozierenden Helden; bei erschöpfter Gruppe ausgegraut
+- [ ] Schattenphase: „Kein Ziel“ → neue Anweisung (Bewegung zum nächsten Helden, kein Angriff)
+- [ ] Schattenphase: „Bewegung beendet“ → Gruppe bleibt an Fluss/Zaun/Graben stehen, greift nur einen Helden in Reichweite an
+- [ ] „Limit erreicht“ → Held und Schaden/Furcht wählen → Probe (Körperkraft bzw. Willen, 1 Erfolg) → Bestanden: alle Karten der Art ablegen
+- [ ] Derselbe Held erreicht erneut ein Limit → sofort besiegt
+- [ ] Nicht bestanden → Held besiegt; „Runde beenden“ → Abenteuer endet mit der Niederlage-Auflösung
+- [ ] Besiegter Held wird in der Schattenphase nicht mehr als Ziel genannt
+
 ## 2. Windows-Editor
 
 - [ ] Installation der `.msi`; Update von einer älteren Version (überschreibt sauber?)
@@ -110,7 +121,5 @@ Hardware bzw. mit einer echten KI gelaufen**. Die wichtigsten Punkte stehen oben
 
 ## Offene Punkte / später
 
-- Restliche Kacheln scannen: 3xx, 4xx, 5xx (dann ergänze ich den Katalog)
-- Gegnertypen in den Katalog eintragen (fehlen noch)
 - Installer verkleinern (große Icon-Bibliothek entfernen, ca. –35 MB)
 - Pull Requests für Phase 1 und 2 zusammenführen (Branch `phase2-editor` → `main`)

@@ -27,6 +27,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -166,6 +167,7 @@ internal fun PlayContent(
     var attackGroup by remember { mutableStateOf<String?>(null) }
     var confirmEndRound by remember { mutableStateOf(false) }
     var confirmDefeat by remember { mutableStateOf<String?>(null) }
+    var showLimit by remember { mutableStateOf(false) }
     var terrainInfo by remember { mutableStateOf<io.github.aljadvb.worldbuilder.hexmap.TerrainInfo?>(null) }
     val prompt = game.currentPrompt
     val tokenLetters = scenario.tokens.associate { it.id to tokenTypeLabel(it).take(1).uppercase() }
@@ -215,10 +217,13 @@ internal fun PlayContent(
                 onEndRound = { confirmEndRound = true },
                 battle = scenario.showsBattle(game),
                 onAttack = { attackGroup = it },
+                onProvoke = { onCommand(Command.ProvokeEnemy(it)) },
+                onLimit = { showLimit = true },
             )
         }
     }
 
+    if (showLimit) LimitDialog(game, heroNames, onDismiss = { showLimit = false }) { hero, kind -> showLimit = false; onCommand(Command.LimitReached(hero, kind)) }
     terrainInfo?.let { TerrainDialog(it, images, onDismiss = { terrainInfo = null }) }
     attackGroup?.let { gid -> AttackDialog(scenario, catalog, game, gid, onDismiss = { attackGroup = null }) { onCommand(it); attackGroup = null } }
     if (confirmEndRound) {
@@ -289,11 +294,14 @@ private fun ActionPanel(
     onEndRound: () -> Unit,
     battle: Boolean = false,
     onAttack: (String) -> Unit = {},
+    onProvoke: (String) -> Unit = {},
+    onLimit: () -> Unit = {},
 ) {
     Column(Modifier.padding(bottom = 12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         val groups = game.activeEnemyGroups.mapNotNull { scenario.enemyGroup(it) }
         if (groups.isNotEmpty()) {
             Text(stringResource(R.string.game_enemies), style = MaterialTheme.typography.labelMedium)
+            Text(stringResource(R.string.provoke_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             groups.forEach { g ->
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     val name = catalog.enemyType(g.enemyType)?.name ?: g.enemyType
@@ -311,6 +319,7 @@ private fun ActionPanel(
                         }
                     }
                     Button(onClick = { onAttack(g.id) }) { Text(stringResource(R.string.attack)) }
+                    TextButton(enabled = g.id !in game.exhaustedGroups, onClick = { onProvoke(g.id) }) { Text(stringResource(R.string.provoke)) }
                     TextButton(onClick = { onDefeat(g.id) }) { Text(stringResource(R.string.game_defeated)) }
                 }
             }
@@ -329,8 +338,40 @@ private fun ActionPanel(
         Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             tokens.forEach { t -> AssistChip(onClick = { onToken(t.id) }, label = { Text(t.label) }) }
         }
-        Button(onClick = onEndRound, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.game_end_round)) }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedButton(onClick = onLimit) { Text(stringResource(R.string.limit_reached)) }
+            Button(onClick = onEndRound, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.game_end_round)) }
+        }
     }
+}
+
+/** Pick the hero who reached a limit and whether it is damage or fear. */
+@Composable
+private fun LimitDialog(game: GameState, heroNames: List<String>, onDismiss: () -> Unit, onPick: (Int, io.github.aljadvb.worldbuilder.engine.LimitKind) -> Unit) {
+    var hero by remember { mutableStateOf<Int?>(null) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {},
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
+        title = { Text(stringResource(R.string.limit_reached)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(stringResource(R.string.limit_choose_hero))
+                (0 until game.heroCount).forEach { i ->
+                    val name = heroName(heroNames, i)
+                    val defeated = i in game.defeatedHeroes
+                    FilterChip(
+                        selected = hero == i, enabled = !defeated, onClick = { hero = i },
+                        label = { Text(if (defeated) stringResource(R.string.hero_is_defeated, name) else name) },
+                    )
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Button(enabled = hero != null, onClick = { onPick(hero!!, io.github.aljadvb.worldbuilder.engine.LimitKind.DAMAGE) }) { Text(stringResource(R.string.limit_damage)) }
+                    Button(enabled = hero != null, onClick = { onPick(hero!!, io.github.aljadvb.worldbuilder.engine.LimitKind.FEAR) }) { Text(stringResource(R.string.limit_fear)) }
+                }
+            }
+        },
+    )
 }
 
 @Composable
@@ -418,6 +459,13 @@ private fun historyText(prompt: Prompt, scenario: Scenario): String = when (prom
     is Prompt.AttackResult -> stringResource(R.string.attack_result, prompt.defeated, prompt.remaining)
     is Prompt.Choice -> prompt.step.text
     is Prompt.Test -> prompt.step.text ?: ""
+    is Prompt.EnemyRegroup -> stringResource(R.string.enemy_no_target) + ": " + prompt.groupId
+    is Prompt.EnemyHalted -> stringResource(R.string.enemy_movement_ended) + ": " + prompt.groupId + " · " + stringResource(R.string.enemy_attack_values, prompt.damage, prompt.fear)
+    is Prompt.EnemyAttack -> prompt.groupId + " · " + stringResource(R.string.enemy_attack_values, prompt.damage, prompt.fear)
+    is Prompt.CounterQuestion -> stringResource(R.string.counter_question)
+    is Prompt.LastStandTest -> stringResource(R.string.last_stand_title, stringResource(R.string.hero_n, prompt.hero + 1))
+    is Prompt.HeroSurvives -> stringResource(R.string.hero_survives_title, stringResource(R.string.hero_n, prompt.hero + 1))
+    is Prompt.HeroDefeated -> stringResource(R.string.hero_defeated_title, stringResource(R.string.hero_n, prompt.hero + 1))
 }
 
 

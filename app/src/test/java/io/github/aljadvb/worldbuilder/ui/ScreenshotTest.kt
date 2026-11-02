@@ -59,6 +59,11 @@ class ScreenshotTest {
         Screen { PlayContent(scenario, catalog, state, campaignChanged = false, onCommand = onCommand) }
     }
 
+    /** Like [show], but the shown state can be swapped later in the same test. */
+    private fun showMutable(state: androidx.compose.runtime.MutableState<GameState>, onCommand: (Command) -> Unit) = compose.setContent {
+        Screen { PlayContent(scenario, catalog, state.value, campaignChanged = false, onCommand = onCommand) }
+    }
+
     @Composable
     private fun Screen(content: @Composable () -> Unit) {
         WorldbuilderTheme(darkTheme = false) { Surface(Modifier.fillMaxSize()) { content() } }
@@ -293,5 +298,55 @@ class ScreenshotTest {
         compose.setContent { Screen { io.github.aljadvb.worldbuilder.ui.game.CampContent(camp, progress) {} } }
         compose.onNodeWithText("Gesamtwissen: 7").assertExists()
         snapshot("14_camp")
+    }
+
+    /** Mill chapter, idle, with the enemy group in play. */
+    private fun millWithEnemies(): GameState {
+        var s = millSetup().ackUntil { it.isIdle }
+        s = engine.apply(s, Command.InteractToken("tok_muehlentor")).ackUntil { it.currentPrompt is Prompt.Test }
+        return engine.apply(s, Command.ReportTest(0)).ackUntil { it.isIdle || it.isOver }
+    }
+
+    @Test
+    fun enemyActivationWithNoTargetButtons() {
+        val s = millWithEnemies()
+        val round = engine.apply(s, Command.EndRound)
+        if (round.currentPrompt !is Prompt.EnemyActivation) return
+        var sent: Command? = null
+        show(round) { sent = it }
+        compose.onNodeWithText("Kein Ziel").assertExists()
+        compose.onNodeWithText("Bewegung beendet").assertExists()
+        snapshot("15_enemy_activation")
+        compose.onNodeWithText("Kein Ziel").performClick()
+        assertEquals(Command.NoTarget, sent)
+    }
+
+    @Test
+    fun counterQuestionAndProvoke() {
+        val s = millWithEnemies()
+        val group = s.activeEnemyGroups.firstOrNull() ?: return
+        var sent: Command? = null
+        val shown = androidx.compose.runtime.mutableStateOf(s)
+        showMutable(shown) { sent = it }
+        compose.onNodeWithText("Provozieren").performClick()
+        assertEquals(Command.ProvokeEnemy(group), sent)
+        shown.value = engine.apply(s, Command.AttackEnemy(group, hits = 0)).ackUntil { it.currentPrompt is Prompt.CounterQuestion }
+        compose.onNodeWithText("Kann der Feind angreifen?").assertExists()
+        snapshot("16_counter_question")
+    }
+
+    @Test
+    fun lastStand() {
+        val s = engine.start(3).ackUntil { it.isIdle }
+        var sent: Command? = null
+        val shown = androidx.compose.runtime.mutableStateOf(s)
+        showMutable(shown) { sent = it }
+        compose.onNodeWithText("Limit erreicht").performClick()
+        compose.onNodeWithText("Held 2").performClick()
+        compose.onNodeWithText("Furcht").performClick()
+        assertEquals(Command.LimitReached(1, io.github.aljadvb.worldbuilder.engine.LimitKind.FEAR), sent)
+        shown.value = engine.apply(s, Command.LimitReached(1, io.github.aljadvb.worldbuilder.engine.LimitKind.FEAR))
+        compose.onNodeWithText("Letztes Aufbäumen: Held 2").assertExists()
+        snapshot("17_last_stand")
     }
 }

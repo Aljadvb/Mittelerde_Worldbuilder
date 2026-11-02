@@ -4,6 +4,7 @@ import io.github.aljadvb.worldbuilder.model.TileLocation
 import io.github.aljadvb.worldbuilder.validation.Severity
 import io.github.aljadvb.worldbuilder.model.EventStep
 import io.github.aljadvb.worldbuilder.model.HexCoord
+import io.github.aljadvb.worldbuilder.model.Outcome
 import io.github.aljadvb.worldbuilder.model.Scenario
 import io.github.aljadvb.worldbuilder.model.ScenarioTransition
 import io.github.aljadvb.worldbuilder.model.TriggerCondition
@@ -144,7 +145,17 @@ class CampaignValidatorTest {
         val report = validate { s ->
             s.copy(events = s.events.map { e -> e.copy(steps = e.steps.map { if (it is EventStep.EndScenario) EventStep.Text("…") else it }) })
         }
-        report.single(IssueCode.NO_RESOLUTION_REACHABLE)
+        // A defeated hero still leads to the defeat resolution.
+        report.assertHas(IssueCode.NO_VICTORY_REACHABLE, Severity.WARNING)
+        assertTrue(report.issues.none { it.code == IssueCode.NO_RESOLUTION_REACHABLE })
+        val none = validate { s ->
+            s.copy(
+                events = s.events.map { e -> e.copy(steps = e.steps.map { if (it is EventStep.EndScenario) EventStep.Text("…") else it }) },
+                resolutions = s.resolutions.filter { it.outcome != Outcome.DEFEAT },
+            )
+        }
+        none.single(IssueCode.NO_RESOLUTION_REACHABLE)
+        none.assertHas(IssueCode.NO_DEFEAT_RESOLUTION, Severity.WARNING)
     }
 
     @Test

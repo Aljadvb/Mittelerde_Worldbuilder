@@ -37,7 +37,9 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import io.github.aljadvb.worldbuilder.editor.Texts
+import io.github.aljadvb.worldbuilder.engine.AttackReason
 import io.github.aljadvb.worldbuilder.engine.Command
+import io.github.aljadvb.worldbuilder.engine.LimitKind
 import io.github.aljadvb.worldbuilder.engine.GameState
 import io.github.aljadvb.worldbuilder.engine.Prompt
 import io.github.aljadvb.worldbuilder.hexmap.BattleCanvas
@@ -235,7 +237,15 @@ private fun IdleActions(game: PlaytestModel, scenario: Scenario, catalog: Materi
     state.activeEnemyGroups.mapNotNull { scenario.enemyGroup(it) }.forEach { g ->
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text("${g.count[state.heroCount] ?: 0}× ${catalog.enemyType(g.enemyType)?.name ?: g.enemyType}", Modifier.weight(1f))
+            TextButton(enabled = g.id !in state.exhaustedGroups, onClick = { game.send(Command.ProvokeEnemy(g.id)) }) { Text(Texts.PROVOKE) }
             OutlinedButton(onClick = { game.send(Command.DefeatEnemyGroup(g.id)) }) { Text(Texts.PLAYTEST_DEFEATED) }
+        }
+    }
+    (0 until state.heroCount).filter { it !in state.defeatedHeroes }.forEach { h ->
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+            Text("${Texts.LIMIT_REACHED} Held ${h + 1}", Modifier.weight(1f))
+            TextButton(onClick = { game.send(Command.LimitReached(h, LimitKind.DAMAGE)) }) { Text(Texts.LIMIT_DAMAGE) }
+            TextButton(onClick = { game.send(Command.LimitReached(h, LimitKind.FEAR)) }) { Text(Texts.LIMIT_FEAR) }
         }
     }
     Text(Texts.PLAYTEST_TOKENS, style = MaterialTheme.typography.labelLarge)
@@ -262,7 +272,23 @@ private fun PromptCard(game: PlaytestModel, scenario: Scenario, catalog: Materia
                             setup.pieces.forEach { (name, n) -> Text(Texts.pieceLine(n, name)) }
                         }
                     }
-                    Button(onClick = { game.send(Command.Acknowledge) }, modifier = Modifier.align(Alignment.End)) { Text(Texts.CONTINUE) }
+                    if (prompt is Prompt.EnemyActivation) {
+                        Row(Modifier.align(Alignment.End), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedButton(onClick = { game.send(Command.NoTarget) }) { Text(Texts.NO_TARGET) }
+                            OutlinedButton(onClick = { game.send(Command.MovementEnded) }) { Text(Texts.MOVEMENT_ENDED) }
+                            Button(onClick = { game.send(Command.Acknowledge) }) { Text(Texts.DONE) }
+                        }
+                    } else {
+                        Button(onClick = { game.send(Command.Acknowledge) }, modifier = Modifier.align(Alignment.End)) { Text(Texts.CONTINUE) }
+                    }
+                }
+                is Prompt.CounterQuestion, is Prompt.LastStandTest -> {
+                    Text(describe(prompt, scenario, catalog), style = MaterialTheme.typography.bodyLarge)
+                    val counter = prompt is Prompt.CounterQuestion
+                    Row(Modifier.align(Alignment.End), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedButton(onClick = { game.send(if (counter) Command.CounterAttack(false) else Command.ReportTest(0)) }) { Text(if (counter) Texts.NO else Texts.FAILED) }
+                        Button(onClick = { game.send(if (counter) Command.CounterAttack(true) else Command.ReportTest(1)) }) { Text(if (counter) Texts.YES else Texts.PASSED) }
+                    }
                 }
                 is Prompt.Choice -> {
                     Text(prompt.step.text, style = MaterialTheme.typography.bodyLarge)
@@ -303,6 +329,7 @@ private fun ResolutionCard(game: PlaytestModel, scenario: Scenario, state: GameS
 /** One-line description of a prompt for the panel and the log. */
 fun describe(prompt: Prompt, scenario: Scenario, catalog: MaterialCatalog): String {
     fun tile(placement: String) = scenario.placement(placement)?.let { catalog.tile(it.tile)?.label ?: it.tile } ?: placement
+    fun enemy(groupId: String) = scenario.enemyGroup(groupId)?.let { catalog.enemyType(it.enemyType)?.name ?: it.enemyType } ?: groupId
     return when (prompt) {
         Prompt.Intro -> scenario.title + "\n\n" + scenario.intro
         is Prompt.Text -> prompt.text
@@ -328,5 +355,13 @@ fun describe(prompt: Prompt, scenario: Scenario, catalog: MaterialCatalog): Stri
         is Prompt.Inspiration -> listOfNotNull(prompt.text, Texts.inspiration(prompt.amount, prompt.who)).joinToString("\n")
         is Prompt.Choice -> prompt.step.text
         is Prompt.Test -> prompt.step.text.orEmpty()
+        is Prompt.EnemyRegroup -> Texts.regroup(enemy(prompt.groupId), prompt.movement)
+        is Prompt.EnemyHalted -> Texts.halted(enemy(prompt.groupId), prompt.damage, prompt.fear) + if (prompt.text.isNotBlank()) "\n${prompt.text}" else ""
+        is Prompt.EnemyAttack -> Texts.enemyAttack(enemy(prompt.groupId), prompt.reason == AttackReason.COUNTER, prompt.damage, prompt.fear) +
+            if (prompt.text.isNotBlank()) "\n${prompt.text}" else ""
+        is Prompt.CounterQuestion -> Texts.counterQuestion(enemy(prompt.groupId))
+        is Prompt.LastStandTest -> Texts.lastStand(prompt.hero, prompt.kind == LimitKind.DAMAGE)
+        is Prompt.HeroSurvives -> Texts.heroSurvives(prompt.hero, prompt.kind == LimitKind.DAMAGE)
+        is Prompt.HeroDefeated -> Texts.heroDefeated(prompt.hero, prompt.secondTime)
     }
 }

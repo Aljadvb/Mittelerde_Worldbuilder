@@ -40,6 +40,10 @@ data class GameState(
     val rng: Long = 0,
     /** Unexplored tiles that have been explored. */
     val exploredPlacements: Set<String> = emptySet(),
+    /** Heroes (0-based) defeated in this scenario; the scenario is lost at the start of the next shadow phase. */
+    val defeatedHeroes: Set<Int> = emptySet(),
+    /** Heroes that already had their one last stand in this scenario. */
+    val lastStandUsed: Set<Int> = emptySet(),
     /** Work still to do; the first frame is the one currently running. */
     val agenda: List<Frame> = emptyList(),
     /** Prompts waiting for the players, oldest first. While non-empty, nothing else runs. */
@@ -126,6 +130,26 @@ sealed interface Prompt {
     @Serializable @SerialName("enemyRecovers")
     data class EnemyRecovers(val groupId: String) : Notice
 
+    /** "Kein Ziel": the group moves up to [movement] spaces toward the nearest hero and does not attack. */
+    @Serializable @SerialName("enemyRegroup")
+    data class EnemyRegroup(val groupId: String, val movement: Int) : Notice
+
+    /** "Bewegung beendet": the group stops at a river, fence or ditch and attacks only a hero in reach. */
+    @Serializable @SerialName("enemyHalted")
+    data class EnemyHalted(val groupId: String, val damage: Int, val fear: Int, val text: String, val ranged: Boolean) : Notice
+
+    /** A provoked group or a counterattack hits the hero who provoked or attacked it. */
+    @Serializable @SerialName("enemyAttack")
+    data class EnemyAttack(val groupId: String, val reason: AttackReason, val damage: Int, val fear: Int, val text: String, val ranged: Boolean) : Notice
+
+    /** A hero survived the last stand and discards all cards of [kind]. */
+    @Serializable @SerialName("heroSurvives")
+    data class HeroSurvives(val hero: Int, val kind: LimitKind) : Notice
+
+    /** A hero is defeated; [secondTime] if the hero had used the last stand already. */
+    @Serializable @SerialName("heroDefeated")
+    data class HeroDefeated(val hero: Int, val kind: LimitKind, val secondTime: Boolean) : Notice
+
     @Serializable @SerialName("darkness")
     data class Darkness(val fear: Int) : Notice
 
@@ -149,7 +173,25 @@ sealed interface Prompt {
     /** Answer with [Command.ReportTest]. */
     @Serializable @SerialName("test")
     data class Test(val eventId: String?, val step: EventStep.Test) : Prompt
+
+    /** "Kann der Feind angreifen?" after a hero's attack. Answer with [Command.CounterAttack]. */
+    @Serializable @SerialName("counterQuestion")
+    data class CounterQuestion(val groupId: String) : Prompt
+
+    /** Last stand: a test on might (damage) or spirit (fear); 1 success is enough. Answer with [Command.ReportTest]. */
+    @Serializable @SerialName("lastStand")
+    data class LastStandTest(val hero: Int, val kind: LimitKind) : Prompt {
+        val attribute: io.github.aljadvb.worldbuilder.model.Attribute
+            get() = if (kind == LimitKind.DAMAGE) io.github.aljadvb.worldbuilder.model.Attribute.MIGHT else io.github.aljadvb.worldbuilder.model.Attribute.SPIRIT
+    }
 }
+
+@Serializable
+enum class AttackReason { @SerialName("provoked") PROVOKED, @SerialName("counter") COUNTER }
+
+/** Which limit a hero reached. */
+@Serializable
+enum class LimitKind { @SerialName("damage") DAMAGE, @SerialName("fear") FEAR }
 
 @Serializable
 data class HistoryEntry(val round: Int, val prompt: Prompt, val answer: String? = null)
@@ -162,7 +204,7 @@ sealed interface Command {
     /** Pick option [index] of the current [Prompt.Choice]. */
     data class Choose(val index: Int) : Command
 
-    /** Report the number of successes for the current [Prompt.Test]. */
+    /** Report the number of successes for the current [Prompt.Test] or [Prompt.LastStandTest]. */
     data class ReportTest(val successes: Int) : Command
 
     data class InteractToken(val tokenId: String) : Command
@@ -181,6 +223,16 @@ sealed interface Command {
     data class ExploreTile(val placementId: String) : Command
     data class DefeatEnemyGroup(val groupId: String) : Command
     data object EndRound : Command
+    /** During [Prompt.EnemyActivation]: the group can reach neither its target nor the nearest hero. */
+    data object NoTarget : Command
+    /** During [Prompt.EnemyActivation]: the group had to stop at a river, fence or ditch. */
+    data object MovementEnded : Command
+    /** A hero leaves the space of a ready group or interacts there. */
+    data class ProvokeEnemy(val groupId: String) : Command
+    /** Answer to [Prompt.CounterQuestion]. */
+    data class CounterAttack(val canAttack: Boolean) : Command
+    /** Hero [hero] (0-based) reached the damage or fear limit. */
+    data class LimitReached(val hero: Int, val kind: LimitKind) : Command
 }
 
 class EngineException(message: String) : IllegalStateException(message)

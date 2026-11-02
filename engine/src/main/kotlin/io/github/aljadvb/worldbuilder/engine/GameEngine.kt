@@ -56,11 +56,45 @@ class GameEngine(
                 run.replaceCurrent(option.event)
             }
             is Command.ReportTest -> {
-                val prompt = state.currentPrompt as? Prompt.Test ?: throw EngineException("Keine Probe offen.")
                 if (command.successes < 0) throw EngineException("Erfolge dürfen nicht negativ sein.")
-                val success = command.successes >= prompt.step.successes
-                run.popPrompt(answer = command.successes.toString())
-                run.replaceCurrent(if (success) prompt.step.onSuccess else prompt.step.onFailure)
+                when (val prompt = state.currentPrompt) {
+                    is Prompt.Test -> {
+                        val success = command.successes >= prompt.step.successes
+                        run.popPrompt(answer = command.successes.toString())
+                        run.replaceCurrent(if (success) prompt.step.onSuccess else prompt.step.onFailure)
+                    }
+                    is Prompt.LastStandTest -> {
+                        run.popPrompt(answer = command.successes.toString())
+                        run.lastStandResult(prompt, command.successes >= 1)
+                    }
+                    else -> throw EngineException("Keine Probe offen.")
+                }
+            }
+            Command.NoTarget, Command.MovementEnded -> {
+                val prompt = state.currentPrompt as? Prompt.EnemyActivation ?: throw EngineException("Keine Gegner-Aktivierung offen.")
+                run.popPrompt(answer = if (command == Command.NoTarget) "noTarget" else "movementEnded")
+                run.prompts.add(
+                    0,
+                    if (command == Command.NoTarget) Prompt.EnemyRegroup(prompt.groupId, prompt.movement)
+                    else Prompt.EnemyHalted(prompt.groupId, prompt.damage, prompt.fear, prompt.text, prompt.ranged),
+                )
+            }
+            is Command.ProvokeEnemy -> {
+                requireIdle(state)
+                if (command.groupId !in state.activeEnemyGroups) throw EngineException("Gegnergruppe '${command.groupId}' ist nicht im Spiel.")
+                if (command.groupId in state.exhaustedGroups) throw EngineException("Eine erschöpfte Gruppe kann nicht provoziert werden.")
+                run.enemyAttack(command.groupId, AttackReason.PROVOKED)
+            }
+            is Command.CounterAttack -> {
+                val prompt = state.currentPrompt as? Prompt.CounterQuestion ?: throw EngineException("Keine Gegenangriffs-Frage offen.")
+                run.popPrompt(answer = if (command.canAttack) "yes" else "no")
+                if (command.canAttack) run.enemyAttack(prompt.groupId, AttackReason.COUNTER, first = true)
+            }
+            is Command.LimitReached -> {
+                requireIdle(state)
+                if (command.hero !in 0 until state.heroCount) throw EngineException("Unbekannter Held ${command.hero}.")
+                if (command.hero in state.defeatedHeroes) throw EngineException("Der Held ist bereits besiegt.")
+                run.limitReached(command.hero, command.kind)
             }
             is Command.InteractToken -> {
                 requireIdle(state)
@@ -117,6 +151,8 @@ class GameEngine(
         val exhausted = s.exhaustedGroups.toMutableSet()
         var darknessFear = s.darknessFear
         var rng = s.rng
+        val defeatedHeroes = s.defeatedHeroes.toMutableSet()
+        val lastStandUsed = s.lastStandUsed.toMutableSet()
 
         /** Deterministic random number in 0 until [n]. */
         fun random(n: Int): Int {
@@ -136,6 +172,7 @@ class GameEngine(
             completedObjectives = completedObjectives.toSet(), firedTriggers = firedTriggers.toSet(), exploredPlacements = explored.toSet(), flags = flags.toSet(), loreGained = loreGained,
             enemyHealth = enemyHealth.toMap(), armorLoss = armorLoss.toMap(), exhaustedGroups = exhausted.toSet(),
             darknessFear = darknessFear, rng = rng,
+            defeatedHeroes = defeatedHeroes.toSet(), lastStandUsed = lastStandUsed.toSet(),
             agenda = agenda.toList(), prompts = prompts.toList(), history = history.toList(), resolution = resolution,
         )
 
@@ -203,6 +240,38 @@ class GameEngine(
             if (c.stun && remaining > 0) exhausted += c.groupId
             prompts += Prompt.AttackResult(c.groupId, before - remaining, remaining, c.stun && remaining > 0)
             if (remaining == 0) defeat(c.groupId)
+            // Exhausted groups (e.g. stunned) cannot counterattack.
+            else if (c.groupId !in exhausted) prompts += Prompt.CounterQuestion(c.groupId)
+        }
+
+        /** One attack of [groupId], picked at random from its type. */
+        private fun rollAttack(groupId: String): Pair<io.github.aljadvb.worldbuilder.model.EnemyAttack?, io.github.aljadvb.worldbuilder.model.EnemyType?> {
+            val type = scenario.enemyGroup(groupId)?.let { enemyTypes[it.enemyType] }
+            return type?.attacks?.takeIf { it.isNotEmpty() }?.let { it[random(it.size)] } to type
+        }
+
+        /** Provoked attack or counterattack; [first] puts it before other waiting prompts. */
+        fun enemyAttack(groupId: String, reason: AttackReason, first: Boolean = false) {
+            val (attack, type) = rollAttack(groupId)
+            val p = Prompt.EnemyAttack(groupId, reason, attack?.damage ?: 1, attack?.fear ?: 0, attack?.text.orEmpty(), type?.ranged == true)
+            if (first) prompts.add(0, p) else prompts += p
+        }
+
+        fun limitReached(hero: Int, kind: LimitKind) {
+            if (hero in lastStandUsed) defeatHero(hero, kind, secondTime = true)
+            else prompts += Prompt.LastStandTest(hero, kind)
+        }
+
+        fun lastStandResult(test: Prompt.LastStandTest, passed: Boolean) {
+            lastStandUsed += test.hero
+            if (passed) prompts.add(0, Prompt.HeroSurvives(test.hero, test.kind))
+            else defeatHero(test.hero, test.kind, secondTime = false, first = true)
+        }
+
+        private fun defeatHero(hero: Int, kind: LimitKind, secondTime: Boolean, first: Boolean = false) {
+            defeatedHeroes += hero
+            val p = Prompt.HeroDefeated(hero, kind, secondTime)
+            if (first) prompts.add(0, p) else prompts += p
         }
 
         fun defeat(groupId: String) {
@@ -214,6 +283,16 @@ class GameEngine(
         }
 
         fun endRound() {
+            // A defeated hero loses the adventure at the start of the next shadow phase.
+            if (defeatedHeroes.isNotEmpty()) {
+                scenario.resolutions.firstOrNull { it.outcome == io.github.aljadvb.worldbuilder.model.Outcome.DEFEAT }?.let {
+                    resolution = it.id
+                    agenda.clear()
+                    prompts.clear()
+                    return
+                }
+            }
+            val living = (0 until heroCount).filter { it !in defeatedHeroes }.ifEmpty { (0 until heroCount).toList() }
             // Shadow phase 1: enemy activation.
             for (groupId in scenario.enemyGroups.map { it.id }.filter { it in activeGroups }) {
                 if (exhausted.remove(groupId)) {
@@ -223,7 +302,7 @@ class GameEngine(
                 val group = scenario.enemyGroup(groupId) ?: continue
                 val type = enemyTypes[group.enemyType]
                 val attack = type?.attacks?.takeIf { it.isNotEmpty() }?.let { it[random(it.size)] }
-                prompts += Prompt.EnemyActivation(groupId, random(heroCount), type?.movement ?: 2, attack?.damage ?: 1, attack?.fear ?: 0, attack?.text.orEmpty(), type?.ranged == true)
+                prompts += Prompt.EnemyActivation(groupId, living[random(living.size)], type?.movement ?: 2, attack?.damage ?: 1, attack?.fear ?: 0, attack?.text.orEmpty(), type?.ranged == true)
             }
             // Shadow phase 2: darkness.
             if (darknessFear > 0) prompts += Prompt.Darkness(darknessFear)

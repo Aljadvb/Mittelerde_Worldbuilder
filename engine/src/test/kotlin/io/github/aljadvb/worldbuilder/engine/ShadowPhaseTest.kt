@@ -6,6 +6,7 @@ import io.github.aljadvb.worldbuilder.model.Event
 import io.github.aljadvb.worldbuilder.model.EventStep
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 class ShadowPhaseTest {
@@ -55,10 +56,13 @@ class ShadowPhaseTest {
         s = engine.apply(s, Command.AttackEnemy("eg_nebelwoelfe", hits = 3)) // armor 1 -> 2 hits
         assertEquals(listOf(2, 4), s.enemyHealth.getValue("eg_nebelwoelfe"))
         s = engine.apply(s, Command.Acknowledge)
+        assertTrue(s.currentPrompt is Prompt.CounterQuestion)
+        s = engine.apply(s, Command.CounterAttack(false))
         s = engine.apply(s, Command.AttackEnemy("eg_nebelwoelfe", hits = 2, pierce = true, stun = true)) // first dies
         assertEquals(listOf(0, 4), s.enemyHealth.getValue("eg_nebelwoelfe"))
         assertTrue("eg_nebelwoelfe" in s.exhaustedGroups)
         s = engine.apply(s, Command.Acknowledge)
+        assertTrue(s.isIdle, "stunned groups cannot counterattack")
         val round = engine.apply(s, Command.EndRound)
         assertTrue(round.prompts.first() is Prompt.EnemyRecovers)
         var x = round
@@ -72,5 +76,81 @@ class ShadowPhaseTest {
         var s = withWolves(3)
         s = engine.apply(s, Command.AttackEnemy("eg_nebelwoelfe", hits = 3, cleave = true))
         assertEquals(listOf(2, 2), s.enemyHealth.getValue("eg_nebelwoelfe"))
+    }
+
+    @Test
+    fun `counterattack hits the attacker when the group can reach`() {
+        var s = withWolves(3)
+        s = engine.apply(s, Command.AttackEnemy("eg_nebelwoelfe", hits = 1))
+        s = engine.apply(s, Command.Acknowledge)
+        s = engine.apply(s, Command.CounterAttack(true))
+        val counter = s.currentPrompt as Prompt.EnemyAttack
+        assertEquals(AttackReason.COUNTER, counter.reason)
+        assertTrue((counter.damage to counter.fear) in listOf(2 to 0, 1 to 1))
+        s = engine.apply(s, Command.Acknowledge)
+        assertTrue(s.isIdle)
+    }
+
+    @Test
+    fun `ready groups can be provoked, exhausted ones not`() {
+        var s = withWolves(3)
+        s = engine.apply(s, Command.ProvokeEnemy("eg_nebelwoelfe"))
+        assertEquals(AttackReason.PROVOKED, (s.currentPrompt as Prompt.EnemyAttack).reason)
+        s = engine.apply(s, Command.Acknowledge)
+        s = engine.apply(s, Command.AttackEnemy("eg_nebelwoelfe", hits = 0, stun = true))
+        while (!s.isIdle) s = engine.apply(s, Command.Acknowledge)
+        val stunned = s
+        assertFailsWith<EngineException> { engine.apply(stunned, Command.ProvokeEnemy("eg_nebelwoelfe")) }
+    }
+
+    @Test
+    fun `no target and movement ended replace the activation`() {
+        val round = engine.apply(withWolves(3), Command.EndRound)
+        val act = round.currentPrompt as Prompt.EnemyActivation
+        val regroup = engine.apply(round, Command.NoTarget)
+        assertEquals(Prompt.EnemyRegroup(act.groupId, act.movement), regroup.currentPrompt)
+        val halted = engine.apply(round, Command.MovementEnded)
+        assertEquals(Prompt.EnemyHalted(act.groupId, act.damage, act.fear, act.text, act.ranged), halted.currentPrompt)
+        assertEquals(round.prompts.size, halted.prompts.size)
+        assertFailsWith<EngineException> { engine.apply(regroup, Command.NoTarget) }
+    }
+
+    @Test
+    fun `last stand once, then the hero is defeated and the scenario is lost at the next shadow phase`() {
+        var s = withWolves(2)
+        s = engine.apply(s, Command.LimitReached(1, LimitKind.FEAR))
+        val test = s.currentPrompt as Prompt.LastStandTest
+        assertEquals(io.github.aljadvb.worldbuilder.model.Attribute.SPIRIT, test.attribute)
+        s = engine.apply(s, Command.ReportTest(1))
+        assertEquals(Prompt.HeroSurvives(1, LimitKind.FEAR), s.currentPrompt)
+        s = engine.apply(s, Command.Acknowledge)
+        // Second time: no last stand any more.
+        s = engine.apply(s, Command.LimitReached(1, LimitKind.DAMAGE))
+        assertEquals(Prompt.HeroDefeated(1, LimitKind.DAMAGE, secondTime = true), s.currentPrompt)
+        s = engine.apply(s, Command.Acknowledge)
+        assertEquals(setOf(1), s.defeatedHeroes)
+        val defeatedHero = s
+        assertFailsWith<EngineException> { engine.apply(defeatedHero, Command.LimitReached(1, LimitKind.FEAR)) }
+        val end = engine.apply(s, Command.EndRound)
+        val res = scenario.resolutions.first { it.outcome == io.github.aljadvb.worldbuilder.model.Outcome.DEFEAT }
+        assertEquals(res.id, end.resolution)
+    }
+
+    @Test
+    fun `failed last stand defeats the hero and activations skip defeated heroes`() {
+        val noDefeat = scenario.copy(resolutions = scenario.resolutions.filter { it.outcome != io.github.aljadvb.worldbuilder.model.Outcome.DEFEAT })
+        val e = GameEngine(noDefeat, enemyTypes = mapOf("nebelwolf" to wolf))
+        var s = withWolves(2)
+        s = e.apply(s, Command.LimitReached(0, LimitKind.DAMAGE))
+        assertEquals(io.github.aljadvb.worldbuilder.model.Attribute.MIGHT, (s.currentPrompt as Prompt.LastStandTest).attribute)
+        s = e.apply(s, Command.ReportTest(0))
+        assertEquals(Prompt.HeroDefeated(0, LimitKind.DAMAGE, secondTime = false), s.currentPrompt)
+        s = e.apply(s, Command.Acknowledge)
+        var x = s
+        repeat(5) {
+            x = e.apply(x, Command.EndRound)
+            x.prompts.filterIsInstance<Prompt.EnemyActivation>().forEach { assertEquals(1, it.hero) }
+            while (!x.isIdle && !x.isOver) x = e.apply(x, Command.Acknowledge)
+        }
     }
 }

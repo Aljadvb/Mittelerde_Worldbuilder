@@ -54,8 +54,34 @@ fun PromptPanel(
             when (prompt) {
                 is Prompt.Notice -> {
                     NoticeContent(prompt, scenario, catalog, heroNames)
-                    Button(onClick = { onCommand(Command.Acknowledge) }, modifier = Modifier.align(Alignment.End)) {
-                        Text(stringResource(R.string.continue_))
+                    if (prompt is Prompt.EnemyActivation) {
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            OutlinedButton(onClick = { onCommand(Command.NoTarget) }, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.enemy_no_target)) }
+                            OutlinedButton(onClick = { onCommand(Command.MovementEnded) }, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.enemy_movement_ended)) }
+                        }
+                        Button(onClick = { onCommand(Command.Acknowledge) }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.done)) }
+                    } else {
+                        Button(onClick = { onCommand(Command.Acknowledge) }, modifier = Modifier.align(Alignment.End)) {
+                            Text(stringResource(R.string.continue_))
+                        }
+                    }
+                }
+                is Prompt.CounterQuestion -> {
+                    Title(stringResource(R.string.counter_title, enemyName(scenario, catalog, prompt.groupId)))
+                    Body(stringResource(R.string.counter_question))
+                    Hint(stringResource(R.string.counter_hint))
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
+                        OutlinedButton(onClick = { onCommand(Command.CounterAttack(false)) }) { Text(stringResource(R.string.no)) }
+                        Button(onClick = { onCommand(Command.CounterAttack(true)) }) { Text(stringResource(R.string.yes)) }
+                    }
+                }
+                is Prompt.LastStandTest -> {
+                    Title(stringResource(R.string.last_stand_title, heroName(heroNames, prompt.hero)))
+                    Body(stringResource(if (prompt.kind == io.github.aljadvb.worldbuilder.engine.LimitKind.DAMAGE) R.string.last_stand_damage else R.string.last_stand_fear, attributeLabel(prompt.attribute)))
+                    Hint(stringResource(R.string.last_stand_hint))
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
+                        OutlinedButton(onClick = { onCommand(Command.ReportTest(0)) }) { Text(stringResource(R.string.last_stand_failed)) }
+                        Button(onClick = { onCommand(Command.ReportTest(1)) }) { Text(stringResource(R.string.last_stand_passed)) }
                     }
                 }
                 is Prompt.Choice -> {
@@ -192,6 +218,35 @@ private fun NoticeContent(prompt: Prompt.Notice, scenario: Scenario, catalog: Ma
             if (prompt.text.isNotBlank()) Body(prompt.text)
             Hint(stringResource(R.string.enemy_activation_hint))
         }
+        is Prompt.EnemyRegroup -> {
+            Hint(stringResource(R.string.shadow_phase))
+            Title(stringResource(R.string.enemy_no_target_title, enemyName(scenario, catalog, prompt.groupId)))
+            Body(stringResource(R.string.enemy_regroup_text, prompt.movement))
+        }
+        is Prompt.EnemyHalted -> {
+            Hint(stringResource(R.string.shadow_phase))
+            Title(stringResource(R.string.enemy_halted_title, enemyName(scenario, catalog, prompt.groupId)))
+            Body(stringResource(R.string.enemy_halted_text))
+            Text(stringResource(R.string.enemy_attack_values, prompt.damage, prompt.fear), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error)
+            if (prompt.text.isNotBlank()) Body(prompt.text)
+        }
+        is Prompt.EnemyAttack -> {
+            val name = enemyName(scenario, catalog, prompt.groupId)
+            Title(stringResource(if (prompt.reason == io.github.aljadvb.worldbuilder.engine.AttackReason.COUNTER) R.string.enemy_counter_title else R.string.enemy_provoked_title, name))
+            Body(stringResource(if (prompt.reason == io.github.aljadvb.worldbuilder.engine.AttackReason.COUNTER) R.string.enemy_counter_text else R.string.enemy_provoked_text))
+            Text(stringResource(R.string.enemy_attack_values, prompt.damage, prompt.fear), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error)
+            if (prompt.text.isNotBlank()) Body(prompt.text)
+        }
+        is Prompt.HeroSurvives -> {
+            Title(stringResource(R.string.hero_survives_title, heroName(heroNames, prompt.hero)))
+            Body(stringResource(if (prompt.kind == io.github.aljadvb.worldbuilder.engine.LimitKind.DAMAGE) R.string.hero_survives_damage else R.string.hero_survives_fear))
+            Hint(stringResource(R.string.hero_survives_hint))
+        }
+        is Prompt.HeroDefeated -> {
+            Title(stringResource(R.string.hero_defeated_title, heroName(heroNames, prompt.hero)))
+            if (prompt.secondTime) Body(stringResource(R.string.hero_defeated_second))
+            Body(stringResource(R.string.hero_defeated_text))
+        }
         is Prompt.EnemyRecovers -> {
             val name = scenario.enemyGroup(prompt.groupId)?.let { catalog.enemyType(it.enemyType)?.name ?: it.enemyType }.orEmpty()
             Hint(stringResource(R.string.shadow_phase))
@@ -234,6 +289,14 @@ private fun NoticeContent(prompt: Prompt.Notice, scenario: Scenario, catalog: Ma
         }
     }
 }
+
+@Composable
+private fun enemyName(scenario: Scenario, catalog: MaterialCatalog, groupId: String): String =
+    scenario.enemyGroup(groupId)?.let { catalog.enemyType(it.enemyType)?.name ?: it.enemyType }.orEmpty()
+
+@Composable
+internal fun heroName(heroNames: List<String>, hero: Int): String =
+    heroNames.getOrNull(hero)?.takeIf { it.isNotBlank() } ?: stringResource(R.string.hero_n, hero + 1)
 
 @Composable
 private fun TestContent(prompt: Prompt.Test, onCommand: (Command) -> Unit) {

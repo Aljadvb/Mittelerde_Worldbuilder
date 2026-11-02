@@ -1,6 +1,6 @@
 # Kampfregeln Schritt 1 – Plan zur Freigabe
 
-Stand: 2026-11-02 · **Entwurf, noch nicht umgesetzt.**
+Stand: 2026-11-02 · **Freigegeben** mit Entscheidung A (siehe Abschnitt 5: eine Probe mit 1 Erfolg, kein zweites Letztes Aufbäumen) und B (ja).
 
 Ziel: Die Gegnerphase und der Kampf folgen den Regeln aus dem Referenzhandbuch. Dazu kommen vier Funktionen:
 Gegenangriff, Provozieren, „Kein Ziel“ und Letztes Aufbäumen mit „Held besiegt“.
@@ -36,8 +36,9 @@ Neue Befehle (`Command`):
 | `NoTarget` | während einer `EnemyActivation`-Meldung | ersetzt die Meldung durch `EnemyRegroup` |
 | `ProvokeEnemy(group)` | im Leerlauf, Gruppe aktiv und **nicht** erschöpft | Meldung `EnemyAttack(reason = PROVOKED)` |
 | `CounterAttack(yes)` | während einer `CounterQuestion` | bei Ja: `EnemyAttack(reason = COUNTER)` |
-| `LastStand(hero, kind)` | im Leerlauf, Held nicht besiegt | Probe `LastStandTest` (siehe 2.4) |
-| `ReportLastStand(successes)` | während `LastStandTest` | Ergebnis auswerten |
+| `LimitReached(hero, kind)` | im Leerlauf, Held nicht besiegt | Probe `LastStandTest` oder sofort `HeroDefeated` (siehe 2.4) |
+| `ReportTest(successes)` | auch während `LastStandTest` | Ergebnis auswerten |
+| `MovementEnded` | während einer `EnemyActivation`-Meldung | ersetzt die Meldung durch `EnemyHalted` |
 
 Neue Meldungen (`Prompt`):
 
@@ -45,13 +46,14 @@ Neue Meldungen (`Prompt`):
 - `EnemyAttack(group, reason, damage, fear, text, ranged)`: Angriff durch Provozieren oder Gegenangriff. Ziel ist
   der Held, der provoziert bzw. angegriffen hat; deshalb ist kein Heldenindex nötig.
 - `CounterQuestion(group)`: „Kann der Feind angreifen?“ mit Ja/Nein.
-- `LastStandTest(hero, kind, successes)`: Probe auf Körperkraft (Schaden) bzw. Willen (Furcht).
+- `LastStandTest(hero, kind)`: Probe auf Körperkraft (Schaden) bzw. Willen (Furcht), 1 Erfolg nötig.
+- `EnemyHalted(group, damage, fear, text, ranged)`: Bewegung an Fluss, Zaun oder Graben beendet.
 - `HeroSurvives(hero, kind)` / `HeroDefeated(hero)`: Ergebnis mit Anweisung.
 
 Neuer Zustand in `GameState` (mit Standardwerten, alte Spielstände laden weiter):
 
 - `defeatedHeroes: Set<Int>`
-- `lastStands: Map<Int, Int>`: Anzahl der Letzten Aufbäumen je Held in diesem Abenteuer.
+- `lastStandUsed: Set<Int>`: Helden, die ihr Letztes Aufbäumen in diesem Abenteuer schon hatten.
 
 ### 2.1 Gegenangriff
 
@@ -71,12 +73,14 @@ nächstgelegenen Helden an“) bleibt.
 
 ### 2.4 Letztes Aufbäumen und Held besiegt
 
-- Im Menü „Helden“ (oder per Knopf in der Heldenleiste) wählt man **„Letztes Aufbäumen“** → Held → Schaden oder Furcht.
-- Probe: Körperkraft bei Schaden, Willen bei Furcht. **Benötigte Erfolge: 2**, für jedes weitere Letzte Aufbäumen
-  desselben Helden im Abenteuer **+1** (Vorschlag, siehe Entscheidung A).
-- **Bestanden:** Der Held bleibt im Spiel und legt Karten ab (siehe Entscheidung A).
-- **Nicht bestanden:** Der Held ist besiegt. Meldung: Figur vom Plan nehmen; wenn ihr nicht vor der nächsten
-  Schattenphase gewinnt, ist das Abenteuer verloren.
+- Im Menü „Helden“ wählt man **„Limit erreicht“** → Held → Schaden oder Furcht.
+- **Erstes Mal:** Letztes Aufbäumen, Probe auf Körperkraft (Schaden) bzw. Willen (Furcht), **1 Erfolg** reicht.
+  - **Bestanden:** Der Held legt **alle** Schadenkarten (bzw. alle Furchtkarten) ab und bleibt im Spiel.
+  - **Nicht bestanden:** Der Held ist besiegt.
+- **Ein zweites Letztes Aufbäumen gibt es nicht:** Erreicht derselbe Held im Abenteuer erneut ein Limit (Schaden oder
+  Furcht), ist er sofort besiegt.
+- **Besiegt:** Meldung: Figur vom Plan nehmen; wenn ihr nicht vor der nächsten Schattenphase gewinnt, ist das Abenteuer
+  verloren.
 - Beim nächsten „Runde beenden“ endet das Szenario vor der Schattenphase mit der **ersten Niederlage-Auflösung** des
   Szenarios.
 - Besiegte Helden sind nie mehr Ziel einer Feind-Aktivierung, und die Dunkelheit trifft sie nicht.
@@ -100,16 +104,9 @@ nächstgelegenen Helden an“) bleibt.
 5. Editor-Probespiel und Generator-Anleitung.
 6. Doku (ENTWURF, TESTLISTE), Version 1.9.0.
 
-## 5. Offene Entscheidungen
+## 5. Entscheidungen
 
-**A. Was passiert beim bestandenen Letzten Aufbäumen?** Die Regeln überlassen das der App.
-
-- **A1 (Vorschlag):** Der Held legt **2 Schadenkarten** (bzw. Furchtkarten) seiner Wahl ab. Die Probe braucht
-  2 Erfolge, für jedes weitere Letzte Aufbäumen +1.
-- A2: Der Held legt **alle** Karten dieser Art ab. Die Probe ist schwerer (3 Erfolge, +1 je weiterem).
-- A3: Der Held legt **nichts** ab, bleibt aber im Spiel, bis er erneut Schaden bzw. Furcht erleidet.
-
-**B. Flussüberquerung gleich mitnehmen?** Die Aktivierungsmeldung bekäme einen dritten Knopf „Bewegung beendet“
-(Fluss, Zaun, Graben). Die Gruppe bleibt an der Grenze stehen. Ist dann ein Held in Reichweite, greift sie diesen
-Helden mit denselben Werten an, sonst passiert nichts mehr. Das ist wenig Aufwand, weil es dieselbe Stelle betrifft.
-Vorschlag: ja.
+- **A (Nutzer):** Letztes Aufbäumen braucht 1 Erfolg auf die passende Eigenschaft. Bei Erfolg legt der Held alle Karten
+  dieser Art ab. Es gibt kein zweites Letztes Aufbäumen: Erreicht der Held erneut ein Limit, ist er besiegt.
+- **B:** Der Knopf „Bewegung beendet“ (Fluss, Zaun, Graben) kommt mit. Die Gruppe bleibt an der Grenze stehen und
+  greift nur an, wenn dort ein Held in Reichweite ist.

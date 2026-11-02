@@ -105,6 +105,7 @@ class PromptBuilder(private val catalog: MaterialCatalog, private val input: Gen
         appendLine("- Jedes Kapitel bekommt Landschafts-Kategorien, die zu den verfügbaren Kacheln bzw. Schlachtplänen passen.")
         appendLine("- Kartenart: " + mapInstruction())
         appendLine("- Mindestens ein Sieg- und ein Niederlage-Ende; Niederlage, wenn die Bedrohung ihr Maximum erreicht.")
+        appendLine("- Die erste Niederlage-Auflösung gilt auch, wenn ein Held besiegt wird (Letztes Aufbäumen gescheitert). Ihr Text soll deshalb zu beidem passen: die Helden werden überwältigt oder die Zeit läuft ab.")
         appendLine()
         appendLine("Vorlage (nur als Inspiration – Handlung und Namen dürfen übernommen werden, Formulierungen nicht):")
         appendLine("<vorlage>")
