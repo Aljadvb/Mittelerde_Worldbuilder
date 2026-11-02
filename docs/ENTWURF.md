@@ -275,6 +275,11 @@ Mehrere Ziele können gleichzeitig aktiv sein. Ein Ziel gilt nur als erfüllt, w
   Erkundungsmarker, ihre Token bleiben verborgen. Antippen des Markers erkundet sie: Token erscheinen, der erkundende oder
   ein naher Held erhält 1 Inspiration, dann laufen `onExplore` und Trigger `{"type": "tileExplored", "placement": …}`.
 
+### 5.9b Kampagnenkarte, Merker, Wissen und Erfahrung
+
+Orte (`places`), Kampagnen-Merker (`flags`), Belohnungen der Auflösungen (`lore`, `xp`, `setFlags`), Übergänge mit
+`requiresFlag` und die Schritte `setFlag`, `checkFlag`, `gainLore`: siehe [KAMPAGNE_PLAN.md](KAMPAGNE_PLAN.md).
+
 ### 5.10 Schlacht-Kapitel
 
 Ein Kapitel mit `battlefield` spielt auf Schlachtplänen statt auf Kacheln (keine `tiles`). Token und Gegner stehen dort in

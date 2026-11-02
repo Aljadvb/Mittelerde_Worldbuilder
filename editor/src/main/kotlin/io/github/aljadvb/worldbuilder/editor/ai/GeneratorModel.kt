@@ -81,7 +81,11 @@ class GeneratorModel(
     private fun ownedTiles() = catalog.tiles.filter { catalog.expansion(it.expansion)?.owned != false }.map { it.id }.toSet()
     private fun ownedEnemies() = catalog.enemyTypes.filter { catalog.expansion(it.expansion)?.owned != false }.map { it.id }.toSet()
 
-    private fun input() = GenerationInput(source, length, difficulty, allowedTiles, allowedEnemies, wishes, table, map)
+    /** Flags of the open campaign (used when the scenario is added to it). */
+    var campaignFlags: List<io.github.aljadvb.worldbuilder.model.CampaignFlag> = emptyList()
+
+    private fun input() = GenerationInput(source, length, difficulty, allowedTiles, allowedEnemies, wishes, table, map,
+        campaignFlags = if (target == Target.CURRENT_CAMPAIGN) campaignFlags else emptyList())
 
     val canCreateStory get() = !busy && source.isNotBlank() && allowedTiles.isNotEmpty()
 

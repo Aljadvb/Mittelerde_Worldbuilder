@@ -96,6 +96,16 @@ Material-Katalog (`hexSizeMm`).
 
 Frühere Kapitel werden blass angezeigt, spätere ausgeblendet. Überlappungen werden rot markiert und nicht übernommen.
 
+## Kampagnen über mehrere Spielabende
+
+Im **Kampagnen-Formular** setzt du auf der **Kampagnenkarte** Orte („Ort hinzufügen“, Klick auf die Karte; Orte lassen
+sich ziehen) und legst **Kampagnen-Merker** an (z. B. „Müller gerettet“). Jedes Szenario bekommt im Szenario-Formular
+seinen Ort. Jede **Auflösung** vergibt Wissen (Gruppe) und EP (jeder Held) und kann Merker setzen. **Übergänge** können
+von einem Merker abhängen – so folgt je nach Ausgang ein anderes Szenario. Mit den Event-Schritten „Merker setzen“ und
+„Merker prüfen“ passt sich ein Szenario an frühere Ergebnisse an; „Wissen erhalten“ belohnt Funde.
+
+In der App gibt es zwischen den Szenarien das **Lager** mit Karte, Gesamtwissen und den EP der Helden.
+
 ## Unerforschte Kacheln und Inspiration
 
 Im Kachel-Formular (Kachel auf der Karte anklicken) macht das Häkchen **„Unerforscht“** die Kachel zu einer Kachel mit

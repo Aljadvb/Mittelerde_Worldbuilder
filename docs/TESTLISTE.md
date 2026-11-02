@@ -1,6 +1,6 @@
 # Testliste – was noch von Hand zu prüfen ist
 
-Stand: 2026-11-02 · Version 1.5.0 · Abhaken mit `[x]`. Rückmeldungen (Screenshots, Dateien) einfach im Chat schicken.
+Stand: 2026-11-02 · Version 1.6.0 · Abhaken mit `[x]`. Rückmeldungen (Screenshots, Dateien) einfach im Chat schicken.
 
 Alles hier ist automatisch getestet (Unit-Tests, simulierte Maus, gerenderte Screenshots), aber **noch nie auf echter
 Hardware bzw. mit einer echten KI gelaufen**. Die wichtigsten Punkte stehen oben.
@@ -53,6 +53,19 @@ Hardware bzw. mit einer echten KI gelaufen**. Die wichtigsten Punkte stehen oben
 - [ ] Event-Schritt „Schaden/Furcht erleiden“ anlegen (z. B. im onFailure-Event einer Probe), auch „verdeckt“
 - [ ] App/Probespiel: Hinweis „Der handelnde Held erleidet 2 Schaden (verdeckt).“ erscheint
 - [ ] KI-Generator: Haben fehlgeschlagene Proben passende Folgen (Schaden/Furcht) und steigt die Bedrohung nur selten durch Events?
+
+## 1f. Kampagnen, Lager, Wissen und EP (neu in 1.6.0)
+
+- [ ] Editor: Orte auf der Kampagnenkarte setzen und verschieben, Szenarien zuordnen
+- [ ] Editor: Merker anlegen, in einer Auflösung setzen, im nächsten Szenario mit „Merker prüfen“ abfragen
+- [ ] Editor: zwei Übergänge für dieselbe Auflösung – einer mit Merker-Bedingung
+- [ ] Auflösungen mit Wissen und EP versehen; „Wissen erhalten“ in einem Event
+- [ ] App: neues Spiel mit Heldennamen und Rollen
+- [ ] App: nach einem Szenario erscheint das Lager mit Belohnung, Karte, Gesamtwissen und EP
+- [ ] App: Fertigkeit kaufen (EP werden abgezogen), verkaufen, Rolle wechseln (alte EP bleiben)
+- [ ] App: Spiel beenden und an einem anderen Abend fortsetzen – Wissen, EP und Merker sind noch da
+- [ ] App: ⋮ → Kampagne zeigt die Übersicht während des Spiels
+- [ ] KI: Vergibt sie Wissen/EP sinnvoll und reagiert ein Folgeszenario auf Merker?
 
 ## 2. Windows-Editor
 

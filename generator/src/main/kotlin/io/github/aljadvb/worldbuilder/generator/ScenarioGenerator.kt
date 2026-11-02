@@ -145,7 +145,13 @@ class ScenarioGenerator(
 
     /** Validates the scenario on its own (campaign-level findings are ignored). */
     fun validate(scenario: Scenario): ValidationReport {
-        val campaign = Campaign(CURRENT_FORMAT_VERSION, "cmp_generator", "Generator", startScenario = scenario.id, scenarios = listOf(scenario))
-        return CampaignValidator.validate(campaign, catalog)
+        val flags = (input.campaignFlags + Importer.missingFlags(scenario, input.campaignFlags)).distinctBy { it.id }
+        val campaign = Campaign(CURRENT_FORMAT_VERSION, "cmp_generator", "Generator", startScenario = scenario.id, scenarios = listOf(scenario), flags = flags)
+        // Flags are campaign-wide; whether they are used elsewhere is not the model's concern.
+        return CampaignValidator.validate(campaign, catalog).let { r ->
+            io.github.aljadvb.worldbuilder.validation.ValidationReport(r.issues.filter {
+                it.code != io.github.aljadvb.worldbuilder.validation.IssueCode.FLAG_NEVER_USED && it.code != io.github.aljadvb.worldbuilder.validation.IssueCode.FLAG_NEVER_SET
+            })
+        }
     }
 }

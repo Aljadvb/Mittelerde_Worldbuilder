@@ -13,6 +13,9 @@ import io.github.aljadvb.worldbuilder.hexmap.MapPlace
 import io.github.aljadvb.worldbuilder.hexmap.PlaceState
 import org.jetbrains.skia.EncodedImageFormat
 import java.io.File
+import io.github.aljadvb.worldbuilder.editing.addFlag
+import io.github.aljadvb.worldbuilder.editing.addPlace
+import io.github.aljadvb.worldbuilder.editing.updateResolution
 import kotlin.test.Test
 
 class CampaignMapShotTest {
@@ -32,6 +35,26 @@ class CampaignMapShotTest {
         try {
             File("build/screenshots").mkdirs()
             File("build/screenshots/e30_campaign_map.png").writeBytes(s.render().encodeToData(EncodedImageFormat.PNG)!!.bytes)
+        } finally { s.close() }
+    }
+}
+
+class CampaignFormTest {
+    @Test
+    fun placesFlagsAndRewards() {
+        val m = EditorModel(InMemoryEditorPrefs()).apply { openExample() }
+        m.edit { it.addPlace("Bree", 0.3, 0.38).campaign.addFlag("Müller gerettet").campaign }
+        val c = m.campaign!!
+        kotlin.test.assertEquals(listOf("pt_hainbrueck", "pt_bree"), c.places.map { it.id })
+        kotlin.test.assertEquals("fl_mueller_gerettet", c.flags.single().id)
+        m.edit { it.updateResolution("res_muehle_sieg") { r -> r.copy(setFlags = listOf("fl_mueller_gerettet")) } }
+        kotlin.test.assertTrue(m.report.issues.any { it.code == io.github.aljadvb.worldbuilder.validation.IssueCode.FLAG_NEVER_USED })
+        m.selection = c.id
+        val s = ImageComposeScene(1400, 1700, Density(1f)) {
+            MaterialTheme(colorScheme = lightColorScheme()) { io.github.aljadvb.worldbuilder.editor.ui.EditorContent(m) }
+        }
+        try {
+            s.render(); File("build/screenshots/e31_campaign_form.png").writeBytes(s.render(1_000_000_000L).encodeToData(EncodedImageFormat.PNG)!!.bytes)
         } finally { s.close() }
     }
 }

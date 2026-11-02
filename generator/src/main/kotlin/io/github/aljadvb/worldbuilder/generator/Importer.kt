@@ -15,7 +15,7 @@ object Importer {
     fun newCampaign(generated: Scenario): Campaign {
         val scenario = generated.copy(place = null)
         val id = Ids.fromTitle(ObjectKind.CAMPAIGN, scenario.title, wrap(scenario).allIds())
-        return Campaign(CURRENT_FORMAT_VERSION, id, scenario.title, description = "", startScenario = scenario.id, scenarios = listOf(scenario))
+        return Campaign(CURRENT_FORMAT_VERSION, id, scenario.title, description = "", startScenario = scenario.id, scenarios = listOf(scenario), flags = missingFlags(scenario, emptyList()))
     }
 
     /**
@@ -34,7 +34,24 @@ object Importer {
             taken += fresh
         }
         val imported = temp.scenarios.single()
-        return campaign.copy(scenarios = campaign.scenarios + imported) to imported.id
+        return campaign.copy(scenarios = campaign.scenarios + imported, flags = campaign.flags + missingFlags(imported, campaign.flags)) to imported.id
+    }
+
+    /** Flags the scenario uses that [known] lacks, labelled from their IDs ("fl_mueller_gerettet" → "Mueller gerettet"). */
+    fun missingFlags(scenario: Scenario, known: List<io.github.aljadvb.worldbuilder.model.CampaignFlag>): List<io.github.aljadvb.worldbuilder.model.CampaignFlag> {
+        val used = scenario.events.flatMap { e ->
+            e.steps.mapNotNull { s ->
+                when (s) {
+                    is io.github.aljadvb.worldbuilder.model.EventStep.SetFlag -> s.flag
+                    is io.github.aljadvb.worldbuilder.model.EventStep.CheckFlag -> s.flag
+                    else -> null
+                }
+            }
+        } + scenario.resolutions.flatMap { it.setFlags }
+        val knownIds = known.map { it.id }.toSet()
+        return used.distinct().filter { it.isNotBlank() && it !in knownIds }.map { id ->
+            io.github.aljadvb.worldbuilder.model.CampaignFlag(id, id.removePrefix("fl_").replace('_', ' ').replaceFirstChar { it.uppercase() })
+        }
     }
 
     private fun wrap(s: Scenario) =

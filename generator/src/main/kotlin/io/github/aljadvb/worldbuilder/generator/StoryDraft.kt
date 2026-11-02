@@ -18,6 +18,8 @@ data class GenerationInput(
     val table: io.github.aljadvb.worldbuilder.editing.TableSize = io.github.aljadvb.worldbuilder.editing.TableSize.DEFAULT,
     /** Travel map, battle map, or let the AI decide from the story. */
     val map: MapChoice = MapChoice.AUTO,
+    /** Flags of the campaign the scenario is added to (may be set and checked). */
+    val campaignFlags: List<io.github.aljadvb.worldbuilder.model.CampaignFlag> = emptyList(),
 ) {
     enum class MapChoice(val label: String) { AUTO("Automatisch"), TRAVEL("Reise"), BATTLE("Schlacht") }
     enum class Length(val chapters: Int, val label: String) { SHORT(2, "kurz"), MEDIUM(3, "mittel"), LONG(4, "lang") }

@@ -72,7 +72,7 @@ fun ObjectForm(model: EditorModel, def: Definition) {
         ObjectKind.TRIGGER -> TriggerForm(model, scenario!!, def, ask)
         ObjectKind.PLACEMENT -> PlacementInfo(model, scenario!!, def)
         ObjectKind.EVENT -> EventForm(model, scenario!!, def, ask)
-        ObjectKind.PLACE, ObjectKind.FLAG -> { Text(def.id); FieldIssues(model, def.path) }
+        ObjectKind.PLACE, ObjectKind.FLAG -> { FieldIssues(model, def.path); CampaignMapEditor(model, campaign, ask); FlagsEditor(model, campaign, ask) }
         ObjectKind.BOARD_PLACEMENT -> BoardForm(model, scenario!!, def)
         ObjectKind.TERRAIN_PLACEMENT -> TerrainForm(model, scenario!!, def)
     }
@@ -112,6 +112,9 @@ private fun CampaignForm(model: EditorModel, c: Campaign, ask: (String, (String)
         ask(Texts.NEW_SCENARIO) { name -> model.createThen({ it.addScenario(name) }) { model.selection = it } }
     }) { Text(Texts.ADD_SCENARIO) }
 
+    CampaignMapEditor(model, c, ask)
+    FlagsEditor(model, c, ask)
+
     SectionHeader(Texts.TRANSITIONS)
     Text(Texts.TRANSITIONS_HINT, style = MaterialTheme.typography.bodySmall)
     c.transitions.forEachIndexed { i, t ->
@@ -124,6 +127,7 @@ private fun CampaignForm(model: EditorModel, c: Campaign, ask: (String, (String)
             val resolutions = c.scenario(t.from)?.resolutionChoices().orEmpty()
             ChoiceInput(model, Texts.WITH_RESOLUTION, t.resolution, resolutions, "$p.resolution", modifier = Modifier.weight(1f)) { v -> set { it.copy(resolution = v.orEmpty()) } }
             ChoiceInput(model, Texts.TO_SCENARIO, t.to, scenarioChoices, "$p.to", modifier = Modifier.weight(1f)) { v -> set { it.copy(to = v.orEmpty()) } }
+            ChoiceInput(model, Texts.REQUIRES_FLAG, t.requiresFlag, c.flags.map { Choice(it.id, it.label) }, "$p.requiresFlag", allowNone = true, modifier = Modifier.weight(0.8f)) { v -> set { it.copy(requiresFlag = v) } }
             IconButton(onClick = { model.edit { cc -> cc.copy(transitions = cc.transitions.filterIndexed { j, _ -> j != i }) } }) {
                 Icon(Icons.Default.Close, Texts.DELETE)
             }
@@ -142,6 +146,9 @@ private fun ScenarioForm(model: EditorModel, s: Scenario, sp: String, ask: (Stri
     fun upd(f: (Scenario) -> Scenario): (Campaign) -> Campaign = { it.updateScenario(s.id, f) }
     TextInput(model, Texts.TITLE, s.title, "${s.id}.title", "$sp.title") { v -> upd { it.copy(title = v) } }
     TextInput(model, Texts.INTRO, s.intro, "${s.id}.intro", "$sp.intro", multiline = true) { v -> upd { it.copy(intro = v) } }
+    model.campaign?.let { c ->
+        ChoiceInput(model, Texts.PLACE, s.place, c.places.map { Choice(it.id, it.name) }, "$sp.place", allowNone = true) { v -> model.edit(change = upd { it.copy(place = v) }) }
+    }
 
     SectionHeader(Texts.THREAT)
     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -213,6 +220,15 @@ private fun ResolutionForm(model: EditorModel, s: Scenario, def: Definition) {
     val outcomes = listOf(Choice("VICTORY", Texts.OUTCOME_VICTORY), Choice("DEFEAT", Texts.OUTCOME_DEFEAT), Choice("NEUTRAL", Texts.OUTCOME_NEUTRAL))
     ChoiceInput(model, Texts.OUTCOME, r.outcome.name, outcomes, null) { v ->
         model.edit { it.updateResolution(r.id) { x -> x.copy(outcome = Outcome.valueOf(v!!)) } }
+    }
+    SectionHeader(Texts.REWARDS)
+    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        IntInput(model, Texts.LORE, r.lore, "${r.id}.lore", "${def.path}.lore") { v -> { it.updateResolution(r.id) { x -> x.copy(lore = v) } } }
+        IntInput(model, Texts.XP, r.xp, "${r.id}.xp", "${def.path}.xp") { v -> { it.updateResolution(r.id) { x -> x.copy(xp = v) } } }
+    }
+    Text(Texts.SETS_FLAGS, style = MaterialTheme.typography.labelLarge)
+    model.campaign?.let { c ->
+        FlagChips(c, r.setFlags) { f -> model.edit { it.updateResolution(r.id) { x -> x.copy(setFlags = if (f in x.setFlags) x.setFlags - f else x.setFlags + f) } } }
     }
 }
 

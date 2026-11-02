@@ -48,3 +48,26 @@ class BattleGenerationTest {
         assertTrue("\"mapReason\"" in OutputSchemas.story && "\"battle\"" in OutputSchemas.story)
     }
 }
+
+class CampaignGenerationTest {
+    @Test
+    fun `prompt asks for rewards and knows the campaign flags`() {
+        val input = GenerationInput("x", campaignFlags = listOf(io.github.aljadvb.worldbuilder.model.CampaignFlag("fl_mueller_gerettet", "Müller gerettet")))
+        val msg = PromptBuilder(Examples.catalog, input).scenarioMessage(StoryDraft("T", "I", emptyList(), emptyList(), emptyList(), emptyList()))
+        assertTrue("\"xp\"" in msg && "\"lore\"" in msg && "fl_mueller_gerettet" in msg, msg)
+        assertTrue("gainLore" in PromptBuilder(Examples.catalog, input).stableSystem())
+    }
+
+    @Test
+    fun `new flags from the model are added to the campaign`() {
+        val s = Examples.campaign.scenarios.single()
+        val withFlag = s.copy(place = null, resolutions = s.resolutions.map { it.copy(setFlags = listOf("fl_mueller_gerettet")) })
+        val fresh = Importer.newCampaign(withFlag)
+        assertEquals(listOf("Mueller gerettet"), fresh.flags.map { it.label })
+        val (merged, _) = Importer.addTo(fresh, withFlag)
+        assertEquals(1, merged.flags.size)
+        // Validation inside the generator accepts the new flag.
+        val report = ScenarioGenerator(FakeProvider(mutableListOf()), Examples.catalog, GenerationInput("x")).validate(withFlag)
+        assertTrue(report.isValid, report.format())
+    }
+}
