@@ -31,6 +31,19 @@ Kante, ohne Versatz** – Planpositionen werden deshalb in ganzen Plänen angege
 neben dem ersten Plan), dazu die Drehung in 90°-Schritten. Die Scans beider Seiten sind zusammengesetzt und exakt
 vermessen (28,5 × 28,5 cm, Raster liegt auf den Linien).
 
+**Geländeteile (02.11.):** Die Teile sind **zweiseitig**; die Anzahl gilt pro Pappteil. Im Katalog deshalb wie Kacheln:
+ein Teil mit Seite A/B (je Name, Lage `edge`/`area`, Bild, Kategorien) und `count`. Der Validator zählt beide Seiten
+zusammen (z. B. Fluss/Steinmauer: 10 Teile → 7 Flüsse + 3 Mauern erlaubt, 7 + 4 nicht).
+
+| Teil | Seite A | Seite B | Anzahl | Lage |
+|---|---|---|---|---|
+| Streifen 9,6 × 2 cm | Fluss | Steinmauer | 10 | Kante |
+| Streifen 9,6 × 2 cm | Graben | Dornenhecke | 9 | Kante |
+| Rechteck 7,2 × 3,5 cm | Truhe | Barrikade | 4 | Bereich |
+| Rechteck 7,2 × 3,5 cm | Tisch | Fässer | 4 | Bereich |
+| Rechteck 7,2 × 3,5 cm | Baumstamm | Anhöhe | 4 | Bereich |
+| rund Ø 3,8 cm | Statue, Lagerfeuer, Felsbrocken, Dickicht, Spinnenweben, Geröll | (Paare offen) | offen | Bereich |
+
 ## 1. Ziel
 
 Neben **Reiseabenteuern** auf Sechseck-Kacheln gibt es **Schlachten** auf viereckigen Schlachtspielplänen mit
@@ -66,8 +79,13 @@ Schlacht-Kapitel ersetzt beim Aufbau die Reisekarte. Die App zeigt dann die Anwe
   }
 ],
 "terrainPieces": [
-  { "id": "felsen",  "name": "Felsen",     "expansion": "...", "placement": "area", "image": {"file": "bilder/felsen.png"},  "count": 2 },
-  { "id": "mauer",   "name": "Steinmauer", "expansion": "...", "placement": "edge", "image": {"file": "bilder/mauer.png"},   "count": 4 }
+  {
+    "id": "fluss_mauer", "expansion": "...", "count": 10,
+    "sides": {
+      "A": { "name": "Fluss",      "placement": "edge", "image": {"file": "bilder/fluss.png"},      "terrain": ["fluss"] },
+      "B": { "name": "Steinmauer", "placement": "edge", "image": {"file": "bilder/steinmauer.png"}, "terrain": ["bauwerk"] }
+    }
+  }
 ],
 "squareSizeMm": 38.0
 ```
@@ -88,8 +106,8 @@ Schlacht-Kapitel ersetzt beim Aufbau die Reisekarte. Die App zeigt dann die Anwe
   "battlefield": {
     "boards": [ {"id": "bp_furt", "board": "s01", "side": "A", "position": {"x": 0, "y": 0}, "rotation": 0} ],
     "terrain": [
-      {"id": "gt_felsen_1", "piece": "felsen", "area": {"x": 2, "y": 0}},
-      {"id": "gt_mauer_1",  "piece": "mauer",  "edge": {"x": 1, "y": 0, "side": "east"}}
+      {"id": "gt_feuer_1", "piece": "statue_feuer", "side": "B", "area": {"x": 2, "y": 0}},
+      {"id": "gt_mauer_1", "piece": "fluss_mauer",  "side": "B", "edge": {"x": 1, "y": 0, "side": "east"}}
     ]
   },
   "tokens": [ {"id": "tok_fahne", "type": "search", "label": "Zerrissene Fahne", "location": {"square": {"x": 2, "y": 3}}} ]
