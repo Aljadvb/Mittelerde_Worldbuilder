@@ -76,7 +76,7 @@ class GameEngine(
                 run.prompts.add(
                     0,
                     if (command == Command.NoTarget) Prompt.EnemyRegroup(prompt.groupId, prompt.movement)
-                    else Prompt.EnemyHalted(prompt.groupId, prompt.damage, prompt.fear, prompt.text, prompt.ranged),
+                    else Prompt.EnemyHalted(prompt.groupId, prompt.damage, prompt.fear, prompt.text, prompt.ranged, prompt.negate),
                 )
             }
             is Command.ProvokeEnemy -> {
@@ -253,7 +253,7 @@ class GameEngine(
         /** Provoked attack or counterattack; [first] puts it before other waiting prompts. */
         fun enemyAttack(groupId: String, reason: AttackReason, first: Boolean = false) {
             val (attack, type) = rollAttack(groupId)
-            val p = Prompt.EnemyAttack(groupId, reason, attack?.damage ?: 1, attack?.fear ?: 0, attack?.text.orEmpty(), type?.ranged == true)
+            val p = Prompt.EnemyAttack(groupId, reason, attack?.damage ?: 1, attack?.fear ?: 0, attack?.text.orEmpty(), type?.ranged == true, attack?.negate)
             if (first) prompts.add(0, p) else prompts += p
         }
 
@@ -302,7 +302,7 @@ class GameEngine(
                 val group = scenario.enemyGroup(groupId) ?: continue
                 val type = enemyTypes[group.enemyType]
                 val attack = type?.attacks?.takeIf { it.isNotEmpty() }?.let { it[random(it.size)] }
-                prompts += Prompt.EnemyActivation(groupId, living[random(living.size)], type?.movement ?: 2, attack?.damage ?: 1, attack?.fear ?: 0, attack?.text.orEmpty(), type?.ranged == true)
+                prompts += Prompt.EnemyActivation(groupId, living[random(living.size)], type?.movement ?: 2, attack?.damage ?: 1, attack?.fear ?: 0, attack?.text.orEmpty(), type?.ranged == true, attack?.negate)
             }
             // Shadow phase 2: darkness.
             if (darknessFear > 0) prompts += Prompt.Darkness(darknessFear)

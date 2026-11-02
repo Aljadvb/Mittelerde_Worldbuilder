@@ -1,5 +1,7 @@
 package io.github.aljadvb.worldbuilder.editor.catalog
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -119,8 +121,24 @@ internal fun EnemyStats(model: CatalogEditorModel, e: io.github.aljadvb.worldbui
             OutlinedTextField(a.damage.toString(), { v -> v.filter(Char::isDigit).take(2).toIntOrNull()?.let { n -> setA { it.copy(damage = n) } } }, label = { Text(Texts.DAMAGE) }, singleLine = true, modifier = Modifier.width(110.dp))
             OutlinedTextField(a.fear.toString(), { v -> v.filter(Char::isDigit).take(2).toIntOrNull()?.let { n -> setA { it.copy(fear = n) } } }, label = { Text(Texts.FEAR) }, singleLine = true, modifier = Modifier.width(110.dp))
             OutlinedTextField(a.text, { v -> setA { it.copy(text = v) } }, label = { Text(Texts.TEXT) }, modifier = Modifier.weight(1f))
+            NegateInput(a.negate) { v -> setA { it.copy(negate = v) } }
             androidx.compose.material3.TextButton(onClick = { upd("attacks") { t -> t.copy(attacks = t.attacks.filterIndexed { j, _ -> j != i }) } }) { Text("✕") }
         }
     }
     OutlinedButton(onClick = { upd("attacks") { it.copy(attacks = it.attacks + io.github.aljadvb.worldbuilder.model.EnemyAttack(damage = 1)) } }) { Text(Texts.ENEMY_ADD_ATTACK) }
+}
+
+/** Attribute of the test that negates an attack ("–" = cannot be negated). */
+@androidx.compose.runtime.Composable
+private fun NegateInput(value: io.github.aljadvb.worldbuilder.model.Attribute?, onChange: (io.github.aljadvb.worldbuilder.model.Attribute?) -> Unit) {
+    var open by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+    fun label(a: io.github.aljadvb.worldbuilder.model.Attribute?) = a?.let { x -> Texts.ATTRIBUTES.first { it.first == x.name }.second } ?: Texts.NEGATE_NONE
+    androidx.compose.foundation.layout.Box {
+        OutlinedButton(onClick = { open = true }) { Text(Texts.NEGATE + ": " + label(value)) }
+        androidx.compose.material3.DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            (listOf<io.github.aljadvb.worldbuilder.model.Attribute?>(null) + io.github.aljadvb.worldbuilder.model.Attribute.entries).forEach { a ->
+                androidx.compose.material3.DropdownMenuItem(text = { Text(label(a)) }, onClick = { open = false; onChange(a) })
+            }
+        }
+    }
 }

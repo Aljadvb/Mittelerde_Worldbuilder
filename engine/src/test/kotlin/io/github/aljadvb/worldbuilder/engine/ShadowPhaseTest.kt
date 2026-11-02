@@ -1,5 +1,6 @@
 package io.github.aljadvb.worldbuilder.engine
 
+import io.github.aljadvb.worldbuilder.model.Attribute
 import io.github.aljadvb.worldbuilder.model.EnemyAttack
 import io.github.aljadvb.worldbuilder.model.EnemyType
 import io.github.aljadvb.worldbuilder.model.Event
@@ -11,7 +12,7 @@ import kotlin.test.assertTrue
 
 class ShadowPhaseTest {
     private val wolf = EnemyType("nebelwolf", "Nebelwolf", "beispiel", health = 4, armor = 1, sorcery = 0, movement = 3,
-        attacks = listOf(EnemyAttack(2, 0, "Biss"), EnemyAttack(1, 1, "Heulen")))
+        attacks = listOf(EnemyAttack(2, 0, "Biss", Attribute.AGILITY), EnemyAttack(1, 1, "Heulen", Attribute.SPIRIT)))
     private val base = Examples.scenario
     private val scenario = base.copy(
         events = base.events + listOf(
@@ -42,6 +43,7 @@ class ShadowPhaseTest {
         assertEquals(listOf("EnemyActivation", "Darkness", "RoundEnded"), kinds)
         val act = after.prompts.first() as Prompt.EnemyActivation
         assertTrue(act.hero in 0..2 && act.movement == 3 && (act.damage to act.fear) in listOf(2 to 0, 1 to 1))
+        assertEquals(if (act.damage == 2) Attribute.AGILITY else Attribute.SPIRIT, act.negate)
         var x = after
         val texts = mutableListOf<String>()
         while (!x.isIdle) { (x.currentPrompt as? Prompt.Text)?.let { texts += it.text }; x = engine.apply(x, Command.Acknowledge) }
@@ -110,7 +112,7 @@ class ShadowPhaseTest {
         val regroup = engine.apply(round, Command.NoTarget)
         assertEquals(Prompt.EnemyRegroup(act.groupId, act.movement), regroup.currentPrompt)
         val halted = engine.apply(round, Command.MovementEnded)
-        assertEquals(Prompt.EnemyHalted(act.groupId, act.damage, act.fear, act.text, act.ranged), halted.currentPrompt)
+        assertEquals(Prompt.EnemyHalted(act.groupId, act.damage, act.fear, act.text, act.ranged, act.negate), halted.currentPrompt)
         assertEquals(round.prompts.size, halted.prompts.size)
         assertFailsWith<EngineException> { engine.apply(regroup, Command.NoTarget) }
     }

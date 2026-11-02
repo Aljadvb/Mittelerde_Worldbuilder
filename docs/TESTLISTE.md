@@ -91,6 +91,8 @@ Hardware bzw. mit einer echten KI gelaufen**. Die wichtigsten Punkte stehen oben
 - [ ] Derselbe Held erreicht erneut ein Limit → sofort besiegt
 - [ ] Nicht bestanden → Held besiegt; „Runde beenden“ → Abenteuer endet mit der Niederlage-Auflösung
 - [ ] Besiegter Held wird in der Schattenphase nicht mehr als Ziel genannt
+- [ ] Gegnerangriffe zeigen „Abwehr: Probe auf …“ (jeder Erfolg verhindert 1 Schaden oder 1 Furcht); einzelne Angriffe sind nicht abwehrbar (neu in 1.10.0)
+- [ ] Katalog-Fenster → Gegner: pro Angriff „Abwehr“ einstellbar
 
 ## 2. Windows-Editor
 

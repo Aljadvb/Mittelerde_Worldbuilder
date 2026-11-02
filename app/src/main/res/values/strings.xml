@@ -245,4 +245,7 @@
     <string name="hero_defeated_title">%1$s ist besiegt</string>
     <string name="hero_defeated_second">Der Held hatte sein Letztes Aufbäumen schon.</string>
     <string name="hero_defeated_text">Nehmt die Figur vom Spielplan. Gewinnt ihr nicht vor der nächsten Schattenphase, ist das Abenteuer verloren.</string>
+    <string name="negate_title">Abwehr: Probe auf %1$s</string>
+    <string name="negate_hint">Der angegriffene Held legt die Probe ab. Jeder Erfolg verhindert 1 Schaden oder 1 Furcht, ihr wählt.</string>
+    <string name="negate_none">Dieser Angriff lässt sich nicht abwehren.</string>
 </resources>

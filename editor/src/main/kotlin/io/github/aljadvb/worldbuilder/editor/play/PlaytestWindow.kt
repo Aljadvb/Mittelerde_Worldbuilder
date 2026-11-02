@@ -329,6 +329,7 @@ private fun ResolutionCard(game: PlaytestModel, scenario: Scenario, state: GameS
 /** One-line description of a prompt for the panel and the log. */
 fun describe(prompt: Prompt, scenario: Scenario, catalog: MaterialCatalog): String {
     fun tile(placement: String) = scenario.placement(placement)?.let { catalog.tile(it.tile)?.label ?: it.tile } ?: placement
+    fun attr(a: io.github.aljadvb.worldbuilder.model.Attribute?) = a?.let { x -> Texts.ATTRIBUTES.first { it.first == x.name }.second }
     fun enemy(groupId: String) = scenario.enemyGroup(groupId)?.let { catalog.enemyType(it.enemyType)?.name ?: it.enemyType } ?: groupId
     return when (prompt) {
         Prompt.Intro -> scenario.title + "\n\n" + scenario.intro
@@ -345,7 +346,7 @@ fun describe(prompt: Prompt, scenario: Scenario, catalog: MaterialCatalog): Stri
         is Prompt.Explored -> Texts.explored(tile(prompt.placementId)) + prompt.tokenIds.mapNotNull { scenario.token(it) }.joinToString("") { "\n• " + Texts.placeToken(it.label, tile(prompt.placementId)) }
         is Prompt.EnemyActivation -> scenario.enemyGroup(prompt.groupId)?.let { g ->
             Texts.activation(catalog.enemyType(g.enemyType)?.name ?: g.enemyType, prompt.movement, "Held ${prompt.hero + 1}", prompt.damage, prompt.fear, prompt.ranged) +
-                if (prompt.text.isNotBlank()) "\n${prompt.text}" else ""
+                (if (prompt.text.isNotBlank()) "\n${prompt.text}" else "") + Texts.negate(attr(prompt.negate))
         }.orEmpty()
         is Prompt.EnemyRecovers -> Texts.recovers(scenario.enemyGroup(prompt.groupId)?.let { catalog.enemyType(it.enemyType)?.name } ?: prompt.groupId)
         is Prompt.Darkness -> Texts.darkness(prompt.fear)
@@ -356,9 +357,9 @@ fun describe(prompt: Prompt, scenario: Scenario, catalog: MaterialCatalog): Stri
         is Prompt.Choice -> prompt.step.text
         is Prompt.Test -> prompt.step.text.orEmpty()
         is Prompt.EnemyRegroup -> Texts.regroup(enemy(prompt.groupId), prompt.movement)
-        is Prompt.EnemyHalted -> Texts.halted(enemy(prompt.groupId), prompt.damage, prompt.fear) + if (prompt.text.isNotBlank()) "\n${prompt.text}" else ""
+        is Prompt.EnemyHalted -> Texts.halted(enemy(prompt.groupId), prompt.damage, prompt.fear) + (if (prompt.text.isNotBlank()) "\n${prompt.text}" else "") + Texts.negate(attr(prompt.negate))
         is Prompt.EnemyAttack -> Texts.enemyAttack(enemy(prompt.groupId), prompt.reason == AttackReason.COUNTER, prompt.damage, prompt.fear) +
-            if (prompt.text.isNotBlank()) "\n${prompt.text}" else ""
+            (if (prompt.text.isNotBlank()) "\n${prompt.text}" else "") + Texts.negate(attr(prompt.negate))
         is Prompt.CounterQuestion -> Texts.counterQuestion(enemy(prompt.groupId))
         is Prompt.LastStandTest -> Texts.lastStand(prompt.hero, prompt.kind == LimitKind.DAMAGE)
         is Prompt.HeroSurvives -> Texts.heroSurvives(prompt.hero, prompt.kind == LimitKind.DAMAGE)

@@ -353,6 +353,11 @@
               "text": {
                 "type": "string",
                 "description": "Kurze Beschreibung in eigenen Worten."
+              },
+              "negate": {
+                "type": "string",
+                "enum": ["might", "agility", "wisdom", "spirit", "wit"],
+                "description": "Eigenschaft der Probe, mit der der angegriffene Held den Angriff abwehren kann: jeder Erfolg verhindert 1 Schaden oder 1 Furcht. Fehlt das Feld, ist der Angriff nicht abwehrbar (selten)."
               }
             }
           }

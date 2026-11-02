@@ -144,6 +144,8 @@ data class EnemyAttack(
     val fear: Int = 0,
     /** Short description in own words. */
     val text: String = "",
+    /** Attribute of the test that negates it: each success prevents 1 damage or 1 fear. Null = cannot be negated. */
+    val negate: Attribute? = null,
 )
 
 /** A map picture of Middle-earth; places use relative coordinates (0–1) on it. */

@@ -216,6 +216,7 @@ private fun NoticeContent(prompt: Prompt.Notice, scenario: Scenario, catalog: Ma
             Body(stringResource(if (prompt.ranged) R.string.enemy_activation_ranged else R.string.enemy_activation_text, prompt.movement, hero))
             Text(stringResource(R.string.enemy_attack_values, prompt.damage, prompt.fear), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error)
             if (prompt.text.isNotBlank()) Body(prompt.text)
+            NegateLine(prompt.negate)
             Hint(stringResource(R.string.enemy_activation_hint))
         }
         is Prompt.EnemyRegroup -> {
@@ -229,6 +230,7 @@ private fun NoticeContent(prompt: Prompt.Notice, scenario: Scenario, catalog: Ma
             Body(stringResource(R.string.enemy_halted_text))
             Text(stringResource(R.string.enemy_attack_values, prompt.damage, prompt.fear), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error)
             if (prompt.text.isNotBlank()) Body(prompt.text)
+            NegateLine(prompt.negate)
         }
         is Prompt.EnemyAttack -> {
             val name = enemyName(scenario, catalog, prompt.groupId)
@@ -236,6 +238,7 @@ private fun NoticeContent(prompt: Prompt.Notice, scenario: Scenario, catalog: Ma
             Body(stringResource(if (prompt.reason == io.github.aljadvb.worldbuilder.engine.AttackReason.COUNTER) R.string.enemy_counter_text else R.string.enemy_provoked_text))
             Text(stringResource(R.string.enemy_attack_values, prompt.damage, prompt.fear), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error)
             if (prompt.text.isNotBlank()) Body(prompt.text)
+            NegateLine(prompt.negate)
         }
         is Prompt.HeroSurvives -> {
             Title(stringResource(R.string.hero_survives_title, heroName(heroNames, prompt.hero)))
@@ -288,6 +291,17 @@ private fun NoticeContent(prompt: Prompt.Notice, scenario: Scenario, catalog: Ma
             Title(objective.title)
         }
     }
+}
+
+/** "Abwehr: Probe auf X" – each success prevents 1 damage or 1 fear. */
+@Composable
+private fun NegateLine(attribute: io.github.aljadvb.worldbuilder.model.Attribute?) {
+    if (attribute == null) {
+        Hint(stringResource(R.string.negate_none))
+        return
+    }
+    Text(stringResource(R.string.negate_title, attributeLabel(attribute)), fontWeight = FontWeight.Bold)
+    Hint(stringResource(R.string.negate_hint))
 }
 
 @Composable

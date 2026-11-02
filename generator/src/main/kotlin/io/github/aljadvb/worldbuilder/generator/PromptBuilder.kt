@@ -79,6 +79,7 @@ class PromptBuilder(private val catalog: MaterialCatalog, private val input: Gen
         appendLine("## Gegnertypen")
         if (enemies.isEmpty()) appendLine("- (keine – verwende keine Gegnergruppen)")
         for (e in enemies) appendLine("- Gegnertyp-ID `${e.id}`: ${e.name} (Gesundheit ${e.health}, Rüstung ${e.armor}, Schutzzauber ${e.sorcery}" + (if (e.ranged) ", Fernkampf" else "") + ")")
+        if (enemies.isNotEmpty()) appendLine("- Gegnerangriffe würfelt die App aus dem Katalog; fast jeder lässt sich mit einer Probe abwehren (jeder Erfolg verhindert 1 Schaden oder 1 Furcht).")
         appendLine()
         appendLine("## Landschafts-Kategorien")
         appendLine(Terrain.TAGS.joinToString(", ") { "${it.id} (${it.label})" })

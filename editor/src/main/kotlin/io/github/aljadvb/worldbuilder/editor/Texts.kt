@@ -220,6 +220,9 @@ object Texts {
     fun heroSurvives(hero: Int, damage: Boolean) = "Held ${hero + 1} hält stand und legt alle " + (if (damage) "Schadenkarten" else "Furchtkarten") + " ab. Beim nächsten Limit ist er besiegt."
     fun heroDefeated(hero: Int, second: Boolean) = "Held ${hero + 1} ist besiegt" + (if (second) " (Letztes Aufbäumen schon verbraucht)" else "") +
         ". Gewinnt ihr nicht vor der nächsten Schattenphase, ist das Abenteuer verloren."
+    const val NEGATE = "Abwehr"
+    const val NEGATE_NONE = "–"
+    fun negate(attribute: String?) = attribute?.let { "\nAbwehr: Probe auf $it – jeder Erfolg verhindert 1 Schaden oder 1 Furcht." }.orEmpty()
     const val NO_TARGET = "Kein Ziel"
     const val MOVEMENT_ENDED = "Bewegung beendet"
     const val DONE = "Erledigt"
