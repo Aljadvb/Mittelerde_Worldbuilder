@@ -25,6 +25,12 @@ der **Bereiche** (welche Quadrate zusammengehören) beschrieben:
 
 Figuren/Token/Gegner stehen in einem Bereich (angegeben über ein Quadrat des Bereichs), Mauern liegen auf Quadratkanten.
 
+**Geklärt (02.11.):** Es gibt **einen** Plantyp mit Seite A (Wiese) und B (Steinboden), **zweimal** vorhanden
+(`count: 2` im Katalog). Beide Seiten haben dieselbe Windrad-Aufteilung. Mehrere Pläne liegen **immer bündig Kante an
+Kante, ohne Versatz** – Planpositionen werden deshalb in ganzen Plänen angegeben (`position: {"x": 1, "y": 0}` = rechts
+neben dem ersten Plan), dazu die Drehung in 90°-Schritten. Die Scans beider Seiten sind zusammengesetzt und exakt
+vermessen (28,5 × 28,5 cm, Raster liegt auf den Linien).
+
 ## 1. Ziel
 
 Neben **Reiseabenteuern** auf Sechseck-Kacheln gibt es **Schlachten** auf viereckigen Schlachtspielplänen mit
@@ -140,7 +146,7 @@ Schlacht-Kapitel ersetzt beim Aufbau die Reisekarte. Die App zeigt dann die Anwe
 ## 9. Offene Fragen (am besten mit den Scans beantworten)
 
 1. ~~Aufgedrucktes Raster?~~ → große Bereiche mit Linien (laut Foto). Wie viele Bereiche hat ein Plan (z. B. 3 × 2)?
-2. ~~Mehrere Pläne?~~ → ja, aneinandergelegt (laut Foto). Immer nur an ganzen Kanten, oder auch versetzt?
-3. Sind die Pläne **zweiseitig** (A/B) wie die Kacheln?
+2. ~~Mehrere Pläne?~~ → ja, bis zu zwei, immer bündig ohne Versatz.
+3. ~~Zweiseitig?~~ → ja, A (Wiese) und B (Steinboden).
 4. Gibt es außer „in einem Bereich“ und „auf einer Kante“ noch andere Arten, Geländeteile zu legen (z. B. auf einer Ecke oder über zwei Bereiche)?
 5. Wechselt ein Szenario **innerhalb** zwischen Reise und Schlacht, oder ist ein Szenario entweder das eine oder das andere?
