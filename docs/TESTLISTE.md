@@ -1,6 +1,6 @@
 # Testliste – was noch von Hand zu prüfen ist
 
-Stand: 2026-11-02 · Version 1.4.0 · Abhaken mit `[x]`. Rückmeldungen (Screenshots, Dateien) einfach im Chat schicken.
+Stand: 2026-11-02 · Version 1.5.0 · Abhaken mit `[x]`. Rückmeldungen (Screenshots, Dateien) einfach im Chat schicken.
 
 Alles hier ist automatisch getestet (Unit-Tests, simulierte Maus, gerenderte Screenshots), aber **noch nie auf echter
 Hardware bzw. mit einer echten KI gelaufen**. Die wichtigsten Punkte stehen oben.
@@ -47,6 +47,12 @@ Hardware bzw. mit einer echten KI gelaufen**. Die wichtigsten Punkte stehen oben
 - [ ] Event-Schritt „Inspiration erhalten“ (jeder Held / handelnder Held / Wahl) erscheint als Hinweis
 - [ ] KI-Generator: Nutzt er unerforschte Kacheln und Inspiration sinnvoll?
 - [ ] Proben zeigen die Attribute wie im Regelbuch (Körperkraft, Beweglichkeit, Weisheit, Willen, Scharfsinn)
+
+## 1e. Schaden und Furcht (neu in 1.5.0)
+
+- [ ] Event-Schritt „Schaden/Furcht erleiden“ anlegen (z. B. im onFailure-Event einer Probe), auch „verdeckt“
+- [ ] App/Probespiel: Hinweis „Der handelnde Held erleidet 2 Schaden (verdeckt).“ erscheint
+- [ ] KI-Generator: Haben fehlgeschlagene Proben passende Folgen (Schaden/Furcht) und steigt die Bedrohung nur selten durch Events?
 
 ## 2. Windows-Editor
 

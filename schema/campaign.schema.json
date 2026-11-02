@@ -708,6 +708,48 @@
           }
         },
         {
+          "description": "Folge: Helden erleiden Schaden und/oder Furcht (Karten am Tisch; die App zählt nicht mit).",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "const": "sufferHarm"
+            },
+            "damage": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 5,
+              "default": 0
+            },
+            "fear": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 5,
+              "default": 0
+            },
+            "who": {
+              "enum": [
+                "active",
+                "each",
+                "chosen"
+              ],
+              "default": "active"
+            },
+            "hidden": {
+              "type": "boolean",
+              "default": false,
+              "description": "Karten verdeckt nehmen."
+            },
+            "text": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        {
           "description": "Szenario mit dieser Auflösung beenden. Nur als letzter Schritt.",
           "type": "object",
           "additionalProperties": false,

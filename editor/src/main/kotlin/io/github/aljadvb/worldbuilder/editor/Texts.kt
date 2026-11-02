@@ -174,15 +174,28 @@ object Texts {
         "setObjective" to "Ziel setzen",
         "fireTrigger" to "Trigger auslösen",
         "gainInspiration" to "Inspiration erhalten",
+        "sufferHarm" to "Schaden/Furcht erleiden",
         "endScenario" to "Szenario beenden",
     )
     val INSPIRATION_TARGETS = listOf("ACTIVE" to "der handelnde Held", "EACH" to "jeder Held", "CHOSEN" to "ein Held eurer Wahl")
     const val INSPIRATION_WHO = "Wer erhält sie?"
+    const val HARM_WHO = "Wer ist betroffen?"
+    const val DAMAGE = "Schaden"
+    const val FEAR = "Furcht"
+    const val HIDDEN = "verdeckt"
+    fun harm(damage: Int, fear: Int, who: io.github.aljadvb.worldbuilder.model.HeroTarget, hidden: Boolean): String {
+        val what = listOfNotNull(damage.takeIf { it > 0 }?.let { "$it Schaden" }, fear.takeIf { it > 0 }?.let { "$it Furcht" }).joinToString(" und ") + if (hidden) " (verdeckt)" else ""
+        return when (who) {
+            io.github.aljadvb.worldbuilder.model.HeroTarget.ACTIVE -> "Der handelnde Held erleidet $what."
+            io.github.aljadvb.worldbuilder.model.HeroTarget.EACH -> "Jeder Held erleidet $what."
+            io.github.aljadvb.worldbuilder.model.HeroTarget.CHOSEN -> "Ein Held eurer Wahl erleidet $what."
+        }
+    }
     const val OPTIONAL_TEXT = "Text (optional)"
-    fun inspiration(amount: Int, who: io.github.aljadvb.worldbuilder.model.InspirationTarget) = when (who) {
-        io.github.aljadvb.worldbuilder.model.InspirationTarget.ACTIVE -> "Der handelnde Held erhält $amount Inspiration."
-        io.github.aljadvb.worldbuilder.model.InspirationTarget.EACH -> "Jeder Held erhält $amount Inspiration."
-        io.github.aljadvb.worldbuilder.model.InspirationTarget.CHOSEN -> "Ein Held eurer Wahl erhält $amount Inspiration."
+    fun inspiration(amount: Int, who: io.github.aljadvb.worldbuilder.model.HeroTarget) = when (who) {
+        io.github.aljadvb.worldbuilder.model.HeroTarget.ACTIVE -> "Der handelnde Held erhält $amount Inspiration."
+        io.github.aljadvb.worldbuilder.model.HeroTarget.EACH -> "Jeder Held erhält $amount Inspiration."
+        io.github.aljadvb.worldbuilder.model.HeroTarget.CHOSEN -> "Ein Held eurer Wahl erhält $amount Inspiration."
     }
     fun explored(tile: String) = "Kachel $tile erkundet. Der erkundende Held oder ein naher Held erhält 1 Inspiration."
     const val UNEXPLORED = "Unerforscht (ausgegraut, mit Erkundungsmarker)"

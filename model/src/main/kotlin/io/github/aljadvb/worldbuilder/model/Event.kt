@@ -73,7 +73,19 @@ sealed interface EventStep {
     @SerialName("gainInspiration")
     data class GainInspiration(
         val amount: Int = 1,
-        val who: InspirationTarget = InspirationTarget.ACTIVE,
+        val who: HeroTarget = HeroTarget.ACTIVE,
+        val text: String? = null,
+    ) : EventStep
+
+    /** Heroes suffer damage and/or fear (cards at the table; the app does not count them). */
+    @Serializable
+    @SerialName("sufferHarm")
+    data class SufferHarm(
+        val damage: Int = 0,
+        val fear: Int = 0,
+        val who: HeroTarget = HeroTarget.ACTIVE,
+        /** Cards are taken face down ("verdeckt"). */
+        val hidden: Boolean = false,
         val text: String? = null,
     ) : EventStep
 
@@ -85,8 +97,8 @@ sealed interface EventStep {
 }
 
 @Serializable
-enum class InspirationTarget {
-    /** The hero who is acting (e.g. made the test or interacted). */
+enum class HeroTarget {
+    /** Who is affected by a reward or harm. The hero who is acting (e.g. made the test or interacted). */
     @SerialName("active") ACTIVE,
     @SerialName("each") EACH,
     /** One hero chosen by the group. */

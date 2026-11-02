@@ -87,6 +87,15 @@
     <string name="prompt_explored_short">Kachel erkundet</string>
     <string name="prompt_explored_inspiration">Der erkundende Held oder ein naher Held erhält 1 Inspiration (Marker nehmen). Entfernt den Erkundungsmarker.</string>
     <string name="prompt_explored_hint">Neue Marker sind auf der Karte hervorgehoben.</string>
+    <string name="prompt_harm_title">Schaden und Furcht</string>
+    <string name="prompt_harm_hint">Zieht die Karten am Tisch – die App zählt sie nicht mit.</string>
+    <string name="harm_damage">%1$d Schaden</string>
+    <string name="harm_fear">%1$d Furcht</string>
+    <string name="harm_and">" und "</string>
+    <string name="harm_hidden">" (verdeckt)"</string>
+    <string name="harm_active">Der handelnde Held erleidet %1$s.</string>
+    <string name="harm_each">Jeder Held erleidet %1$s.</string>
+    <string name="harm_chosen">Ein Held eurer Wahl erleidet %1$s.</string>
     <string name="prompt_inspiration_title">Inspiration</string>
     <string name="prompt_inspiration_hint">Nehmt euch die Inspirationsmarker – die App zählt sie nicht mit.</string>
     <string name="inspiration_active">Der handelnde Held erhält %1$d Inspiration.</string>

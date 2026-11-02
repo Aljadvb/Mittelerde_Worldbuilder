@@ -2,7 +2,7 @@ package io.github.aljadvb.worldbuilder.engine
 
 import io.github.aljadvb.worldbuilder.model.Event
 import io.github.aljadvb.worldbuilder.model.EventStep
-import io.github.aljadvb.worldbuilder.model.InspirationTarget
+import io.github.aljadvb.worldbuilder.model.HeroTarget
 import io.github.aljadvb.worldbuilder.model.Trigger
 import io.github.aljadvb.worldbuilder.model.TriggerCondition
 import kotlin.test.Test
@@ -18,7 +18,7 @@ class ExplorationTest {
             chapters = s.chapters.map { ch ->
                 ch.copy(tiles = ch.tiles.map { if (it.id == "pl_dorfplatz") it.copy(unexplored = true, onExplore = "evt_platz_erkundet") else it })
             },
-            events = s.events + Event("evt_platz_erkundet", listOf(EventStep.Text("Der Platz liegt still da."), EventStep.GainInspiration(2, InspirationTarget.EACH))),
+            events = s.events + Event("evt_platz_erkundet", listOf(EventStep.Text("Der Platz liegt still da."), EventStep.GainInspiration(2, HeroTarget.EACH))),
             triggers = s.triggers + Trigger("trg_platz", TriggerCondition.TileExplored("pl_dorfplatz"), events = listOf("evt_trg_text")),
         ).let { it.copy(events = it.events + Event("evt_trg_text", listOf(EventStep.Text("Trigger!")))) }
     }
@@ -40,7 +40,7 @@ class ExplorationTest {
         Play(engine, engine.apply(s, Command.ExploreTile("pl_dorfplatz")))
             .ack<Prompt.Explored> { assertEquals(setOf("tok_dorfbewohnerin", "tok_brunnen"), it.tokenIds.toSet()) }
             .ack<Prompt.Text> { assertEquals("Der Platz liegt still da.", it.text) }
-            .ack<Prompt.Inspiration> { assertEquals(2, it.amount); assertEquals(InspirationTarget.EACH, it.who) }
+            .ack<Prompt.Inspiration> { assertEquals(2, it.amount); assertEquals(HeroTarget.EACH, it.who) }
             .ack<Prompt.Text> { assertEquals("Trigger!", it.text) }
             .also { p ->
                 assertTrue(p.state.isIdle)

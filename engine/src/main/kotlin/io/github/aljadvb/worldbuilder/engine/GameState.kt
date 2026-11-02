@@ -104,8 +104,11 @@ sealed interface Prompt {
     @Serializable @SerialName("explored")
     data class Explored(val placementId: String, val tokenIds: List<String>) : Notice
 
+    @Serializable @SerialName("harm")
+    data class Harm(val damage: Int, val fear: Int, val who: io.github.aljadvb.worldbuilder.model.HeroTarget, val hidden: Boolean, val text: String? = null) : Notice
+
     @Serializable @SerialName("inspiration")
-    data class Inspiration(val amount: Int, val who: io.github.aljadvb.worldbuilder.model.InspirationTarget, val text: String? = null) : Notice
+    data class Inspiration(val amount: Int, val who: io.github.aljadvb.worldbuilder.model.HeroTarget, val text: String? = null) : Notice
 
     /** Answer with [Command.Choose]. */
     @Serializable @SerialName("choice")

@@ -371,6 +371,7 @@ private fun historyText(prompt: Prompt, scenario: Scenario): String = when (prom
     is Prompt.ObjectiveCompleted -> stringResource(R.string.prompt_objective_done_title) + ": " + scenario.objective(prompt.objectiveId)?.title.orEmpty()
     is Prompt.Explored -> stringResource(R.string.prompt_explored_short)
     is Prompt.Inspiration -> inspirationText(prompt)
+    is Prompt.Harm -> harmText(prompt)
     is Prompt.Choice -> prompt.step.text
     is Prompt.Test -> prompt.step.text ?: ""
 }

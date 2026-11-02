@@ -106,6 +106,10 @@ darauf (z. B. für Ziele). Die Startkachel sollte erforscht bleiben.
 Der Event-Schritt **„Inspiration erhalten“** belohnt die Helden (Anzahl, Empfänger: handelnder Held / jeder Held / Held
 nach Wahl, optionaler Text). Die App zeigt nur den Hinweis – die Marker liegen am Tisch.
 
+Der Event-Schritt **„Schaden/Furcht erleiden“** ist die übliche Folge einer fehlgeschlagenen Probe (Schaden, Furcht,
+Empfänger, „verdeckt“, optionaler Text). Die Bedrohung steigt normalerweise nur am Rundenende; „Bedrohung ändern“ in
+Events bleibt die Ausnahme.
+
 ## Schlachtpläne
 
 Im Kapitel-Formular unter **Kartenart** auf *Schlacht* umschalten (nur bei einem Kapitel ohne Kacheln). Dann zeigt der

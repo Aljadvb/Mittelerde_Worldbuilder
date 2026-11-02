@@ -179,6 +179,12 @@ private fun NoticeContent(prompt: Prompt.Notice, scenario: Scenario, catalog: Ma
             }
             Hint(stringResource(R.string.prompt_explored_hint))
         }
+        is Prompt.Harm -> {
+            Title(stringResource(R.string.prompt_harm_title))
+            prompt.text?.let { Body(it) }
+            Body(harmText(prompt))
+            Hint(stringResource(R.string.prompt_harm_hint))
+        }
         is Prompt.Inspiration -> {
             Title(stringResource(R.string.prompt_inspiration_title))
             prompt.text?.let { Body(it) }
@@ -213,7 +219,20 @@ private fun TestContent(prompt: Prompt.Test, onCommand: (Command) -> Unit) {
 
 @Composable
 internal fun inspirationText(prompt: Prompt.Inspiration): String = when (prompt.who) {
-    io.github.aljadvb.worldbuilder.model.InspirationTarget.ACTIVE -> stringResource(R.string.inspiration_active, prompt.amount)
-    io.github.aljadvb.worldbuilder.model.InspirationTarget.EACH -> stringResource(R.string.inspiration_each, prompt.amount)
-    io.github.aljadvb.worldbuilder.model.InspirationTarget.CHOSEN -> stringResource(R.string.inspiration_chosen, prompt.amount)
+    io.github.aljadvb.worldbuilder.model.HeroTarget.ACTIVE -> stringResource(R.string.inspiration_active, prompt.amount)
+    io.github.aljadvb.worldbuilder.model.HeroTarget.EACH -> stringResource(R.string.inspiration_each, prompt.amount)
+    io.github.aljadvb.worldbuilder.model.HeroTarget.CHOSEN -> stringResource(R.string.inspiration_chosen, prompt.amount)
+}
+
+@Composable
+internal fun harmText(prompt: Prompt.Harm): String {
+    val parts = listOfNotNull(
+        prompt.damage.takeIf { it > 0 }?.let { stringResource(R.string.harm_damage, it) },
+        prompt.fear.takeIf { it > 0 }?.let { stringResource(R.string.harm_fear, it) },
+    ).joinToString(stringResource(R.string.harm_and)) + if (prompt.hidden) stringResource(R.string.harm_hidden) else ""
+    return when (prompt.who) {
+        io.github.aljadvb.worldbuilder.model.HeroTarget.ACTIVE -> stringResource(R.string.harm_active, parts)
+        io.github.aljadvb.worldbuilder.model.HeroTarget.EACH -> stringResource(R.string.harm_each, parts)
+        io.github.aljadvb.worldbuilder.model.HeroTarget.CHOSEN -> stringResource(R.string.harm_chosen, parts)
+    }
 }

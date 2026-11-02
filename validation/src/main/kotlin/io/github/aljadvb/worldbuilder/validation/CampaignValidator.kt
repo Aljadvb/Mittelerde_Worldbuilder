@@ -339,6 +339,12 @@ private class CampaignChecks(
                     }
                 }
                 is EventStep.EndScenario -> ref(step.resolution, ObjectKind.RESOLUTION, si, "$p.resolution", eventId, what)
+                is EventStep.SufferHarm -> {
+                    if (step.damage !in 0..5 || step.fear !in 0..5 || step.damage + step.fear == 0) {
+                        c.error(IssueCode.INVALID_NUMBER, p, eventId, "$what: Schaden und Furcht je 0–5, zusammen mindestens 1.")
+                    }
+                    step.text?.let { blank(it, "$p.text", eventId, "$what: Text") }
+                }
                 is EventStep.GainInspiration -> {
                     if (step.amount !in 1..3) c.error(IssueCode.INVALID_NUMBER, "$p.amount", eventId, "$what: Inspiration muss 1–3 betragen.")
                     step.text?.let { blank(it, "$p.text", eventId, "$what: Text") }
@@ -387,5 +393,6 @@ internal fun stepName(step: EventStep): String = when (step) {
     is EventStep.SetObjective -> "setObjective"
     is EventStep.FireTrigger -> "fireTrigger"
     is EventStep.GainInspiration -> "gainInspiration"
+    is EventStep.SufferHarm -> "sufferHarm"
     is EventStep.EndScenario -> "endScenario"
 }

@@ -62,7 +62,7 @@ internal object Reachability {
             for (id in tokens.toList()) s.token(id)?.onInteract?.let(events::add)
             for (id in events.toList()) {
                 for (step in s.event(id)?.steps.orEmpty()) when (step) {
-                    is EventStep.Text, is EventStep.RemoveToken, is EventStep.GainInspiration -> Unit
+                    is EventStep.Text, is EventStep.RemoveToken, is EventStep.GainInspiration, is EventStep.SufferHarm -> Unit
                     is EventStep.Choice -> step.options.forEach { events += it.event }
                     is EventStep.Test -> { events += step.onSuccess; step.onFailure?.let(events::add) }
                     is EventStep.SpawnEnemies -> groups += step.group

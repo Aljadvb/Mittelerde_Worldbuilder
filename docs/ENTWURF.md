@@ -268,6 +268,9 @@ Mehrere Ziele können gleichzeitig aktiv sein. Ein Ziel gilt nur als erfüllt, w
 
 - Event-Schritt `{"type": "gainInspiration", "amount": 1, "who": "active" | "each" | "chosen", "text": "…"}`: Die App
   zeigt einen Hinweis („Jeder Held erhält 1 Inspiration“); die Marker liegen am Tisch, die App zählt nicht mit.
+- Event-Schritt `{"type": "sufferHarm", "damage": 2, "fear": 0, "who": "active", "hidden": false, "text": "…"}`: Helden
+  erleiden Schaden und/oder Furcht (Karten am Tisch, optional verdeckt). Typische Folge fehlgeschlagener Proben; die
+  Bedrohung steigt dagegen normalerweise nur am Rundenende.
 - Kachel-Platzierung `"unexplored": true` (optional `"onExplore": "evt_…"`): Die Kachel liegt zunächst ausgegraut mit
   Erkundungsmarker, ihre Token bleiben verborgen. Antippen des Markers erkundet sie: Token erscheinen, der erkundende oder
   ein naher Held erhält 1 Inspiration, dann laufen `onExplore` und Trigger `{"type": "tileExplored", "placement": …}`.

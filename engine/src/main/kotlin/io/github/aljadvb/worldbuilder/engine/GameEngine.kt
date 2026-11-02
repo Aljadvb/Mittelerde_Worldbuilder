@@ -222,6 +222,7 @@ class GameEngine(val scenario: Scenario) {
                     if (trigger?.on == TriggerCondition.Manual) fire(trigger)
                 }
                 is EventStep.GainInspiration -> prompts += Prompt.Inspiration(step.amount, step.who, step.text)
+                is EventStep.SufferHarm -> if (step.damage > 0 || step.fear > 0) prompts += Prompt.Harm(step.damage, step.fear, step.who, step.hidden, step.text)
                 is EventStep.EndScenario -> {
                     resolution = step.resolution
                     agenda.clear()

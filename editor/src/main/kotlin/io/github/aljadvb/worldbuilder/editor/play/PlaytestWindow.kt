@@ -315,6 +315,7 @@ fun describe(prompt: Prompt, scenario: Scenario, catalog: MaterialCatalog): Stri
         is Prompt.ObjectiveSet -> scenario.objective(prompt.objectiveId)?.let { Texts.objectiveSet(it.title) }.orEmpty()
         is Prompt.ObjectiveCompleted -> scenario.objective(prompt.objectiveId)?.let { Texts.objectiveDone(it.title) }.orEmpty()
         is Prompt.Explored -> Texts.explored(tile(prompt.placementId)) + prompt.tokenIds.mapNotNull { scenario.token(it) }.joinToString("") { "\n• " + Texts.placeToken(it.label, tile(prompt.placementId)) }
+        is Prompt.Harm -> listOfNotNull(prompt.text, Texts.harm(prompt.damage, prompt.fear, prompt.who, prompt.hidden)).joinToString("\n")
         is Prompt.Inspiration -> listOfNotNull(prompt.text, Texts.inspiration(prompt.amount, prompt.who)).joinToString("\n")
         is Prompt.Choice -> prompt.step.text
         is Prompt.Test -> prompt.step.text.orEmpty()

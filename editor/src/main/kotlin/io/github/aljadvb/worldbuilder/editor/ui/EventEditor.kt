@@ -109,6 +109,7 @@ private fun stepLabel(step: EventStep): String {
         is EventStep.SetObjective -> "setObjective"
         is EventStep.FireTrigger -> "fireTrigger"
         is EventStep.GainInspiration -> "gainInspiration"
+        is EventStep.SufferHarm -> "sufferHarm"
         is EventStep.EndScenario -> "endScenario"
     }
     return Texts.STEP_TYPES.first { it.first == type }.second
@@ -128,6 +129,7 @@ fun newStep(type: String, s: Scenario): EventStep = when (type) {
     "fireTrigger" -> EventStep.FireTrigger(s.triggers.firstOrNull { it.on == TriggerCondition.Manual }?.id.orEmpty())
     "endScenario" -> EventStep.EndScenario(s.resolutions.firstOrNull()?.id.orEmpty())
     "gainInspiration" -> EventStep.GainInspiration()
+    "sufferHarm" -> EventStep.SufferHarm(damage = 1)
     else -> error("unknown step type $type")
 }
 
@@ -192,8 +194,19 @@ private fun StepFields(
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 IntInput(model, Texts.AMOUNT, step.amount, "$key.amount", "$p.amount") { v -> setText(step.copy(amount = v)) }
                 ChoiceInput(model, Texts.INSPIRATION_WHO, step.who.name, Texts.INSPIRATION_TARGETS.map { Choice(it.first, it.second) }, null, modifier = Modifier.weight(1f)) { v ->
-                    set(step.copy(who = io.github.aljadvb.worldbuilder.model.InspirationTarget.valueOf(v!!)))
+                    set(step.copy(who = io.github.aljadvb.worldbuilder.model.HeroTarget.valueOf(v!!)))
                 }
+            }
+            TextInput(model, Texts.OPTIONAL_TEXT, step.text.orEmpty(), "$key.text", "$p.text") { v -> setText(step.copy(text = v.ifEmpty { null })) }
+        }
+        is EventStep.SufferHarm -> {
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                IntInput(model, Texts.DAMAGE, step.damage, "$key.damage", "$p") { v -> setText(step.copy(damage = v)) }
+                IntInput(model, Texts.FEAR, step.fear, "$key.fear", null) { v -> setText(step.copy(fear = v)) }
+                ChoiceInput(model, Texts.HARM_WHO, step.who.name, Texts.INSPIRATION_TARGETS.map { Choice(it.first, it.second) }, null, modifier = Modifier.weight(1f)) { v ->
+                    set(step.copy(who = io.github.aljadvb.worldbuilder.model.HeroTarget.valueOf(v!!)))
+                }
+                CheckInput(Texts.HIDDEN, step.hidden) { v -> set(step.copy(hidden = v)) }
             }
             TextInput(model, Texts.OPTIONAL_TEXT, step.text.orEmpty(), "$key.text", "$p.text") { v -> setText(step.copy(text = v.ifEmpty { null })) }
         }

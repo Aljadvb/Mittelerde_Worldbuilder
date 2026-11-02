@@ -112,7 +112,7 @@ private fun Event.mapReferences(ep: String, ref: RefFn): Event = copy(
     steps = steps.mapIndexed { i, step ->
         val p = "$ep.steps[$i]"
         when (step) {
-            is EventStep.Text, is EventStep.ChangeThreat, is EventStep.GainInspiration -> step
+            is EventStep.Text, is EventStep.ChangeThreat, is EventStep.GainInspiration, is EventStep.SufferHarm -> step
             is EventStep.Choice -> step.copy(
                 options = step.options.mapIndexed { oi, o -> o.copy(event = ref(ObjectKind.EVENT, o.event, "$p.options[$oi].event", id)) },
             )
