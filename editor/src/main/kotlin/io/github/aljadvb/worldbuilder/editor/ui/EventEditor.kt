@@ -112,6 +112,7 @@ private fun stepLabel(step: EventStep): String {
         is EventStep.GainInspiration -> "gainInspiration"
         is EventStep.SufferHarm -> "sufferHarm"
         is EventStep.GainLore -> "gainLore"
+        is EventStep.SetDarkness -> "setDarkness"
         is EventStep.SetFlag -> "setFlag"
         is EventStep.CheckFlag -> "checkFlag"
         is EventStep.EndScenario -> "endScenario"
@@ -135,6 +136,7 @@ fun newStep(type: String, s: Scenario): EventStep = when (type) {
     "gainInspiration" -> EventStep.GainInspiration()
     "sufferHarm" -> EventStep.SufferHarm(damage = 1)
     "gainLore" -> EventStep.GainLore(1)
+    "setDarkness" -> EventStep.SetDarkness(1)
     "setFlag" -> EventStep.SetFlag("")
     "checkFlag" -> EventStep.CheckFlag("", "")
     else -> error("unknown step type $type")
@@ -210,6 +212,7 @@ private fun StepFields(
             IntInput(model, Texts.AMOUNT, step.amount, "$key.amount", "$p.amount") { v -> setText(step.copy(amount = v)) }
             TextInput(model, Texts.OPTIONAL_TEXT, step.text.orEmpty(), "$key.text", "$p.text") { v -> setText(step.copy(text = v.ifEmpty { null })) }
         }
+        is EventStep.SetDarkness -> IntInput(model, Texts.DARKNESS_FEAR, step.fear, "$key.fear", "$p.fear", width = 360.dp) { v -> setText(step.copy(fear = v)) }
         is EventStep.SetFlag -> FlagInput(model, step.flag, "$p.flag") { v -> set(step.copy(flag = v)) }
         is EventStep.CheckFlag -> {
             FlagInput(model, step.flag, "$p.flag") { v -> set(step.copy(flag = v)) }

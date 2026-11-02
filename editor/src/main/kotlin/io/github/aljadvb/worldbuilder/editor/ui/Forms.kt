@@ -165,6 +165,20 @@ private fun ScenarioForm(model: EditorModel, s: Scenario, sp: String, ask: (Stri
     }
     Text(Texts.THREAT_HINT, style = MaterialTheme.typography.bodySmall)
 
+    SectionHeader(Texts.SHADOW_EVENTS)
+    Text(Texts.SHADOW_EVENTS_HINT, style = MaterialTheme.typography.bodySmall)
+    s.shadowEvents.forEachIndexed { i, e ->
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            ChoiceInput(model, "${i + 1}.", e, s.eventChoices(), "$sp.shadowEvents[$i]", modifier = Modifier.weight(1f)) { v ->
+                model.edit(change = upd { x -> x.copy(shadowEvents = x.shadowEvents.mapIndexed { j, old -> if (j == i) v.orEmpty() else old }) })
+            }
+            IconButton(onClick = { model.edit(change = upd { x -> x.copy(shadowEvents = x.shadowEvents.filterIndexed { j, _ -> j != i }) }) }) { Icon(Icons.Default.Close, Texts.DELETE) }
+        }
+    }
+    OutlinedButton(onClick = {
+        ask(Texts.NEW_EVENT) { n -> model.createThen({ it.addEvent(s.id, n) }) { id -> model.edit(change = upd { x -> x.copy(shadowEvents = x.shadowEvents + id) }) } }
+    }) { Text("＋ " + Texts.SHADOW_EVENTS) }
+
     SectionHeader(Texts.START_CHAPTER + " / " + Texts.START_OBJECTIVE)
     ChoiceInput(model, Texts.START_CHAPTER, s.startChapter, s.chapterChoices(), "$sp.startChapter") { v -> model.edit(change = upd { it.copy(startChapter = v.orEmpty()) }) }
     ChoiceInput(model, Texts.START_OBJECTIVE, s.startObjective, s.objectiveChoices(), "$sp.startObjective") { v -> model.edit(change = upd { it.copy(startObjective = v.orEmpty()) }) }

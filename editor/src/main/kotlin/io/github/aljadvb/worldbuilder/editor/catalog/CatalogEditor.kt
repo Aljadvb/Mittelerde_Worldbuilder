@@ -308,6 +308,7 @@ private fun EnemyDetail(model: CatalogEditorModel, id: String) {
     Text("${Texts.ENEMY_TYPE} · ${e.id}", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
     OutlinedTextField(e.name, { v -> model.edit("$id.name") { it.updateEnemyType(id) { x -> x.copy(name = v) } } }, label = { Text(Texts.NAME) }, singleLine = true)
     ExpansionChoice(model, e.expansion) { x -> model.edit { it.updateEnemyType(id) { t -> t.copy(expansion = x) } } }
+    EnemyStats(model, e)
     OutlinedButton(onClick = { model.edit { it.removeEnemyType(id) }; model.selection = null }) { Text(Texts.DELETE) }
 }
 

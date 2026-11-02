@@ -1,6 +1,6 @@
 # Testliste – was noch von Hand zu prüfen ist
 
-Stand: 2026-11-02 · Version 1.7.0 · Abhaken mit `[x]`. Rückmeldungen (Screenshots, Dateien) einfach im Chat schicken.
+Stand: 2026-11-02 · Version 1.8.0 · Abhaken mit `[x]`. Rückmeldungen (Screenshots, Dateien) einfach im Chat schicken.
 
 Alles hier ist automatisch getestet (Unit-Tests, simulierte Maus, gerenderte Screenshots), aber **noch nie auf echter
 Hardware bzw. mit einer echten KI gelaufen**. Die wichtigsten Punkte stehen oben.
@@ -70,6 +70,16 @@ Hardware bzw. mit einer echten KI gelaufen**. Die wichtigsten Punkte stehen oben
 - [ ] KI: Vergibt sie Wissen/EP sinnvoll und reagiert ein Folgeszenario auf Merker?
 - [ ] Editor: „Szenarien aus Datei hinzufügen …“ – zwei einzeln gespeicherte Szenarien zu einer Kampagne zusammenfügen, Übergänge setzen, in der App durchspielen
 - [ ] Eigenes Kartenbild aus dem Katalog erscheint in Editor und App; Orte darauf neu platzieren
+
+## 1g. Schattenphase und Gegner (neu in 1.8.0)
+
+- [ ] „Runde beenden“: jede Gegnergruppe greift einen benannten Helden an (Bewegung, Schaden, Furcht, Text)
+- [ ] Dunkelheit (Event-Schritt „Dunkelheit festlegen“) bringt jede Runde Furcht
+- [ ] Jede Runde ein Schattenereignis – mal harmlos, mal mit Folgen
+- [ ] „Angreifen“: Treffer eingeben, Rüstung zieht ab, Modifikatoren wirken; Gesundheitsanzeige stimmt; Gruppe wird besiegt
+- [ ] Betäuben: Gruppe setzt die nächste Aktivierung aus
+- [ ] Gegnerwerte im Katalog-Fenster anpassen (Gesundheit, Rüstung, Angriffe) – sind meine Vorschläge zu stark/schwach?
+- [ ] KI: Schattenereignisse sinnvoll gemischt?
 
 ## 2. Windows-Editor
 

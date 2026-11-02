@@ -48,10 +48,12 @@ data class RoleXp(val earned: Int = 0, val spent: Int = 0) {
 data class SkillPurchase(val role: String, val name: String, val cost: Int, val sold: Boolean = false)
 
 /** Moves a group through the scenarios of a campaign, following its transitions. */
-class CampaignRunner(val campaign: Campaign) {
+class CampaignRunner(val campaign: Campaign, catalog: io.github.aljadvb.worldbuilder.model.MaterialCatalog? = null) {
+    private val enemyTypes = catalog?.enemyTypes.orEmpty().associateBy { it.id }
+
 
     fun engineFor(scenarioId: String, flags: Set<String> = emptySet()): GameEngine =
-        GameEngine(campaign.scenario(scenarioId) ?: throw EngineException("Szenario '$scenarioId' fehlt in der Kampagne."), flags)
+        GameEngine(campaign.scenario(scenarioId) ?: throw EngineException("Szenario '$scenarioId' fehlt in der Kampagne."), flags, enemyTypes)
 
     fun start(heroCount: Int, heroes: List<Hero> = emptyList()): Pair<CampaignProgress, GameState> {
         val progress = CampaignProgress(heroCount, campaign.startScenario, heroes = heroes.take(heroCount))

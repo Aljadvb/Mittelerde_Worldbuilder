@@ -60,10 +60,11 @@ internal object Reachability {
                 ch.tokens.filter { it.initiallyActive }.forEach { tokens += it.id }
             }
             for (id in tokens.toList()) s.token(id)?.onInteract?.let(events::add)
+            events += s.shadowEvents
             for (id in events.toList()) {
                 for (step in s.event(id)?.steps.orEmpty()) when (step) {
                     is EventStep.Text, is EventStep.RemoveToken, is EventStep.GainInspiration, is EventStep.SufferHarm,
-                    is EventStep.SetFlag, is EventStep.GainLore -> Unit
+                    is EventStep.SetFlag, is EventStep.GainLore, is EventStep.SetDarkness -> Unit
                     is EventStep.CheckFlag -> { events += step.ifSet; step.ifNotSet?.let(events::add) }
                     is EventStep.Choice -> step.options.forEach { events += it.event }
                     is EventStep.Test -> { events += step.onSuccess; step.onFailure?.let(events::add) }

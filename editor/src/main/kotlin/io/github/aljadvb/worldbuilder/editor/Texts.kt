@@ -176,6 +176,7 @@ object Texts {
         "gainInspiration" to "Inspiration erhalten",
         "sufferHarm" to "Schaden/Furcht erleiden",
         "gainLore" to "Wissen erhalten",
+        "setDarkness" to "Dunkelheit festlegen",
         "setFlag" to "Kampagnen-Merker setzen",
         "checkFlag" to "Kampagnen-Merker prüfen",
         "endScenario" to "Szenario beenden",
@@ -208,6 +209,24 @@ object Texts {
     const val IF_NOT_SET = "Sonst → Event"
     const val NEW_FLAG = "Neuer Kampagnen-Merker"
     fun lore(amount: Int) = "Euer Wissen steigt um $amount."
+    fun activation(name: String, move: Int, hero: String, damage: Int, fear: Int, ranged: Boolean) =
+        "$name – Bewegung $move: greift $hero an${if (ranged) " (Fernkampf)" else ""}. $damage Schaden, $fear Furcht."
+    fun recovers(name: String) = "$name ist erschöpft und erholt sich (keine Aktivierung)."
+    fun darkness(fear: Int) = "Dunkelheit: Helden auf Feldern mit Dunkelheitssymbol oder -marker erleiden $fear Furcht."
+    fun attackResult(defeated: Int, remaining: Int, stunned: Boolean) =
+        (if (remaining == 0) "Gruppe besiegt." else "$defeated besiegt, $remaining übrig.") + if (stunned) " Gruppe ist erschöpft." else ""
+    const val DARKNESS_FEAR = "Furcht pro Schattenphase (0 = keine Dunkelheit)"
+    const val SHADOW_EVENTS = "Schattenereignisse"
+    const val SHADOW_EVENTS_HINT = "Am Ende jeder Runde zieht die App eines dieser Events – gern auch harmlose oder hilfreiche."
+    const val ATTACK = "Angreifen"
+    const val ENEMY_HEALTH = "Gesundheit"
+    const val ENEMY_ARMOR = "Rüstung"
+    const val ENEMY_SORCERY = "Schutzzauber"
+    const val ENEMY_MOVEMENT = "Bewegung"
+    const val ENEMY_RANGED = "Fernkampf"
+    const val ENEMY_ATTACKS = "Angriffe (die App zieht einen pro Aktivierung)"
+    const val ENEMY_ADD_ATTACK = "＋ Angriff"
+    const val HITS = "Treffer"
     const val DAMAGE = "Schaden"
     const val FEAR = "Furcht"
     const val HIDDEN = "verdeckt"

@@ -63,7 +63,7 @@ class GameViewModel(
                     ?: return@withContext GameLoad.SaveMissing
                 val stored = container.library.campaign(campaignId)
                     ?: return@withContext GameLoad.CampaignMissing(save.campaignTitle)
-                runner = CampaignRunner(stored.campaign)
+                runner = CampaignRunner(stored.campaign, container.library.catalog())
                 GameLoad.Ready(
                     GameUi(
                         campaign = stored.campaign,

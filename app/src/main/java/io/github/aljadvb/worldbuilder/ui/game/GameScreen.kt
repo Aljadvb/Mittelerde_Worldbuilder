@@ -117,7 +117,7 @@ fun GameScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                     l.ui.save.progress.inCamp -> CampContent(l.ui.campaign, l.ui.save.progress, mapBackground, viewModel::camp)
                     scenario == null -> Message(stringResource(R.string.game_load_failed))
                     game.isOver -> ResolutionContent(scenario, game, onContinue = viewModel::continueCampaign)
-                    else -> PlayContent(scenario, l.ui.catalog, game, l.ui.campaignChanged, viewModel::send, tileImages)
+                    else -> PlayContent(scenario, l.ui.catalog, game, l.ui.campaignChanged, viewModel::send, tileImages, l.ui.save.progress.party.map { it.name })
                 }
             }
         }
@@ -161,7 +161,9 @@ internal fun PlayContent(
     campaignChanged: Boolean,
     onCommand: (Command) -> Unit,
     images: io.github.aljadvb.worldbuilder.hexmap.TileImageCache? = null,
+    heroNames: List<String> = emptyList(),
 ) {
+    var attackGroup by remember { mutableStateOf<String?>(null) }
     var confirmEndRound by remember { mutableStateOf(false) }
     var confirmDefeat by remember { mutableStateOf<String?>(null) }
     var terrainInfo by remember { mutableStateOf<io.github.aljadvb.worldbuilder.hexmap.TerrainInfo?>(null) }
@@ -202,7 +204,7 @@ internal fun PlayContent(
             )
         }
         if (prompt != null) {
-            PromptPanel(prompt, scenario, catalog, game.heroCount, onCommand, Modifier.padding(bottom = 12.dp))
+            PromptPanel(prompt, scenario, catalog, game.heroCount, onCommand, Modifier.padding(bottom = 12.dp), heroNames)
         } else {
             ActionPanel(
                 scenario = scenario,
@@ -212,11 +214,13 @@ internal fun PlayContent(
                 onDefeat = { confirmDefeat = it },
                 onEndRound = { confirmEndRound = true },
                 battle = scenario.showsBattle(game),
+                onAttack = { attackGroup = it },
             )
         }
     }
 
     terrainInfo?.let { TerrainDialog(it, images, onDismiss = { terrainInfo = null }) }
+    attackGroup?.let { gid -> AttackDialog(scenario, catalog, game, gid, onDismiss = { attackGroup = null }) { onCommand(it); attackGroup = null } }
     if (confirmEndRound) {
         ConfirmDialog(
             title = stringResource(R.string.game_end_round_confirm_title, game.round),
@@ -284,6 +288,7 @@ private fun ActionPanel(
     onDefeat: (String) -> Unit,
     onEndRound: () -> Unit,
     battle: Boolean = false,
+    onAttack: (String) -> Unit = {},
 ) {
     Column(Modifier.padding(bottom = 12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         val groups = game.activeEnemyGroups.mapNotNull { scenario.enemyGroup(it) }
@@ -292,8 +297,21 @@ private fun ActionPanel(
             groups.forEach { g ->
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     val name = catalog.enemyType(g.enemyType)?.name ?: g.enemyType
-                    Text(stringResource(R.string.game_enemy_line, g.count[game.heroCount] ?: 0, name), Modifier.weight(1f))
-                    OutlinedButton(onClick = { onDefeat(g.id) }) { Text(stringResource(R.string.game_defeated)) }
+                    val health = game.enemyHealth[g.id]
+                    Column(Modifier.weight(1f)) {
+                        Text(stringResource(R.string.game_enemy_line, health?.count { it > 0 } ?: (g.count[game.heroCount] ?: 0), name))
+                        val type = catalog.enemyType(g.enemyType)
+                        if (health != null && type != null) {
+                            Text(
+                                stringResource(R.string.enemy_health_line, health.filter { it > 0 }.joinToString(" · ") { "$it/${type.health}" },
+                                    (type.armor - (game.armorLoss[g.id] ?: 0)).coerceAtLeast(0), type.sorcery) +
+                                    if (g.id in game.exhaustedGroups) " · " + stringResource(R.string.enemy_exhausted) else "",
+                                style = MaterialTheme.typography.bodySmall,
+                            )
+                        }
+                    }
+                    Button(onClick = { onAttack(g.id) }) { Text(stringResource(R.string.attack)) }
+                    TextButton(onClick = { onDefeat(g.id) }) { Text(stringResource(R.string.game_defeated)) }
                 }
             }
         }
@@ -394,6 +412,50 @@ private fun historyText(prompt: Prompt, scenario: Scenario): String = when (prom
     is Prompt.Inspiration -> inspirationText(prompt)
     is Prompt.Harm -> harmText(prompt)
     is Prompt.Lore -> stringResource(R.string.prompt_lore_text, prompt.amount)
+    is Prompt.EnemyActivation -> stringResource(R.string.shadow_phase) + ": " + (scenario.enemyGroup(prompt.groupId)?.id ?: prompt.groupId) + " · " + stringResource(R.string.enemy_attack_values, prompt.damage, prompt.fear)
+    is Prompt.EnemyRecovers -> stringResource(R.string.enemy_recovers, prompt.groupId)
+    is Prompt.Darkness -> stringResource(R.string.darkness_text, prompt.fear)
+    is Prompt.AttackResult -> stringResource(R.string.attack_result, prompt.defeated, prompt.remaining)
     is Prompt.Choice -> prompt.step.text
     is Prompt.Test -> prompt.step.text ?: ""
+}
+
+
+/** Hits and modifiers of an attack on an enemy group. */
+@Composable
+private fun AttackDialog(scenario: Scenario, catalog: MaterialCatalog, game: GameState, groupId: String, onDismiss: () -> Unit, onAttack: (Command) -> Unit) {
+    val group = scenario.enemyGroup(groupId) ?: return
+    var hits by remember { mutableStateOf(0) }
+    val mods = remember { androidx.compose.runtime.mutableStateMapOf<String, Boolean>() }
+    val labels = listOf(
+        "pierce" to R.string.mod_pierce, "smite" to R.string.mod_smite, "sunder" to R.string.mod_sunder,
+        "cleave" to R.string.mod_cleave, "stun" to R.string.mod_stun, "lethal" to R.string.mod_lethal,
+    )
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.attack_title, catalog.enemyType(group.enemyType)?.name ?: group.enemyType)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text(stringResource(R.string.attack_hits))
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    OutlinedButton(onClick = { if (hits > 0) hits-- }) { Text("−") }
+                    Text("$hits", style = MaterialTheme.typography.headlineMedium)
+                    OutlinedButton(onClick = { if (hits < 40) hits++ }) { Text("+") }
+                }
+                labels.forEach { (key, res) ->
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        androidx.compose.material3.Checkbox(mods[key] == true, { mods[key] = it })
+                        Text(stringResource(res), style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            Button(onClick = {
+                onAttack(Command.AttackEnemy(groupId, hits, pierce = mods["pierce"] == true, smite = mods["smite"] == true, sunder = mods["sunder"] == true,
+                    cleave = mods["cleave"] == true, stun = mods["stun"] == true, lethal = mods["lethal"] == true))
+            }) { Text(stringResource(R.string.attack_apply)) }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
+    )
 }

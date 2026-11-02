@@ -126,6 +126,24 @@ data class EnemyType(
     val id: String,
     val name: String,
     val expansion: String,
+    /** Health of one enemy of this type. */
+    val health: Int = 1,
+    /** Absorbs hits of each attack (ignored by "Durchbohren"). */
+    val armor: Int = 0,
+    /** Absorbs hits of each attack (ignored by "Zerschlagen"). */
+    val sorcery: Int = 0,
+    val movement: Int = 2,
+    val ranged: Boolean = false,
+    /** Attacks the app picks from in the shadow phase. */
+    val attacks: List<EnemyAttack> = emptyList(),
+)
+
+@Serializable
+data class EnemyAttack(
+    val damage: Int = 0,
+    val fear: Int = 0,
+    /** Short description in own words. */
+    val text: String = "",
 )
 
 /** A map picture of Middle-earth; places use relative coordinates (0–1) on it. */

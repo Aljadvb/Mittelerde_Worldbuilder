@@ -89,6 +89,7 @@ private fun Scenario.mapReferences(sp: String, ref: RefFn): Scenario {
         startChapter = ref(ObjectKind.CHAPTER, startChapter, "$sp.startChapter", id),
         startObjective = ref(ObjectKind.OBJECTIVE, startObjective, "$sp.startObjective", id),
         place = place?.let { ref(ObjectKind.PLACE, it, "$sp.place", id) },
+        shadowEvents = shadowEvents.mapIndexed { i, e -> ref(ObjectKind.EVENT, e, "$sp.shadowEvents[$i]", id) },
         resolutions = resolutions.mapIndexed { i, r ->
             r.copy(setFlags = r.setFlags.mapIndexed { fi, f -> ref(ObjectKind.FLAG, f, "$sp.resolutions[$i].setFlags[$fi]", r.id) })
         },
@@ -119,7 +120,7 @@ private fun Event.mapReferences(ep: String, ref: RefFn): Event = copy(
     steps = steps.mapIndexed { i, step ->
         val p = "$ep.steps[$i]"
         when (step) {
-            is EventStep.Text, is EventStep.ChangeThreat, is EventStep.GainInspiration, is EventStep.SufferHarm, is EventStep.GainLore -> step
+            is EventStep.Text, is EventStep.ChangeThreat, is EventStep.GainInspiration, is EventStep.SufferHarm, is EventStep.GainLore, is EventStep.SetDarkness -> step
             is EventStep.SetFlag -> step.copy(flag = ref(ObjectKind.FLAG, step.flag, "$p.flag", id))
             is EventStep.CheckFlag -> step.copy(
                 flag = ref(ObjectKind.FLAG, step.flag, "$p.flag", id),

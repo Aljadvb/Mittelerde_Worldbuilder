@@ -204,6 +204,13 @@
         "place": {
           "$ref": "#/$defs/id",
           "description": "Ort auf der Kampagnenkarte (pt_…)."
+        },
+        "shadowEvents": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "description": "Events, aus denen die App am Ende jeder Runde eines zieht (auch harmlose)."
         }
       }
     },
@@ -837,6 +844,25 @@
             "text": {
               "type": "string",
               "minLength": 1
+            }
+          }
+        },
+        {
+          "description": "Dunkelheit: In jeder Schattenphase erleiden Helden auf Dunkelheitsfeldern so viel Furcht (0 = aus).",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "const": "setDarkness"
+            },
+            "fear": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 3,
+              "default": 1
             }
           }
         },

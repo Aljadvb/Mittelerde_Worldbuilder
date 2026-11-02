@@ -93,3 +93,34 @@ internal fun PieceDetail(model: CatalogEditorModel, id: String) {
     TerrainTags(side.terrain) { tag -> model.edit { it.updatePieceSide(id, sideKey) { s -> s.copy(terrain = s.terrain.toggle(tag)) } } }
     OutlinedButton(onClick = { model.edit { it.removeTerrainPiece(id) }; model.selection = null }) { Text(Texts.DELETE) }
 }
+
+
+@Composable
+internal fun EnemyStats(model: CatalogEditorModel, e: io.github.aljadvb.worldbuilder.model.EnemyType) {
+    val id = e.id
+    fun upd(key: String, f: (io.github.aljadvb.worldbuilder.model.EnemyType) -> io.github.aljadvb.worldbuilder.model.EnemyType) =
+        model.edit("$id.$key") { c -> c.copy(enemyTypes = c.enemyTypes.map { if (it.id == id) f(it) else it }) }
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        listOf(
+            Triple(Texts.ENEMY_HEALTH, e.health) { v: Int -> upd("health") { it.copy(health = v.coerceAtLeast(1)) } },
+            Triple(Texts.ENEMY_ARMOR, e.armor) { v: Int -> upd("armor") { it.copy(armor = v) } },
+            Triple(Texts.ENEMY_SORCERY, e.sorcery) { v: Int -> upd("sorcery") { it.copy(sorcery = v) } },
+            Triple(Texts.ENEMY_MOVEMENT, e.movement) { v: Int -> upd("movement") { it.copy(movement = v) } },
+        ).forEach { (label, value, set) ->
+            OutlinedTextField(value.toString(), { v -> v.filter(Char::isDigit).take(2).toIntOrNull()?.let(set) }, label = { Text(label) }, singleLine = true, modifier = Modifier.width(140.dp))
+        }
+    }
+    CheckInput(Texts.ENEMY_RANGED, e.ranged) { v -> upd("ranged") { it.copy(ranged = v) } }
+    Text(Texts.ENEMY_ATTACKS, style = MaterialTheme.typography.labelLarge)
+    e.attacks.forEachIndexed { i, a ->
+        fun setA(f: (io.github.aljadvb.worldbuilder.model.EnemyAttack) -> io.github.aljadvb.worldbuilder.model.EnemyAttack) =
+            upd("attack$i") { t -> t.copy(attacks = t.attacks.mapIndexed { j, x -> if (j == i) f(x) else x }) }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+            OutlinedTextField(a.damage.toString(), { v -> v.filter(Char::isDigit).take(2).toIntOrNull()?.let { n -> setA { it.copy(damage = n) } } }, label = { Text(Texts.DAMAGE) }, singleLine = true, modifier = Modifier.width(110.dp))
+            OutlinedTextField(a.fear.toString(), { v -> v.filter(Char::isDigit).take(2).toIntOrNull()?.let { n -> setA { it.copy(fear = n) } } }, label = { Text(Texts.FEAR) }, singleLine = true, modifier = Modifier.width(110.dp))
+            OutlinedTextField(a.text, { v -> setA { it.copy(text = v) } }, label = { Text(Texts.TEXT) }, modifier = Modifier.weight(1f))
+            androidx.compose.material3.TextButton(onClick = { upd("attacks") { t -> t.copy(attacks = t.attacks.filterIndexed { j, _ -> j != i }) } }) { Text("✕") }
+        }
+    }
+    OutlinedButton(onClick = { upd("attacks") { it.copy(attacks = it.attacks + io.github.aljadvb.worldbuilder.model.EnemyAttack(damage = 1)) } }) { Text(Texts.ENEMY_ADD_ATTACK) }
+}

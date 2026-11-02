@@ -306,6 +306,56 @@
         },
         "expansion": {
           "$ref": "#/$defs/id"
+        },
+        "health": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 1,
+          "description": "Gesundheit eines Gegners."
+        },
+        "armor": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0,
+          "description": "Rüstung: fängt pro Angriff so viele Treffer ab (Durchbohren ignoriert sie)."
+        },
+        "sorcery": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 0,
+          "description": "Schutzzauber: fängt pro Angriff Treffer ab (Zerschlagen ignoriert sie)."
+        },
+        "movement": {
+          "type": "integer",
+          "minimum": 0,
+          "default": 2
+        },
+        "ranged": {
+          "type": "boolean",
+          "default": false
+        },
+        "attacks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "damage": {
+                "type": "integer",
+                "minimum": 0,
+                "default": 0
+              },
+              "fear": {
+                "type": "integer",
+                "minimum": 0,
+                "default": 0
+              },
+              "text": {
+                "type": "string",
+                "description": "Kurze Beschreibung in eigenen Worten."
+              }
+            }
+          }
         }
       }
     },

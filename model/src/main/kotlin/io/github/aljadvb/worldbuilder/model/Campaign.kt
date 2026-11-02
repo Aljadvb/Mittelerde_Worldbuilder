@@ -71,6 +71,8 @@ data class Scenario(
     val resolutions: List<Resolution>,
     /** Place on the campaign map. */
     val place: String? = null,
+    /** Events the app draws from at the end of every round (also harmless ones). */
+    val shadowEvents: List<String> = emptyList(),
 ) {
     val tokens: List<Token> get() = chapters.flatMap { it.tokens }
     val placements: List<TilePlacement> get() = chapters.flatMap { it.tiles }

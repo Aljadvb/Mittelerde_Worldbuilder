@@ -77,6 +77,11 @@ sealed interface EventStep {
         val text: String? = null,
     ) : EventStep
 
+    /** Darkness: in each shadow phase heroes in darkness suffer [fear] (0 switches it off). */
+    @Serializable
+    @SerialName("setDarkness")
+    data class SetDarkness(val fear: Int = 1) : EventStep
+
     /** Sets a campaign flag (silent). */
     @Serializable
     @SerialName("setFlag")

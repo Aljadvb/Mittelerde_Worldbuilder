@@ -166,6 +166,7 @@ private class CampaignChecks(
             c.error(IssueCode.INVALID_NUMBER, "$sp.threat.perRound", s.id, "Bedrohung pro Runde darf nicht negativ sein.")
         }
         ref(s.startChapter, ObjectKind.CHAPTER, si, "$sp.startChapter", s.id, "Startkapitel")
+        s.shadowEvents.forEachIndexed { i, e -> ref(e, ObjectKind.EVENT, si, "$sp.shadowEvents[$i]", s.id, "Schattenereignis") }
         s.place?.let { ref(it, ObjectKind.PLACE, null, "$sp.place", s.id, "Ort auf der Kampagnenkarte") }
         ref(s.startObjective, ObjectKind.OBJECTIVE, si, "$sp.startObjective", s.id, "Startziel")
 
@@ -383,6 +384,7 @@ private class CampaignChecks(
                 }
                 is EventStep.EndScenario -> ref(step.resolution, ObjectKind.RESOLUTION, si, "$p.resolution", eventId, what)
                 is EventStep.SetFlag -> ref(step.flag, ObjectKind.FLAG, null, "$p.flag", eventId, what)
+                is EventStep.SetDarkness -> if (step.fear !in 0..3) c.error(IssueCode.INVALID_NUMBER, "$p.fear", eventId, "$what: Furcht durch Dunkelheit muss 0–3 betragen.")
                 is EventStep.CheckFlag -> {
                     ref(step.flag, ObjectKind.FLAG, null, "$p.flag", eventId, what)
                     ref(step.ifSet, ObjectKind.EVENT, si, "$p.ifSet", eventId, "$what (ifSet)")
@@ -447,6 +449,7 @@ internal fun stepName(step: EventStep): String = when (step) {
     is EventStep.FireTrigger -> "fireTrigger"
     is EventStep.GainInspiration -> "gainInspiration"
     is EventStep.SetFlag -> "setFlag"
+    is EventStep.SetDarkness -> "setDarkness"
     is EventStep.CheckFlag -> "checkFlag"
     is EventStep.GainLore -> "gainLore"
     is EventStep.SufferHarm -> "sufferHarm"

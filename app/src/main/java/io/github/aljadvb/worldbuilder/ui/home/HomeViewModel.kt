@@ -105,7 +105,7 @@ class HomeViewModel(private val container: AppContainer) : ViewModel() {
             val now = System.currentTimeMillis()
             val slot = "spiel_$now"
             withContext(Dispatchers.IO) {
-                val (progress, game) = CampaignRunner(stored.campaign).start(heroes.size, heroes)
+                val (progress, game) = CampaignRunner(stored.campaign, container.library.catalog()).start(heroes.size, heroes)
                 container.saves.save(
                     SaveGame(
                         slot = slot,

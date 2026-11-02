@@ -28,6 +28,16 @@ data class GameState(
     val flags: Set<String> = emptySet(),
     /** Lore gained during this scenario (added to the campaign at the end). */
     val loreGained: Int = 0,
+    /** Remaining health of each enemy, per active group. */
+    val enemyHealth: Map<String, List<Int>> = emptyMap(),
+    /** Permanent armor loss per group ("Zerfallen"). */
+    val armorLoss: Map<String, Int> = emptyMap(),
+    /** Exhausted groups skip their next activation. */
+    val exhaustedGroups: Set<String> = emptySet(),
+    /** Fear in darkness per shadow phase (0 = no darkness). */
+    val darknessFear: Int = 0,
+    /** State of the deterministic random generator (targets, attacks, shadow events). */
+    val rng: Long = 0,
     /** Unexplored tiles that have been explored. */
     val exploredPlacements: Set<String> = emptySet(),
     /** Work still to do; the first frame is the one currently running. */
@@ -108,6 +118,21 @@ sealed interface Prompt {
     @Serializable @SerialName("explored")
     data class Explored(val placementId: String, val tokenIds: List<String>) : Notice
 
+    /** Shadow phase: an enemy group moves and attacks hero number [hero] (0-based). */
+    @Serializable @SerialName("enemyActivation")
+    data class EnemyActivation(val groupId: String, val hero: Int, val movement: Int, val damage: Int, val fear: Int, val text: String, val ranged: Boolean) : Notice
+
+    /** Shadow phase: an exhausted group recovers instead of acting. */
+    @Serializable @SerialName("enemyRecovers")
+    data class EnemyRecovers(val groupId: String) : Notice
+
+    @Serializable @SerialName("darkness")
+    data class Darkness(val fear: Int) : Notice
+
+    /** Result of an attack on an enemy group. */
+    @Serializable @SerialName("attackResult")
+    data class AttackResult(val groupId: String, val defeated: Int, val remaining: Int, val stunned: Boolean) : Notice
+
     @Serializable @SerialName("lore")
     data class Lore(val amount: Int, val text: String? = null) : Notice
 
@@ -141,6 +166,17 @@ sealed interface Command {
     data class ReportTest(val successes: Int) : Command
 
     data class InteractToken(val tokenId: String) : Command
+    /** A hero attacks an enemy group with [hits] and modifiers. */
+    data class AttackEnemy(
+        val groupId: String,
+        val hits: Int,
+        val pierce: Boolean = false,
+        val smite: Boolean = false,
+        val sunder: Boolean = false,
+        val cleave: Boolean = false,
+        val stun: Boolean = false,
+        val lethal: Boolean = false,
+    ) : Command
     /** Tap on the exploration marker of an unexplored tile. */
     data class ExploreTile(val placementId: String) : Command
     data class DefeatEnemyGroup(val groupId: String) : Command

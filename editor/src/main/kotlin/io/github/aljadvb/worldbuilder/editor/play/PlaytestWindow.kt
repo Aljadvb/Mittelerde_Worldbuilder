@@ -74,7 +74,7 @@ fun PlaytestScreen(campaign: Campaign, catalog: MaterialCatalog, images: TileIma
     var game by remember(campaign) { mutableStateOf<PlaytestModel?>(null) }
     val current = game
     if (current == null) {
-        PlaytestSetup(campaign) { scenarioId, heroes -> game = PlaytestModel(campaign, scenarioId, heroes) }
+        PlaytestSetup(campaign) { scenarioId, heroes -> game = PlaytestModel(campaign, scenarioId, heroes, catalog) }
     } else {
         PlaytestView(current, catalog, images, onRestart = { game = null })
     }
@@ -316,6 +316,13 @@ fun describe(prompt: Prompt, scenario: Scenario, catalog: MaterialCatalog): Stri
         is Prompt.ObjectiveSet -> scenario.objective(prompt.objectiveId)?.let { Texts.objectiveSet(it.title) }.orEmpty()
         is Prompt.ObjectiveCompleted -> scenario.objective(prompt.objectiveId)?.let { Texts.objectiveDone(it.title) }.orEmpty()
         is Prompt.Explored -> Texts.explored(tile(prompt.placementId)) + prompt.tokenIds.mapNotNull { scenario.token(it) }.joinToString("") { "\n• " + Texts.placeToken(it.label, tile(prompt.placementId)) }
+        is Prompt.EnemyActivation -> scenario.enemyGroup(prompt.groupId)?.let { g ->
+            Texts.activation(catalog.enemyType(g.enemyType)?.name ?: g.enemyType, prompt.movement, "Held ${prompt.hero + 1}", prompt.damage, prompt.fear, prompt.ranged) +
+                if (prompt.text.isNotBlank()) "\n${prompt.text}" else ""
+        }.orEmpty()
+        is Prompt.EnemyRecovers -> Texts.recovers(scenario.enemyGroup(prompt.groupId)?.let { catalog.enemyType(it.enemyType)?.name } ?: prompt.groupId)
+        is Prompt.Darkness -> Texts.darkness(prompt.fear)
+        is Prompt.AttackResult -> Texts.attackResult(prompt.defeated, prompt.remaining, prompt.stunned)
         is Prompt.Lore -> listOfNotNull(prompt.text, Texts.lore(prompt.amount)).joinToString("\n")
         is Prompt.Harm -> listOfNotNull(prompt.text, Texts.harm(prompt.damage, prompt.fear, prompt.who, prompt.hidden)).joinToString("\n")
         is Prompt.Inspiration -> listOfNotNull(prompt.text, Texts.inspiration(prompt.amount, prompt.who)).joinToString("\n")

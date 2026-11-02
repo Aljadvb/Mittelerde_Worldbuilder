@@ -280,6 +280,15 @@ Mehrere Ziele können gleichzeitig aktiv sein. Ein Ziel gilt nur als erfüllt, w
 Orte (`places`), Kampagnen-Merker (`flags`), Belohnungen der Auflösungen (`lore`, `xp`, `setFlags`), Übergänge mit
 `requiresFlag` und die Schritte `setFlag`, `checkFlag`, `gainLore`: siehe [KAMPAGNE_PLAN.md](KAMPAGNE_PLAN.md).
 
+### 5.9c Schattenphase (Gegnerphase)
+
+Nach „Runde beenden“: 1. jede bereite Gegnergruppe wird aktiviert (die App wählt Ziel-Held und einen Angriff des
+Gegnertyps: Bewegung, Schaden, Furcht, Text; erschöpfte Gruppen erholen sich stattdessen), 2. Dunkelheit (Event-Schritt
+`{"type": "setDarkness", "fear": 1}`, 0 = aus), 3. Bedrohung. Zusätzlich zieht die App jede Runde ein Event aus
+`scenario.shadowEvents` – auch harmlose. Gegnertypen im Katalog: `health`, `armor`, `sorcery`, `movement`, `ranged`,
+`attacks` [{damage, fear, text}]. Die App führt die Gesundheit jedes Gegners; Angriffe mit Treffern und den Modifikatoren
+Durchbohren, Zerschlagen, Zerfallen, Spalten, Betäuben, Tödlich.
+
 ### 5.10 Schlacht-Kapitel
 
 Ein Kapitel mit `battlefield` spielt auf Schlachtplänen statt auf Kacheln (keine `tiles`). Token und Gegner stehen dort in

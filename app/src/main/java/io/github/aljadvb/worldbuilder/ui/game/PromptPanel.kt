@@ -44,6 +44,7 @@ fun PromptPanel(
     heroCount: Int,
     onCommand: (Command) -> Unit,
     modifier: Modifier = Modifier,
+    heroNames: List<String> = emptyList(),
 ) {
     ElevatedCard(modifier.fillMaxWidth()) {
         Column(
@@ -52,7 +53,7 @@ fun PromptPanel(
         ) {
             when (prompt) {
                 is Prompt.Notice -> {
-                    NoticeContent(prompt, scenario, catalog)
+                    NoticeContent(prompt, scenario, catalog, heroNames)
                     Button(onClick = { onCommand(Command.Acknowledge) }, modifier = Modifier.align(Alignment.End)) {
                         Text(stringResource(R.string.continue_))
                     }
@@ -81,7 +82,7 @@ private fun Body(text: String) = Text(text, style = MaterialTheme.typography.bod
 private fun Hint(text: String) = Text(text, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
 @Composable
-private fun NoticeContent(prompt: Prompt.Notice, scenario: Scenario, catalog: MaterialCatalog) {
+private fun NoticeContent(prompt: Prompt.Notice, scenario: Scenario, catalog: MaterialCatalog, heroNames: List<String> = emptyList()) {
     fun tileLabel(placementId: String): String {
         val p = scenario.placement(placementId) ?: return placementId
         return catalog.tile(p.tile)?.label ?: p.tile
@@ -179,6 +180,34 @@ private fun NoticeContent(prompt: Prompt.Notice, scenario: Scenario, catalog: Ma
                 tokens.forEach { t -> Text("• " + stringResource(R.string.prompt_setup_token_line, t.label, tokenTypeLabel(t), tileLabel(prompt.placementId))) }
             }
             Hint(stringResource(R.string.prompt_explored_hint))
+        }
+        is Prompt.EnemyActivation -> {
+            val group = scenario.enemyGroup(prompt.groupId) ?: return
+            val name = catalog.enemyType(group.enemyType)?.name ?: group.enemyType
+            val hero = heroNames.getOrNull(prompt.hero)?.takeIf { it.isNotBlank() } ?: stringResource(R.string.hero_n, prompt.hero + 1)
+            Hint(stringResource(R.string.shadow_phase))
+            Title(stringResource(R.string.enemy_activation_title, name))
+            Body(stringResource(if (prompt.ranged) R.string.enemy_activation_ranged else R.string.enemy_activation_text, prompt.movement, hero))
+            Text(stringResource(R.string.enemy_attack_values, prompt.damage, prompt.fear), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error)
+            if (prompt.text.isNotBlank()) Body(prompt.text)
+            Hint(stringResource(R.string.enemy_activation_hint))
+        }
+        is Prompt.EnemyRecovers -> {
+            val name = scenario.enemyGroup(prompt.groupId)?.let { catalog.enemyType(it.enemyType)?.name ?: it.enemyType }.orEmpty()
+            Hint(stringResource(R.string.shadow_phase))
+            Body(stringResource(R.string.enemy_recovers, name))
+        }
+        is Prompt.Darkness -> {
+            Hint(stringResource(R.string.shadow_phase))
+            Title(stringResource(R.string.darkness_title))
+            Body(stringResource(R.string.darkness_text, prompt.fear))
+        }
+        is Prompt.AttackResult -> {
+            val name = scenario.enemyGroup(prompt.groupId)?.let { catalog.enemyType(it.enemyType)?.name ?: it.enemyType }.orEmpty()
+            Title(name)
+            Body(if (prompt.remaining == 0) stringResource(R.string.attack_all_defeated) else stringResource(R.string.attack_result, prompt.defeated, prompt.remaining))
+            if (prompt.stunned) Body(stringResource(R.string.attack_stunned))
+            if (prompt.defeated > 0) Hint(stringResource(R.string.attack_remove_hint, prompt.defeated))
         }
         is Prompt.Lore -> {
             Title(stringResource(R.string.prompt_lore_title))

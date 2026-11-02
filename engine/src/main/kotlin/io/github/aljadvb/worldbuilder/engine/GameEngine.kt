@@ -16,7 +16,12 @@ import io.github.aljadvb.worldbuilder.model.TriggerCondition
  * - a chapter's `onUnlock` runs right after the current frame;
  * - events of fired triggers run after everything already scheduled.
  */
-class GameEngine(val scenario: Scenario, private val campaignFlags: Set<String> = emptySet()) {
+class GameEngine(
+    val scenario: Scenario,
+    private val campaignFlags: Set<String> = emptySet(),
+    /** Enemy statistics from the material catalog (health, armor, attacks). */
+    private val enemyTypes: Map<String, io.github.aljadvb.worldbuilder.model.EnemyType> = emptyMap(),
+) {
 
     fun start(heroCount: Int): GameState {
         require(heroCount in 1..5) { "heroCount must be 1–5" }
@@ -24,6 +29,7 @@ class GameEngine(val scenario: Scenario, private val campaignFlags: Set<String> 
             scenarioId = scenario.id,
             heroCount = heroCount,
             flags = campaignFlags,
+            rng = scenario.id.hashCode().toLong() * 2654435761L + 1,
             agenda = listOf(
                 Frame.InlineFrame(
                     listOf(EventStep.UnlockChapter(scenario.startChapter), EventStep.SetObjective(scenario.startObjective)),
@@ -60,6 +66,12 @@ class GameEngine(val scenario: Scenario, private val campaignFlags: Set<String> 
                 requireIdle(state)
                 if (command.tokenId !in state.activeTokens) throw EngineException("Token '${command.tokenId}' liegt nicht aus.")
                 run.interact(command.tokenId)
+            }
+            is Command.AttackEnemy -> {
+                requireIdle(state)
+                if (command.groupId !in state.activeEnemyGroups) throw EngineException("Gegnergruppe '${command.groupId}' ist nicht im Spiel.")
+                if (command.hits < 0) throw EngineException("Treffer dürfen nicht negativ sein.")
+                run.attack(command)
             }
             is Command.ExploreTile -> {
                 requireIdle(state)
@@ -100,6 +112,17 @@ class GameEngine(val scenario: Scenario, private val campaignFlags: Set<String> 
         val explored = s.exploredPlacements.toMutableSet()
         val flags = s.flags.toMutableSet()
         var loreGained = s.loreGained
+        val enemyHealth = s.enemyHealth.toMutableMap()
+        val armorLoss = s.armorLoss.toMutableMap()
+        val exhausted = s.exhaustedGroups.toMutableSet()
+        var darknessFear = s.darknessFear
+        var rng = s.rng
+
+        /** Deterministic random number in 0 until [n]. */
+        fun random(n: Int): Int {
+            rng = rng * 6364136223846793005L + 1442695040888963407L
+            return if (n <= 1) 0 else ((rng ushr 33) % n).toInt()
+        }
         val agenda = s.agenda.toMutableList()
         val prompts = s.prompts.toMutableList()
         val history = s.history.toMutableList()
@@ -111,6 +134,8 @@ class GameEngine(val scenario: Scenario, private val campaignFlags: Set<String> 
             interactedTokens = interactedTokens.toSet(), activeEnemyGroups = activeGroups.toSet(),
             defeatedEnemyGroups = defeatedGroups.toSet(), activeObjectives = activeObjectives.toList(),
             completedObjectives = completedObjectives.toSet(), firedTriggers = firedTriggers.toSet(), exploredPlacements = explored.toSet(), flags = flags.toSet(), loreGained = loreGained,
+            enemyHealth = enemyHealth.toMap(), armorLoss = armorLoss.toMap(), exhaustedGroups = exhausted.toSet(),
+            darknessFear = darknessFear, rng = rng,
             agenda = agenda.toList(), prompts = prompts.toList(), history = history.toList(), resolution = resolution,
         )
 
@@ -146,13 +171,65 @@ class GameEngine(val scenario: Scenario, private val campaignFlags: Set<String> 
             fireMatching { it is TriggerCondition.TileExplored && it.placement == placementId }
         }
 
+        fun attack(c: Command.AttackEnemy) {
+            val group = scenario.enemyGroup(c.groupId) ?: return
+            val type = enemyTypes[group.enemyType]
+            val health = (enemyHealth[c.groupId] ?: List(group.count[heroCount] ?: 1) { type?.health ?: 1 }).toMutableList()
+            if (c.sunder) armorLoss[c.groupId] = (armorLoss[c.groupId] ?: 0) + 1
+            val armor = if (c.pierce) 0 else ((type?.armor ?: 0) - (armorLoss[c.groupId] ?: 0)).coerceAtLeast(0)
+            val sorcery = if (c.smite) 0 else type?.sorcery ?: 0
+            val effective = (c.hits - armor - sorcery).coerceAtLeast(0)
+            fun hit(i: Int, amount: Int): Int {
+                val before = health[i]
+                val dealt = minOf(amount, before)
+                health[i] = before - dealt
+                if (c.lethal && dealt * 2 >= before && dealt > 0) health[i] = 0
+                return dealt
+            }
+            val before = health.count { it > 0 }
+            if (c.cleave) {
+                health.indices.filter { health[it] > 0 }.forEach { hit(it, effective) }
+            } else {
+                var left = effective
+                // All hits go to one enemy until it is defeated, then to the next.
+                for (i in health.indices) {
+                    if (left <= 0) break
+                    if (health[i] <= 0) continue
+                    left -= hit(i, left)
+                }
+            }
+            val remaining = health.count { it > 0 }
+            enemyHealth[c.groupId] = health
+            if (c.stun && remaining > 0) exhausted += c.groupId
+            prompts += Prompt.AttackResult(c.groupId, before - remaining, remaining, c.stun && remaining > 0)
+            if (remaining == 0) defeat(c.groupId)
+        }
+
         fun defeat(groupId: String) {
+            enemyHealth -= groupId
+            exhausted -= groupId
             activeGroups -= groupId
             defeatedGroups += groupId
             fireMatching { it is TriggerCondition.EnemyGroupDefeated && it.group == groupId }
         }
 
         fun endRound() {
+            // Shadow phase 1: enemy activation.
+            for (groupId in scenario.enemyGroups.map { it.id }.filter { it in activeGroups }) {
+                if (exhausted.remove(groupId)) {
+                    prompts += Prompt.EnemyRecovers(groupId)
+                    continue
+                }
+                val group = scenario.enemyGroup(groupId) ?: continue
+                val type = enemyTypes[group.enemyType]
+                val attack = type?.attacks?.takeIf { it.isNotEmpty() }?.let { it[random(it.size)] }
+                prompts += Prompt.EnemyActivation(groupId, random(heroCount), type?.movement ?: 2, attack?.damage ?: 1, attack?.fear ?: 0, attack?.text.orEmpty(), type?.ranged == true)
+            }
+            // Shadow phase 2: darkness.
+            if (darknessFear > 0) prompts += Prompt.Darkness(darknessFear)
+            // Shadow event ("something happens"), runs after the notices.
+            scenario.shadowEvents.takeIf { it.isNotEmpty() }?.let { events -> agenda += Frame.EventFrame(events[random(events.size)]) }
+            // Shadow phase 3: threat.
             val added = scenario.threat.perRound.amountFor(heroCount)
             val finished = round
             round += 1
@@ -198,6 +275,9 @@ class GameEngine(val scenario: Scenario, private val campaignFlags: Set<String> 
                     val group = scenario.enemyGroup(step.group) ?: return
                     if (activeGroups.add(group.id)) {
                         defeatedGroups -= group.id
+                        val type = enemyTypes[group.enemyType]
+                        enemyHealth[group.id] = List(group.count[heroCount] ?: 0) { type?.health ?: 1 }
+                        armorLoss -= group.id
                         prompts += Prompt.SpawnEnemies(group.id, group.count[heroCount] ?: 0)
                     }
                 }
@@ -225,6 +305,7 @@ class GameEngine(val scenario: Scenario, private val campaignFlags: Set<String> 
                     if (trigger?.on == TriggerCondition.Manual) fire(trigger)
                 }
                 is EventStep.SetFlag -> flags += step.flag
+                is EventStep.SetDarkness -> darknessFear = step.fear.coerceAtLeast(0)
                 is EventStep.CheckFlag -> replaceCurrent(if (step.flag in flags) step.ifSet else step.ifNotSet)
                 is EventStep.GainLore -> if (step.amount > 0) {
                     loreGained += step.amount
