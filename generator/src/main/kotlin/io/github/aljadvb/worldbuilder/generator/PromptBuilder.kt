@@ -140,8 +140,13 @@ class PromptBuilder(private val catalog: MaterialCatalog, private val input: Gen
         }
         appendLine("- Jede Kachel höchstens einmal im ganzen Szenario.")
         appendLine("- Am Ende liegen alle Kapitel gleichzeitig auf einem Tisch von ${input.table}: alle Kacheln zusammen höchstens etwa ${input.table.cellCapacity(catalog.hexSizeMm)} Felder (Felder je Kachel siehe Material).")
-        appendLine("- Pro Kapitel 2–5 Token mit eigenen Texten; Proben und Auswahlen sorgen für Abwechslung.")
+        appendLine("- Pro Kapitel 2–5 Token mit eigenen Texten, die die Geschichte voranbringen; Proben und Auswahlen sorgen für Abwechslung.")
+        appendLine("- Zusätzlich pro Kapitel 2–3 optionale Stimmungs-Marker, die für die Geschichte nicht nötig sind (Lagerfeuer, Aussichtspunkt, alter Schrein, Quelle, Inschrift, ein Wanderer zum Plaudern). Jeder hat einen stimmungsvollen inspectText und ein kurzes onInteract-Event, oft mit einer leichten Probe oder Auswahl, und eine kleine Belohnung: gainInspiration, gainLore, recover (Schaden oder Furcht ablegen), selten ein Schmuckstück oder ein Hinweis auf spätere Gefahren. Sie erfüllen keine Ziele und lösen keine Kapitel aus.")
+        appendLine("- Proben: Die Zahl der Erfolge richtet sich nach der Schwierigkeit der einzelnen Probe – 1 = leicht (einen Zaun übersteigen), 2 = normal (eine Spur im Regen lesen), 3 oder mehr = schwer (einen reißenden Fluss durchqueren). Jedes Szenario mischt alle drei.")
+        appendLine("- 1–2 verdeckte Proben (\"hidden\": true) für Unbekanntes, Rätsel oder Gespür: die App nennt die nötigen Erfolge nicht.")
+        appendLine("- Höchstens 1 Sammelprobe (\"cumulative\": true) für einen besonderen Moment, an dem mehrere Helden über mehrere Aktionen zusammenarbeiten (einen Felsen wegrollen, ein Tor aufstemmen, ein Ritual): successes etwa 4–8, kein onFailure, optional onAttempt (kurzer Text oder kleine Folge); der Token bleibt liegen (removeAfterInteract: false).")
         appendLine("- Reise-Kapitel: Die erste Kachel des Startkapitels ist erforscht (Startpunkt), weitere Kacheln meist \"unexplored\": true. Lege interessante Token und Gegner bevorzugt auf unerforschte Kacheln; gelegentlich ein kurzes onExplore-Event.")
+        appendLine("- Gegner: Lege in Reise-Szenarien 2–4 Gegnergruppen an und lass jede über spawnEnemies erscheinen – etwa im onExplore einer Kachel, im onUnlock eines Kapitels, bei einer Bedrohungsschwelle (Trigger threatReached), als Folge einer gescheiterten Probe oder in einem Schattenereignis. Ihre location ist ein Feld einer Kachel, die zu dem Zeitpunkt schon liegt. In Schlacht-Kapiteln erscheinen Gegner mit dem Aufbau und in Wellen. Eine Gruppe, die nie erscheint, ist ein Fehler.")
         appendLine("- Fehlgeschlagene Proben (onFailure) haben passende Folgen für die Helden: körperliche Gefahren (Sturz, Falle, Kampf) → sufferHarm mit damage, Unheimliches oder Schreckliches → fear, meist 1–2 für den handelnden Held; manchmal auch ein Gegner, der erscheint, oder ein verpasster Hinweis.")
         appendLine("- Die Bedrohung steigt normalerweise nur am Rundenende (threat.perRound). changeThreat in Events nur in seltenen Ausnahmen (z. B. ein Alarm, der den Feind weckt) – höchstens ein- bis zweimal im ganzen Szenario, nie als Standardfolge einer Probe.")
         appendLine("- Jede Auflösung hat eine Belohnung: \"xp\" (EP für jeden Helden; Sieg meist 2–4, Niederlage 1–2) und \"lore\" (Wissen der Gruppe; Sieg 2–5, Niederlage 0–2). Zusätzlich 1–2 Mal pro Szenario gainLore (1–2) für das Lüften eines Geheimnisses oder einen wichtigen Fund.")
@@ -188,9 +193,9 @@ class PromptBuilder(private val catalog: MaterialCatalog, private val input: Gen
     }
 
     private fun difficultyHint() = when (input.difficulty) {
-        GenerationInput.Difficulty.EASY -> "Bedrohungsmaximum eher hoch (24–30), Proben mit 1–2 Erfolgen, wenige Gegner."
-        GenerationInput.Difficulty.NORMAL -> "Bedrohungsmaximum 18–24, Proben mit 2–3 Erfolgen."
-        GenerationInput.Difficulty.HARD -> "Bedrohungsmaximum 14–18, Proben mit 3–4 Erfolgen, mehr Gegner."
+        GenerationInput.Difficulty.EASY -> "Bedrohungsmaximum eher hoch (24–30), mehr leichte Proben (1 Erfolg), wenige schwere, wenige Gegner."
+        GenerationInput.Difficulty.NORMAL -> "Bedrohungsmaximum 18–24, vor allem normale Proben (2 Erfolge), dazu leichte und einzelne schwere."
+        GenerationInput.Difficulty.HARD -> "Bedrohungsmaximum 14–18, mehr schwere Proben (3–4 Erfolge), mehr Gegner."
     }
 
     companion object {
@@ -218,7 +223,7 @@ Ablauf im Spiel:
 - unlockChapter baut ein weiteres Kapitel auf (Kacheln und Token mit initiallyActive=true erscheinen), danach läuft dessen onUnlock.
 - Kachel-Platzierungen mit "unexplored": true liegen zunächst ausgegraut mit Erkundungsmarker; ihre Token erscheinen erst, wenn die Gruppe die Kachel erkundet. Dabei erhält ein Held automatisch 1 Inspiration, dann läuft das optionale Event "onExplore" und Trigger vom Typ tileExplored (placement) feuern.
 
-Schritte eines Events: text, choice (Auswahl, ≥2 Optionen, jede führt in ein Event), test (Probe: attribute might/agility/wisdom/spirit/wit, successes = benötigte Erfolge, onSuccess/onFailure = Events), spawnEnemies, changeThreat (amount ≠ 0), addToken, removeToken, unlockChapter, setObjective, fireTrigger (nur Trigger vom Typ manual), gainLore (Wissen der Gruppe +amount, 1–10), setDarkness (fear 0–3: Furcht für Helden in Dunkelheit in jeder Schattenphase; 0 = aus), setFlag (Kampagnen-Merker setzen), checkFlag (Verzweigung nach Merker: ifSet/ifNotSet = Events; nur als letzter Schritt), gainInspiration (Belohnung: amount 1–3, who = active/each/chosen, optional text), sufferHarm (damage 0–5 und/oder fear 0–5, who = active/each/chosen, hidden = verdeckt, optional text), gainItem (Schmuckstück finden: item = Gegenstands-ID oder weglassen für ein zufälliges, who = active/chosen, optional text), endScenario.
+Schritte eines Events: text, choice (Auswahl, ≥2 Optionen, jede führt in ein Event), test (Probe: attribute might/agility/wisdom/spirit/wit, successes = benötigte Erfolge, onSuccess/onFailure = Events; optional hidden = Zahl nicht nennen, cumulative = Sammelprobe mit onAttempt statt onFailure), spawnEnemies, changeThreat (amount ≠ 0), addToken, removeToken, unlockChapter, setObjective, fireTrigger (nur Trigger vom Typ manual), gainLore (Wissen der Gruppe +amount, 1–10), setDarkness (fear 0–3: Furcht für Helden in Dunkelheit in jeder Schattenphase; 0 = aus), setFlag (Kampagnen-Merker setzen), checkFlag (Verzweigung nach Merker: ifSet/ifNotSet = Events; nur als letzter Schritt), gainInspiration (Belohnung: amount 1–3, who = active/each/chosen, optional text), sufferHarm (damage 0–5 und/oder fear 0–5, who = active/each/chosen, hidden = verdeckt, optional text), recover (Erholung: damage und/oder fear ablegen, who, optional text), gainItem (Schmuckstück finden: item = Gegenstands-ID oder weglassen für ein zufälliges, who = active/chosen, optional text), endScenario.
 
 Pflichtregeln (werden automatisch geprüft):
 1. choice, test und endScenario dürfen nur als LETZTER Schritt eines Events stehen. Fortsetzungen gehören in eigene Events.
