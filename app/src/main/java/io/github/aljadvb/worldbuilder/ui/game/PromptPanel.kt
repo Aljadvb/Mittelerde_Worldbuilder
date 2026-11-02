@@ -280,6 +280,18 @@ private fun NoticeContent(prompt: Prompt.Notice, scenario: Scenario, catalog: Ma
             Body(harmText(prompt))
             Hint(stringResource(R.string.prompt_harm_hint))
         }
+        is Prompt.TestResult -> Title(stringResource(if (prompt.passed) R.string.test_passed else R.string.test_failed))
+        is Prompt.TestProgress -> {
+            Title(stringResource(R.string.test_progress_title))
+            Body(if (prompt.step.hidden) stringResource(R.string.test_progress_hidden) else stringResource(R.string.test_progress_open, prompt.total, prompt.step.successes))
+            Hint(stringResource(R.string.prompt_test_cumulative_hint))
+        }
+        is Prompt.Recover -> {
+            Title(stringResource(R.string.recover_title))
+            prompt.text?.let { Body(it) }
+            Body(recoverText(prompt))
+            Hint(stringResource(R.string.prompt_harm_hint))
+        }
         is Prompt.ItemFound -> {
             Title(stringResource(R.string.item_found_title))
             prompt.text?.let { Body(it) }
@@ -332,9 +344,14 @@ internal fun heroName(heroNames: List<String>, hero: Int): String =
 @Composable
 private fun TestContent(prompt: Prompt.Test, onCommand: (Command) -> Unit) {
     var successes by rememberSaveable(prompt) { mutableIntStateOf(0) }
-    Title(stringResource(R.string.prompt_test_title, attributeLabel(prompt.step.attribute)))
+    Title(stringResource(if (prompt.step.cumulative) R.string.prompt_test_title_cumulative else R.string.prompt_test_title, attributeLabel(prompt.step.attribute)))
     prompt.step.text?.let { Body(it) }
-    Text(stringResource(R.string.prompt_test_required, prompt.step.successes), fontWeight = FontWeight.Bold)
+    when {
+        prompt.step.hidden -> Text(stringResource(R.string.prompt_test_hidden), fontWeight = FontWeight.Bold)
+        prompt.step.cumulative -> Text(stringResource(R.string.prompt_test_cumulative, prompt.step.successes, prompt.progress), fontWeight = FontWeight.Bold)
+        else -> Text(stringResource(R.string.prompt_test_required, prompt.step.successes), fontWeight = FontWeight.Bold)
+    }
+    if (prompt.step.cumulative) Hint(stringResource(R.string.prompt_test_cumulative_hint))
     Text(stringResource(R.string.prompt_test_successes))
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
         OutlinedButton(onClick = { if (successes > 0) successes-- }) { Text("−") }
@@ -352,6 +369,19 @@ internal fun inspirationText(prompt: Prompt.Inspiration): String = when (prompt.
     io.github.aljadvb.worldbuilder.model.HeroTarget.ACTIVE -> stringResource(R.string.inspiration_active, prompt.amount)
     io.github.aljadvb.worldbuilder.model.HeroTarget.EACH -> stringResource(R.string.inspiration_each, prompt.amount)
     io.github.aljadvb.worldbuilder.model.HeroTarget.CHOSEN -> stringResource(R.string.inspiration_chosen, prompt.amount)
+}
+
+@Composable
+internal fun recoverText(prompt: Prompt.Recover): String {
+    val parts = listOfNotNull(
+        prompt.damage.takeIf { it > 0 }?.let { stringResource(R.string.harm_damage, it) },
+        prompt.fear.takeIf { it > 0 }?.let { stringResource(R.string.harm_fear, it) },
+    ).joinToString(stringResource(R.string.harm_and))
+    return when (prompt.who) {
+        io.github.aljadvb.worldbuilder.model.HeroTarget.ACTIVE -> stringResource(R.string.recover_active, parts)
+        io.github.aljadvb.worldbuilder.model.HeroTarget.EACH -> stringResource(R.string.recover_each, parts)
+        io.github.aljadvb.worldbuilder.model.HeroTarget.CHOSEN -> stringResource(R.string.recover_chosen, parts)
+    }
 }
 
 @Composable

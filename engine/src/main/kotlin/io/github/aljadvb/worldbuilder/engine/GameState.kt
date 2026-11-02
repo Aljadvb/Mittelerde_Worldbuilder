@@ -48,6 +48,8 @@ data class GameState(
     val ownedItems: Set<String> = emptySet(),
     /** Items found in this scenario, in order (added to the campaign inventory at the end). */
     val itemsFound: List<String> = emptyList(),
+    /** Successes collected so far per cumulative test (key: event id and step index). */
+    val testProgress: Map<String, Int> = emptyMap(),
     /** Work still to do; the first frame is the one currently running. */
     val agenda: List<Frame> = emptyList(),
     /** Prompts waiting for the players, oldest first. While non-empty, nothing else runs. */
@@ -158,6 +160,9 @@ sealed interface Prompt {
     @Serializable @SerialName("itemFound")
     data class ItemFound(val itemId: String?, val who: io.github.aljadvb.worldbuilder.model.HeroTarget, val text: String? = null) : Notice
 
+    @Serializable @SerialName("recover")
+    data class Recover(val damage: Int, val fear: Int, val who: io.github.aljadvb.worldbuilder.model.HeroTarget, val text: String? = null) : Notice
+
     @Serializable @SerialName("darkness")
     data class Darkness(val fear: Int) : Notice
 
@@ -180,7 +185,15 @@ sealed interface Prompt {
 
     /** Answer with [Command.ReportTest]. */
     @Serializable @SerialName("test")
-    data class Test(val eventId: String?, val step: EventStep.Test) : Prompt
+    data class Test(val eventId: String?, val step: EventStep.Test, val key: String? = null, val progress: Int = 0) : Prompt
+
+    /** Result of a hidden test (the players do not know the required successes). */
+    @Serializable @SerialName("testResult")
+    data class TestResult(val passed: Boolean) : Notice
+
+    /** A cumulative test is not done yet; [total] successes so far. */
+    @Serializable @SerialName("testProgress")
+    data class TestProgress(val step: EventStep.Test, val total: Int) : Notice
 
     /** "Kann der Feind angreifen?" after a hero's attack. Answer with [Command.CounterAttack]. */
     @Serializable @SerialName("counterQuestion")

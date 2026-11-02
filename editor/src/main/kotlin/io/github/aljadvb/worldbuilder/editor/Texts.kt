@@ -176,6 +176,7 @@ object Texts {
         "gainInspiration" to "Inspiration erhalten",
         "sufferHarm" to "Schaden/Furcht erleiden",
         "gainItem" to "Schmuckstück finden",
+        "recover" to "Erholung (Schaden/Furcht ablegen)",
         "gainLore" to "Wissen erhalten",
         "setDarkness" to "Dunkelheit festlegen",
         "setFlag" to "Kampagnen-Merker setzen",
@@ -186,6 +187,21 @@ object Texts {
     const val INSPIRATION_WHO = "Wer erhält sie?"
     const val HARM_WHO = "Wer ist betroffen?"
     const val ITEM = "Schmuckstück"
+    const val TEST_HIDDEN = "Verdeckt (Zahl nicht nennen)"
+    const val TEST_CUMULATIVE = "Sammelprobe (Erfolge über Versuche addieren)"
+    const val ON_ATTEMPT = "Nach jedem Versuch, der noch nicht reicht (optional)"
+    fun testResult(passed: Boolean) = if (passed) "Probe geschafft!" else "Probe nicht geschafft."
+    fun testProgress(total: Int, required: Int, hidden: Boolean) =
+        if (hidden) "Ihr kommt voran, aber es reicht noch nicht. Weitere Versuche sind möglich (je eine Aktion)."
+        else "Bisher $total von $required Erfolgen. Weitere Versuche sind möglich (je eine Aktion)."
+    fun recover(damage: Int, fear: Int, who: io.github.aljadvb.worldbuilder.model.HeroTarget): String {
+        val what = listOfNotNull(damage.takeIf { it > 0 }?.let { "$it Schaden" }, fear.takeIf { it > 0 }?.let { "$it Furcht" }).joinToString(" und ")
+        return when (who) {
+            io.github.aljadvb.worldbuilder.model.HeroTarget.ACTIVE -> "Der handelnde Held legt $what ab."
+            io.github.aljadvb.worldbuilder.model.HeroTarget.EACH -> "Jeder Held legt $what ab."
+            io.github.aljadvb.worldbuilder.model.HeroTarget.CHOSEN -> "Ein Held eurer Wahl legt $what ab."
+        }
+    }
     const val RANDOM_TRINKET = "zufälliges Schmuckstück (noch nicht im Besitz)"
     const val ITEM_WHO = "Wer nimmt die Karte?"
     fun itemFound(name: String?, who: String) = if (name == null) "Ihr findet nichts Neues – alle Schmuckstücke sind schon im Besitz der Gruppe."

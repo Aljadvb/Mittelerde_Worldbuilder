@@ -298,7 +298,9 @@ private fun PromptCard(game: PlaytestModel, scenario: Scenario, catalog: Materia
                 }
                 is Prompt.Test -> {
                     var successes by remember(prompt) { mutableIntStateOf(0) }
-                    Text(Texts.test(Texts.ATTRIBUTES.first { it.first == prompt.step.attribute.name }.second, prompt.step.successes), fontWeight = FontWeight.Bold)
+                    val attr = Texts.ATTRIBUTES.first { it.first == prompt.step.attribute.name }.second
+                    Text(if (prompt.step.hidden) "Verdeckte Probe: $attr" else Texts.test(attr, prompt.step.successes), fontWeight = FontWeight.Bold)
+                    if (prompt.step.cumulative) Text(Texts.testProgress(prompt.progress, prompt.step.successes, prompt.step.hidden))
                     prompt.step.text?.let { Text(it) }
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         Text(Texts.SUCCESSES_REACHED)
@@ -360,6 +362,9 @@ fun describe(prompt: Prompt, scenario: Scenario, catalog: MaterialCatalog): Stri
         is Prompt.EnemyHalted -> Texts.halted(enemy(prompt.groupId), prompt.damage, prompt.fear) + (if (prompt.text.isNotBlank()) "\n${prompt.text}" else "") + Texts.negate(attr(prompt.negate))
         is Prompt.EnemyAttack -> Texts.enemyAttack(enemy(prompt.groupId), prompt.reason == AttackReason.COUNTER, prompt.damage, prompt.fear) +
             (if (prompt.text.isNotBlank()) "\n${prompt.text}" else "") + Texts.negate(attr(prompt.negate))
+        is Prompt.TestResult -> Texts.testResult(prompt.passed)
+        is Prompt.TestProgress -> Texts.testProgress(prompt.total, prompt.step.successes, prompt.step.hidden)
+        is Prompt.Recover -> listOfNotNull(prompt.text, Texts.recover(prompt.damage, prompt.fear, prompt.who)).joinToString("\n")
         is Prompt.ItemFound -> listOfNotNull(prompt.text, Texts.itemFound(prompt.itemId?.let { catalog.item(it)?.name ?: it },
             if (prompt.who == io.github.aljadvb.worldbuilder.model.HeroTarget.CHOSEN) "Ein Held eurer Wahl" else "Der handelnde Held")).joinToString("\n")
         is Prompt.CounterQuestion -> Texts.counterQuestion(enemy(prompt.groupId))

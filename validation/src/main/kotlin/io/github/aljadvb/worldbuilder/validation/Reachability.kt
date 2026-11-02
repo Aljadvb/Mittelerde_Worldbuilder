@@ -64,11 +64,11 @@ internal object Reachability {
             events += s.shadowEvents
             for (id in events.toList()) {
                 for (step in s.event(id)?.steps.orEmpty()) when (step) {
-                    is EventStep.Text, is EventStep.RemoveToken, is EventStep.GainInspiration, is EventStep.SufferHarm, is EventStep.GainItem,
+                    is EventStep.Text, is EventStep.RemoveToken, is EventStep.GainInspiration, is EventStep.SufferHarm, is EventStep.GainItem, is EventStep.Recover,
                     is EventStep.SetFlag, is EventStep.GainLore, is EventStep.SetDarkness -> Unit
                     is EventStep.CheckFlag -> { events += step.ifSet; step.ifNotSet?.let(events::add) }
                     is EventStep.Choice -> step.options.forEach { events += it.event }
-                    is EventStep.Test -> { events += step.onSuccess; step.onFailure?.let(events::add) }
+                    is EventStep.Test -> { events += step.onSuccess; step.onFailure?.let(events::add); step.onAttempt?.let(events::add) }
                     is EventStep.SpawnEnemies -> groups += step.group
                     is EventStep.ChangeThreat -> if (step.amount > 0) threatCanRise = true
                     is EventStep.AddToken -> tokens += step.token

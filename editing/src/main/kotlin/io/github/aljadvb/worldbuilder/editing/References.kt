@@ -120,7 +120,7 @@ private fun Event.mapReferences(ep: String, ref: RefFn): Event = copy(
     steps = steps.mapIndexed { i, step ->
         val p = "$ep.steps[$i]"
         when (step) {
-            is EventStep.Text, is EventStep.ChangeThreat, is EventStep.GainInspiration, is EventStep.SufferHarm, is EventStep.GainItem, is EventStep.GainLore, is EventStep.SetDarkness -> step
+            is EventStep.Text, is EventStep.ChangeThreat, is EventStep.GainInspiration, is EventStep.SufferHarm, is EventStep.GainItem, is EventStep.Recover, is EventStep.GainLore, is EventStep.SetDarkness -> step
             is EventStep.SetFlag -> step.copy(flag = ref(ObjectKind.FLAG, step.flag, "$p.flag", id))
             is EventStep.CheckFlag -> step.copy(
                 flag = ref(ObjectKind.FLAG, step.flag, "$p.flag", id),
@@ -133,6 +133,7 @@ private fun Event.mapReferences(ep: String, ref: RefFn): Event = copy(
             is EventStep.Test -> step.copy(
                 onSuccess = ref(ObjectKind.EVENT, step.onSuccess, "$p.onSuccess", id),
                 onFailure = step.onFailure?.let { ref(ObjectKind.EVENT, it, "$p.onFailure", id) },
+                onAttempt = step.onAttempt?.let { ref(ObjectKind.EVENT, it, "$p.onAttempt", id) },
             )
             is EventStep.SpawnEnemies -> step.copy(group = ref(ObjectKind.ENEMY_GROUP, step.group, "$p.group", id))
             is EventStep.AddToken -> step.copy(token = ref(ObjectKind.TOKEN, step.token, "$p.token", id))

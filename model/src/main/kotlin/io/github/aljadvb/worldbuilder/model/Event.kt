@@ -36,6 +36,12 @@ sealed interface EventStep {
         val successes: Int,
         val onSuccess: String,
         val onFailure: String? = null,
+        /** The app does not tell the players how many successes are needed. */
+        val hidden: Boolean = false,
+        /** Successes add up over several attempts (one action each, possibly by different heroes). */
+        val cumulative: Boolean = false,
+        /** Cumulative tests only: runs after an attempt that is not yet enough. */
+        val onAttempt: String? = null,
     ) : EventStep {
         override val isTerminal get() = true
     }
@@ -104,6 +110,16 @@ sealed interface EventStep {
     @SerialName("gainItem")
     data class GainItem(
         val item: String? = null,
+        val who: HeroTarget = HeroTarget.ACTIVE,
+        val text: String? = null,
+    ) : EventStep
+
+    /** Reward: heroes discard damage and/or fear cards (the app does not count them). */
+    @Serializable
+    @SerialName("recover")
+    data class Recover(
+        val damage: Int = 0,
+        val fear: Int = 0,
         val who: HeroTarget = HeroTarget.ACTIVE,
         val text: String? = null,
     ) : EventStep

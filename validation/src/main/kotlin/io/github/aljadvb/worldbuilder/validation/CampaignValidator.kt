@@ -367,6 +367,13 @@ private class CampaignChecks(
                     if (step.successes < 1) c.error(IssueCode.INVALID_NUMBER, "$p.successes", eventId, "$what: Benötigte Erfolge müssen ≥ 1 sein.")
                     ref(step.onSuccess, ObjectKind.EVENT, si, "$p.onSuccess", eventId, "$what (onSuccess)")
                     step.onFailure?.let { ref(it, ObjectKind.EVENT, si, "$p.onFailure", eventId, "$what (onFailure)") }
+                    step.onAttempt?.let { ref(it, ObjectKind.EVENT, si, "$p.onAttempt", eventId, "$what (onAttempt)") }
+                    if (step.cumulative && step.onFailure != null) {
+                        c.warn(IssueCode.CUMULATIVE_FAILURE, "$p.onFailure", eventId, "$what: Eine Sammelprobe scheitert nie – 'onFailure' wird nicht verwendet (für jeden Versuch gibt es 'onAttempt').")
+                    }
+                    if (!step.cumulative && step.onAttempt != null) {
+                        c.warn(IssueCode.CUMULATIVE_FAILURE, "$p.onAttempt", eventId, "$what: 'onAttempt' wirkt nur bei Sammelproben.")
+                    }
                 }
                 is EventStep.SpawnEnemies -> ref(step.group, ObjectKind.ENEMY_GROUP, si, "$p.group", eventId, what)
                 is EventStep.ChangeThreat -> if (step.amount == 0) {
@@ -395,6 +402,12 @@ private class CampaignChecks(
                     step.text?.let { blank(it, "$p.text", eventId, "$what: Text") }
                 }
                 is EventStep.SufferHarm -> {
+                    if (step.damage !in 0..5 || step.fear !in 0..5 || step.damage + step.fear == 0) {
+                        c.error(IssueCode.INVALID_NUMBER, p, eventId, "$what: Schaden und Furcht je 0–5, zusammen mindestens 1.")
+                    }
+                    step.text?.let { blank(it, "$p.text", eventId, "$what: Text") }
+                }
+                is EventStep.Recover -> {
                     if (step.damage !in 0..5 || step.fear !in 0..5 || step.damage + step.fear == 0) {
                         c.error(IssueCode.INVALID_NUMBER, p, eventId, "$what: Schaden und Furcht je 0–5, zusammen mindestens 1.")
                     }
@@ -465,5 +478,6 @@ internal fun stepName(step: EventStep): String = when (step) {
     is EventStep.GainLore -> "gainLore"
     is EventStep.SufferHarm -> "sufferHarm"
     is EventStep.GainItem -> "gainItem"
+    is EventStep.Recover -> "recover"
     is EventStep.EndScenario -> "endScenario"
 }

@@ -64,9 +64,25 @@ class GameEngine(
                 if (command.successes < 0) throw EngineException("Erfolge dürfen nicht negativ sein.")
                 when (val prompt = state.currentPrompt) {
                     is Prompt.Test -> {
-                        val success = command.successes >= prompt.step.successes
+                        val step = prompt.step
                         run.popPrompt(answer = command.successes.toString())
-                        run.replaceCurrent(if (success) prompt.step.onSuccess else prompt.step.onFailure)
+                        if (step.cumulative) {
+                            val key = prompt.key ?: ""
+                            val total = (run.testProgress[key] ?: 0) + command.successes
+                            if (total >= step.successes) {
+                                run.testProgress -= key
+                                if (step.hidden) run.prompts.add(0, Prompt.TestResult(true))
+                                run.replaceCurrent(step.onSuccess)
+                            } else {
+                                run.testProgress[key] = total
+                                run.prompts.add(0, Prompt.TestProgress(step, total))
+                                run.replaceCurrent(step.onAttempt)
+                            }
+                        } else {
+                            val success = command.successes >= step.successes
+                            if (step.hidden) run.prompts.add(0, Prompt.TestResult(success))
+                            run.replaceCurrent(if (success) step.onSuccess else step.onFailure)
+                        }
                     }
                     is Prompt.LastStandTest -> {
                         run.popPrompt(answer = command.successes.toString())
@@ -160,6 +176,7 @@ class GameEngine(
         val lastStandUsed = s.lastStandUsed.toMutableSet()
         val ownedItemsAtStart = s.ownedItems
         val itemsFound = s.itemsFound.toMutableList()
+        val testProgress = s.testProgress.toMutableMap()
 
         /** Deterministic random number in 0 until [n]. */
         fun random(n: Int): Int {
@@ -180,7 +197,7 @@ class GameEngine(
             enemyHealth = enemyHealth.toMap(), armorLoss = armorLoss.toMap(), exhaustedGroups = exhausted.toSet(),
             darknessFear = darknessFear, rng = rng,
             defeatedHeroes = defeatedHeroes.toSet(), lastStandUsed = lastStandUsed.toSet(),
-            ownedItems = ownedItemsAtStart, itemsFound = itemsFound.toList(),
+            ownedItems = ownedItemsAtStart, itemsFound = itemsFound.toList(), testProgress = testProgress.toMap(),
             agenda = agenda.toList(), prompts = prompts.toList(), history = history.toList(), resolution = resolution,
         )
 
@@ -339,7 +356,7 @@ class GameEngine(
                     continue
                 }
                 agenda[0] = advanced(frame)
-                execute(steps[frame.stepIndex], (frame as? Frame.EventFrame)?.eventId)
+                execute(steps[frame.stepIndex], (frame as? Frame.EventFrame)?.eventId, frame.stepIndex)
             }
         }
 
@@ -353,11 +370,14 @@ class GameEngine(
             is Frame.InlineFrame -> frame.copy(stepIndex = frame.stepIndex + 1)
         }
 
-        private fun execute(step: EventStep, eventId: String?) {
+        private fun execute(step: EventStep, eventId: String?, index: Int = 0) {
             when (step) {
                 is EventStep.Text -> prompts += Prompt.Text(step.text)
                 is EventStep.Choice -> prompts += Prompt.Choice(eventId, step)
-                is EventStep.Test -> prompts += Prompt.Test(eventId, step)
+                is EventStep.Test -> {
+                    val key = "$eventId#$index"
+                    prompts += Prompt.Test(eventId, step, key, testProgress[key] ?: 0)
+                }
                 is EventStep.SpawnEnemies -> {
                     val group = scenario.enemyGroup(step.group) ?: return
                     if (activeGroups.add(group.id)) {
@@ -399,6 +419,7 @@ class GameEngine(
                     prompts += Prompt.Lore(step.amount, step.text)
                 }
                 is EventStep.GainInspiration -> prompts += Prompt.Inspiration(step.amount, step.who, step.text)
+                is EventStep.Recover -> if (step.damage > 0 || step.fear > 0) prompts += Prompt.Recover(step.damage, step.fear, step.who, step.text)
                 is EventStep.GainItem -> {
                     val taken = ownedItemsAtStart + itemsFound
                     val wanted = step.item?.takeIf { it !in taken && items.any { i -> i.id == it } }

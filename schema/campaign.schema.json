@@ -584,6 +584,20 @@
             "onFailure": {
               "$ref": "#/$defs/id",
               "description": "Optional; ohne Angabe passiert bei Misserfolg nichts weiter."
+            },
+            "hidden": {
+              "type": "boolean",
+              "default": false,
+              "description": "Verdeckte Probe: Die App nennt die benötigten Erfolge nicht und meldet nur geschafft / nicht geschafft."
+            },
+            "cumulative": {
+              "type": "boolean",
+              "default": false,
+              "description": "Sammelprobe: Erfolge mehrerer Versuche (je eine Aktion, auch verschiedener Helden, über Runden hinweg) werden addiert; erst bei Erreichen läuft onSuccess. Scheitert nie, onFailure entfällt. Der Marker muss liegen bleiben."
+            },
+            "onAttempt": {
+              "$ref": "#/$defs/id",
+              "description": "Nur Sammelprobe: Event nach einem Versuch, der noch nicht reicht (optional)."
             }
           }
         },
@@ -764,6 +778,43 @@
               ],
               "default": "active",
               "description": "Wer die Karte nimmt: active = der handelnde Held, chosen = ein Held nach Wahl."
+            },
+            "text": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        {
+          "description": "Belohnung: Helden legen Schaden- und/oder Furchtkarten ab (die App zählt nicht mit).",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type"
+          ],
+          "properties": {
+            "type": {
+              "const": "recover"
+            },
+            "damage": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 5,
+              "default": 0
+            },
+            "fear": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 5,
+              "default": 0
+            },
+            "who": {
+              "enum": [
+                "active",
+                "each",
+                "chosen"
+              ],
+              "default": "active"
             },
             "text": {
               "type": "string",

@@ -93,3 +93,54 @@ class ItemTest {
         assertEquals((items.map { it.id } - first), t.itemsFound)
     }
 }
+
+class TestKindsTest {
+    private val base = Examples.scenario
+
+    private fun scenarioWith(test: io.github.aljadvb.worldbuilder.model.EventStep.Test) = base.copy(
+        events = base.events.map { e -> if (e.id == "evt_brunnen") e.copy(steps = listOf(io.github.aljadvb.worldbuilder.model.EventStep.Text("Der Stein."), test)) else e } +
+            listOf(
+                Event("evt_ok", listOf(EventStep.Text("Geschafft!"))),
+                Event("evt_nein", listOf(EventStep.Text("Leider nicht."))),
+                Event("evt_knirsch", listOf(EventStep.Text("Es knirscht."))),
+            ),
+        chapters = base.chapters.map { ch -> ch.copy(tokens = ch.tokens.map { if (it.id == "tok_brunnen") it.copy(removeAfterInteract = false) else it }) },
+    )
+
+    private fun untilTest(e: GameEngine, s0: GameState): GameState {
+        var s = s0
+        while (!s.isIdle) s = e.apply(s, Command.Acknowledge)
+        s = e.apply(s, Command.InteractToken("tok_brunnen"))
+        while (s.currentPrompt !is Prompt.Test) s = e.apply(s, Command.Acknowledge)
+        return s
+    }
+
+    @Test
+    fun `hidden test reports only the result`() {
+        val e = GameEngine(scenarioWith(EventStep.Test(attribute = io.github.aljadvb.worldbuilder.model.Attribute.WISDOM, successes = 3, onSuccess = "evt_ok", onFailure = "evt_nein", hidden = true)))
+        val s = untilTest(e, e.start(2))
+        val failed = e.apply(s, Command.ReportTest(2))
+        assertEquals(Prompt.TestResult(false), failed.currentPrompt)
+        assertEquals("Leider nicht.", (e.apply(failed, Command.Acknowledge).currentPrompt as Prompt.Text).text)
+        assertEquals(Prompt.TestResult(true), e.apply(s, Command.ReportTest(3)).currentPrompt)
+    }
+
+    @Test
+    fun `cumulative test collects successes over attempts`() {
+        val test = EventStep.Test(attribute = io.github.aljadvb.worldbuilder.model.Attribute.MIGHT, successes = 6, onSuccess = "evt_ok", cumulative = true, onAttempt = "evt_knirsch")
+        val e = GameEngine(scenarioWith(test))
+        var s = untilTest(e, e.start(3))
+        s = e.apply(s, Command.ReportTest(2))
+        assertEquals(Prompt.TestProgress(test, 2), s.currentPrompt)
+        s = e.apply(s, Command.Acknowledge)
+        assertEquals("Es knirscht.", (s.currentPrompt as Prompt.Text).text)
+        while (!s.isIdle) s = e.apply(s, Command.Acknowledge)
+        s = e.apply(s, Command.EndRound)
+        while (!s.isIdle) s = if (s.currentPrompt is Prompt.CounterQuestion) e.apply(s, Command.CounterAttack(false)) else e.apply(s, Command.Acknowledge)
+        s = untilTest(e, s)
+        assertEquals(2, (s.currentPrompt as Prompt.Test).progress)
+        s = e.apply(s, Command.ReportTest(4))
+        assertEquals("Geschafft!", (s.currentPrompt as Prompt.Text).text)
+        assertTrue(s.testProgress.isEmpty())
+    }
+}

@@ -112,6 +112,7 @@ private fun stepLabel(step: EventStep): String {
         is EventStep.GainInspiration -> "gainInspiration"
         is EventStep.SufferHarm -> "sufferHarm"
         is EventStep.GainItem -> "gainItem"
+        is EventStep.Recover -> "recover"
         is EventStep.GainLore -> "gainLore"
         is EventStep.SetDarkness -> "setDarkness"
         is EventStep.SetFlag -> "setFlag"
@@ -137,6 +138,7 @@ fun newStep(type: String, s: Scenario): EventStep = when (type) {
     "gainInspiration" -> EventStep.GainInspiration()
     "sufferHarm" -> EventStep.SufferHarm(damage = 1)
     "gainItem" -> EventStep.GainItem()
+    "recover" -> EventStep.Recover(damage = 1)
     "gainLore" -> EventStep.GainLore(1)
     "setDarkness" -> EventStep.SetDarkness(1)
     "setFlag" -> EventStep.SetFlag("")
@@ -188,8 +190,18 @@ private fun StepFields(
             ChoiceInput(model, Texts.ON_SUCCESS, step.onSuccess, events, "$p.onSuccess", onCreate = { newEvent { id -> set(step.copy(onSuccess = id)) } }) { v ->
                 set(step.copy(onSuccess = v.orEmpty()))
             }
-            ChoiceInput(model, Texts.ON_FAILURE, step.onFailure, events, "$p.onFailure", allowNone = true, onCreate = { newEvent { id -> set(step.copy(onFailure = id)) } }) { v ->
-                set(step.copy(onFailure = v))
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                CheckInput(Texts.TEST_HIDDEN, step.hidden) { v -> set(step.copy(hidden = v)) }
+                CheckInput(Texts.TEST_CUMULATIVE, step.cumulative) { v -> set(step.copy(cumulative = v, onFailure = if (v) null else step.onFailure, onAttempt = if (v) step.onAttempt else null)) }
+            }
+            if (step.cumulative) {
+                ChoiceInput(model, Texts.ON_ATTEMPT, step.onAttempt, events, "$p.onAttempt", allowNone = true, onCreate = { newEvent { id -> set(step.copy(onAttempt = id)) } }) { v ->
+                    set(step.copy(onAttempt = v))
+                }
+            } else {
+                ChoiceInput(model, Texts.ON_FAILURE, step.onFailure, events, "$p.onFailure", allowNone = true, onCreate = { newEvent { id -> set(step.copy(onFailure = id)) } }) { v ->
+                    set(step.copy(onFailure = v))
+                }
             }
         }
         is EventStep.SpawnEnemies -> ChoiceInput(model, Texts.ENEMY_GROUP, step.group, s.enemyGroups.map { Choice(it.id, it.id) }, "$p.group") { v -> set(step.copy(group = v.orEmpty())) }
@@ -229,6 +241,16 @@ private fun StepFields(
                     set(step.copy(who = io.github.aljadvb.worldbuilder.model.HeroTarget.valueOf(v!!)))
                 }
                 CheckInput(Texts.HIDDEN, step.hidden) { v -> set(step.copy(hidden = v)) }
+            }
+            TextInput(model, Texts.OPTIONAL_TEXT, step.text.orEmpty(), "$key.text", "$p.text") { v -> setText(step.copy(text = v.ifEmpty { null })) }
+        }
+        is EventStep.Recover -> {
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                IntInput(model, Texts.DAMAGE, step.damage, "$key.damage", "$p") { v -> setText(step.copy(damage = v)) }
+                IntInput(model, Texts.FEAR, step.fear, "$key.fear", null) { v -> setText(step.copy(fear = v)) }
+                ChoiceInput(model, Texts.HARM_WHO, step.who.name, Texts.INSPIRATION_TARGETS.map { Choice(it.first, it.second) }, null, modifier = Modifier.weight(1f)) { v ->
+                    set(step.copy(who = io.github.aljadvb.worldbuilder.model.HeroTarget.valueOf(v!!)))
+                }
             }
             TextInput(model, Texts.OPTIONAL_TEXT, step.text.orEmpty(), "$key.text", "$p.text") { v -> setText(step.copy(text = v.ifEmpty { null })) }
         }
