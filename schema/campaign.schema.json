@@ -219,7 +219,7 @@
       }
     },
     "chapter": {
-      "description": "Abschnitt des Szenarios; bringt beim Freischalten eigene Kacheln und Token mit.",
+      "description": "Abschnitt des Szenarios; bringt beim Freischalten eigene Kacheln (Reise) oder einen Schlachtplan (Schlacht) und Token mit.",
       "type": "object",
       "additionalProperties": false,
       "required": [
@@ -253,6 +253,9 @@
           "items": {
             "$ref": "#/$defs/token"
           }
+        },
+        "battlefield": {
+          "$ref": "#/$defs/battlefield"
         }
       }
     },
@@ -324,7 +327,7 @@
           "minLength": 1
         },
         "location": {
-          "$ref": "#/$defs/tileLocation"
+          "$ref": "#/$defs/location"
         },
         "initiallyActive": {
           "type": "boolean",
@@ -417,7 +420,7 @@
           }
         },
         "location": {
-          "$ref": "#/$defs/tileLocation"
+          "$ref": "#/$defs/location"
         }
       }
     },
@@ -884,6 +887,187 @@
           ]
         }
       }
+    },
+    "square": {
+      "description": "Quadrat auf dem gemeinsamen Raster der Schlachtpläne eines Szenarios (x nach rechts, y nach unten).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "x",
+        "y"
+      ],
+      "properties": {
+        "x": {
+          "type": "integer"
+        },
+        "y": {
+          "type": "integer"
+        }
+      }
+    },
+    "squareLocation": {
+      "description": "Ort auf dem Schlachtplan: das Feld, in dem das Quadrat liegt.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "square"
+      ],
+      "properties": {
+        "square": {
+          "$ref": "#/$defs/square"
+        }
+      }
+    },
+    "location": {
+      "description": "Reise-Kapitel: Feld einer Kachel (placement + cell). Schlacht-Kapitel: Feld des Schlachtplans (square).",
+      "oneOf": [
+        {
+          "$ref": "#/$defs/tileLocation"
+        },
+        {
+          "$ref": "#/$defs/squareLocation"
+        }
+      ]
+    },
+    "battlefield": {
+      "description": "Nur in Schlacht-Kapiteln (dann keine Kacheln): Schlachtpläne und Geländeteile.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "boards": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/boardPlacement"
+          }
+        },
+        "terrain": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/terrainPlacement"
+          }
+        }
+      }
+    },
+    "boardPlacement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "board",
+        "side",
+        "position"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "board": {
+          "$ref": "#/$defs/id",
+          "description": "Schlachtplan-ID aus dem Material-Katalog."
+        },
+        "side": {
+          "enum": [
+            "A",
+            "B"
+          ]
+        },
+        "position": {
+          "$ref": "#/$defs/square",
+          "description": "Lage in ganzen Plänen: (1,0) liegt rechts neben (0,0)."
+        },
+        "rotation": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 3,
+          "default": 0,
+          "description": "Drehung in 90°-Schritten im Uhrzeigersinn."
+        }
+      }
+    },
+    "edge": {
+      "description": "Eine Seite eines Quadrats.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "x",
+        "y",
+        "side"
+      ],
+      "properties": {
+        "x": {
+          "type": "integer"
+        },
+        "y": {
+          "type": "integer"
+        },
+        "side": {
+          "enum": [
+            "north",
+            "east",
+            "south",
+            "west"
+          ]
+        }
+      }
+    },
+    "terrainPlacement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "piece",
+        "side"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "piece": {
+          "$ref": "#/$defs/id",
+          "description": "Geländeteil-ID aus dem Material-Katalog."
+        },
+        "side": {
+          "enum": [
+            "A",
+            "B"
+          ]
+        },
+        "area": {
+          "$ref": "#/$defs/square",
+          "description": "Für Teile, die in einem Feld liegen: ein Quadrat des Feldes."
+        },
+        "edge": {
+          "$ref": "#/$defs/edge",
+          "description": "Für Teile auf Feldgrenzen (Fluss, Graben, Mauer, Zaun)."
+        },
+        "customName": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Eigener Name in diesem Szenario."
+        },
+        "customRule": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "text"
+          ],
+          "properties": {
+            "mode": {
+              "enum": [
+                "replace",
+                "add"
+              ],
+              "default": "replace",
+              "description": "replace = ersetzt die Geländekarte, add = gilt zusätzlich."
+            },
+            "text": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      },
+      "description": "Ein gelegtes Geländeteil: genau eines von 'area' (Teil liegt in einem Feld) oder 'edge' (Teil liegt auf einer Feldgrenze), passend zum Katalog."
     }
   }
 }

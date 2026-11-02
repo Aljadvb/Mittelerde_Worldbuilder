@@ -4,6 +4,7 @@ import io.github.aljadvb.worldbuilder.model.Campaign
 import io.github.aljadvb.worldbuilder.model.HexCoord
 import io.github.aljadvb.worldbuilder.model.MaterialCatalog
 import io.github.aljadvb.worldbuilder.model.Scenario
+import io.github.aljadvb.worldbuilder.model.Location
 import io.github.aljadvb.worldbuilder.model.TileLocation
 import io.github.aljadvb.worldbuilder.model.TilePlacement
 import io.github.aljadvb.worldbuilder.model.TileSide
@@ -50,11 +51,12 @@ fun Campaign.flipPlacement(id: String, catalog: MaterialCatalog): FlipResult {
     val newSide = if (placement.side == TileSide.A) TileSide.B else TileSide.A
     val shape = catalog.tile(placement.tile)?.sides?.get(newSide)
         ?: throw EditException("Kachel '${placement.tile}' hat im Katalog keine Seite $newSide.")
-    val conflicts = scenario.tokens.filter { it.location.placement == id && it.location.cell !in shape.cells }.map { it.id } +
-        scenario.enemyGroups.filter { it.location.placement == id && it.location.cell !in shape.cells }.map { it.id }
+    fun off(l: Location) = l is TileLocation && l.placement == id && l.cell !in shape.cells
+    val conflicts = scenario.tokens.filter { off(it.location) }.map { it.id } +
+        scenario.enemyGroups.filter { off(it.location) }.map { it.id }
     return FlipResult(updatePlacement(id) { it.copy(side = newSide) }, conflicts)
 }
 
-fun Campaign.moveToken(id: String, location: TileLocation) = updateToken(id) { it.copy(location = location) }
+fun Campaign.moveToken(id: String, location: Location) = updateToken(id) { it.copy(location = location) }
 
-fun Campaign.moveEnemyGroup(id: String, location: TileLocation) = updateEnemyGroup(id) { it.copy(location = location) }
+fun Campaign.moveEnemyGroup(id: String, location: Location) = updateEnemyGroup(id) { it.copy(location = location) }

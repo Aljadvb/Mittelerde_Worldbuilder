@@ -264,6 +264,12 @@ Mehrere Ziele können gleichzeitig aktiv sein. Ein Ziel gilt nur als erfüllt, w
 
 ---
 
+### 5.10 Schlacht-Kapitel
+
+Ein Kapitel mit `battlefield` spielt auf Schlachtplänen statt auf Kacheln (keine `tiles`). Token und Gegner stehen dort in
+einem Feld: `"location": {"square": {"x": 4, "y": 1}}`. Details, Prüfregeln und Katalogeinträge (`battleBoards`,
+`terrainPieces`): siehe [SCHLACHTPLAENE_PLAN.md](SCHLACHTPLAENE_PLAN.md), Beispiel: `examples/beispiel-schlacht.json`.
+
 ## 6. JSON-Schema
 
 - Wird **von Hand** geschrieben (Draft 2020-12) und liegt unter `schema/campaign.schema.json` und `schema/material.schema.json`. Die Beschreibungen (`description`) sind ausführlich, damit sie später direkt als KI-Anleitung dienen.

@@ -6,7 +6,10 @@ import io.github.aljadvb.worldbuilder.model.EventStep
 import io.github.aljadvb.worldbuilder.model.HexCoord
 import io.github.aljadvb.worldbuilder.model.MaterialCatalog
 import io.github.aljadvb.worldbuilder.model.Scenario
+import io.github.aljadvb.worldbuilder.model.Location
+import io.github.aljadvb.worldbuilder.model.SquareLocation
 import io.github.aljadvb.worldbuilder.model.TileLocation
+import io.github.aljadvb.worldbuilder.model.battleMap
 import io.github.aljadvb.worldbuilder.model.TokenType
 import io.github.aljadvb.worldbuilder.model.TriggerCondition
 
@@ -71,6 +74,8 @@ private class CampaignChecks(
                 register(ch.id, ObjectKind.CHAPTER, cp, si)
                 ch.tiles.forEachIndexed { pi, p -> register(p.id, ObjectKind.PLACEMENT, "$cp.tiles[$pi]", si) }
                 ch.tokens.forEachIndexed { ti, t -> register(t.id, ObjectKind.TOKEN, "$cp.tokens[$ti]", si) }
+                ch.battlefield?.boards?.forEachIndexed { bi, b -> register(b.id, ObjectKind.BOARD_PLACEMENT, "$cp.battlefield.boards[$bi]", si) }
+                ch.battlefield?.terrain?.forEachIndexed { gi, g -> register(g.id, ObjectKind.TERRAIN_PLACEMENT, "$cp.battlefield.terrain[$gi]", si) }
             }
             s.enemyGroups.forEachIndexed { i, g -> register(g.id, ObjectKind.ENEMY_GROUP, "$sp.enemyGroups[$i]", si) }
             s.events.forEachIndexed { i, e -> register(e.id, ObjectKind.EVENT, "$sp.events[$i]", si) }
@@ -171,6 +176,7 @@ private class CampaignChecks(
     }
 
     private fun checkMap(s: Scenario, si: Int, sp: String) {
+        BattleChecks(s, sp, catalog, c, ::checkExpansionOwned).run()
         val occupied = mutableMapOf<HexCoord, String>()
         val tileUse = mutableMapOf<String, String>()
         s.chapters.forEachIndexed { ci, ch ->
@@ -222,7 +228,32 @@ private class CampaignChecks(
         }
     }
 
-    private fun checkLocation(s: Scenario, si: Int, loc: TileLocation, path: String, ownerId: String, ownerChapter: String?) {
+    private fun checkLocation(s: Scenario, si: Int, location: Location, path: String, ownerId: String, ownerChapter: String?) {
+        val chapter = ownerChapter?.let { s.chapter(it) }
+        val loc = when (location) {
+            is SquareLocation -> {
+                if (chapter != null && !chapter.isBattle) {
+                    c.error(IssueCode.LOCATION_WRONG_MAP, path, ownerId, "'$ownerId' steht auf einem Schlachtplan-Feld, aber Kapitel '${chapter.id}' ist ein Reise-Kapitel.")
+                    return
+                }
+                val board = s.battleMap(catalog).field(location.square)?.boardPlacement
+                if (board == null) {
+                    c.error(IssueCode.SQUARE_NOT_ON_MAP, "$path.square", ownerId, "Feld ${location.square} von '$ownerId' liegt auf keinem Schlachtplan.")
+                    return
+                }
+                val boardChapter = s.chapters.firstOrNull { ch -> ch.battlefield?.boards.orEmpty().any { it.id == board } }?.id
+                if (ownerChapter != null && boardChapter != ownerChapter && boardChapter != s.startChapter) {
+                    c.warn(IssueCode.LOCATION_ON_LATER_CHAPTER, "$path.square", ownerId,
+                        "'$ownerId' steht auf einem Schlachtplan aus Kapitel '$boardChapter', das evtl. noch nicht aufgebaut ist.")
+                }
+                return
+            }
+            is TileLocation -> location
+        }
+        if (chapter != null && chapter.isBattle) {
+            c.error(IssueCode.LOCATION_WRONG_MAP, path, ownerId, "'$ownerId' steht auf einer Kachel, aber Kapitel '${chapter.id}' ist ein Schlacht-Kapitel (Ort: {\"square\": {\"x\", \"y\"}}).")
+            return
+        }
         if (!ref(loc.placement, ObjectKind.PLACEMENT, si, "$path.placement", ownerId, "Ort von '$ownerId'")) return
         val shape = shapeOf(s, loc.placement) ?: return // unknown tile is reported at the placement
         if (loc.cell !in shape) {

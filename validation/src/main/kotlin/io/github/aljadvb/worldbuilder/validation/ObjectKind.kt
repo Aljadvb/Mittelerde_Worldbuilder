@@ -6,6 +6,8 @@ enum class ObjectKind(val prefix: String, val displayName: String) {
     SCENARIO("scn_", "Szenario"),
     CHAPTER("ch_", "Kapitel"),
     PLACEMENT("pl_", "Kachel-Platzierung"),
+    BOARD_PLACEMENT("bp_", "Schlachtplan-Platzierung"),
+    TERRAIN_PLACEMENT("gt_", "Geländeteil"),
     TOKEN("tok_", "Token"),
     EVENT("evt_", "Event"),
     TRIGGER("trg_", "Trigger"),

@@ -5,6 +5,7 @@ import io.github.aljadvb.worldbuilder.engine.Prompt
 import io.github.aljadvb.worldbuilder.model.HexCoord
 import io.github.aljadvb.worldbuilder.model.MaterialCatalog
 import io.github.aljadvb.worldbuilder.model.Scenario
+import io.github.aljadvb.worldbuilder.model.Location
 import io.github.aljadvb.worldbuilder.model.TileLocation
 
 /** What the play map should emphasise for the current prompt. */
@@ -13,8 +14,9 @@ data class MapHighlight(
     val cells: Set<HexCoord> = emptySet(),
 )
 
-/** Map cell of a tile-local location, or null if the placement is unknown. */
-fun Scenario.mapCell(location: TileLocation): HexCoord? = placement(location.placement)?.toMap(location.cell)
+/** Map cell of a tile-local location, or null if the placement is unknown or it is a battle-map location. */
+fun Scenario.mapCell(location: Location): HexCoord? =
+    (location as? TileLocation)?.let { placement(it.placement)?.toMap(it.cell) }
 
 /** The map of everything unlocked in [state] (used by the app and the editor's playtest). */
 fun playScene(

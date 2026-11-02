@@ -4,6 +4,7 @@ import io.github.aljadvb.worldbuilder.model.Campaign
 import io.github.aljadvb.worldbuilder.model.Event
 import io.github.aljadvb.worldbuilder.model.EventStep
 import io.github.aljadvb.worldbuilder.model.Scenario
+import io.github.aljadvb.worldbuilder.model.Location
 import io.github.aljadvb.worldbuilder.model.TileLocation
 import io.github.aljadvb.worldbuilder.model.Trigger
 import io.github.aljadvb.worldbuilder.model.TriggerCondition
@@ -30,6 +31,8 @@ fun Campaign.definitions(): List<Definition> = buildList {
             add(Definition(ObjectKind.CHAPTER, ch.id, cp, s.id))
             ch.tiles.forEachIndexed { i, p -> add(Definition(ObjectKind.PLACEMENT, p.id, "$cp.tiles[$i]", s.id)) }
             ch.tokens.forEachIndexed { i, t -> add(Definition(ObjectKind.TOKEN, t.id, "$cp.tokens[$i]", s.id)) }
+            ch.battlefield?.boards?.forEachIndexed { i, b -> add(Definition(ObjectKind.BOARD_PLACEMENT, b.id, "$cp.battlefield.boards[$i]", s.id)) }
+            ch.battlefield?.terrain?.forEachIndexed { i, g -> add(Definition(ObjectKind.TERRAIN_PLACEMENT, g.id, "$cp.battlefield.terrain[$i]", s.id)) }
         }
         s.enemyGroups.forEachIndexed { i, g -> add(Definition(ObjectKind.ENEMY_GROUP, g.id, "$sp.enemyGroups[$i]", s.id)) }
         s.events.forEachIndexed { i, e -> add(Definition(ObjectKind.EVENT, e.id, "$sp.events[$i]", s.id)) }
@@ -77,7 +80,8 @@ fun Campaign.mapReferences(map: (Reference) -> String): Campaign {
 private typealias RefFn = (ObjectKind, String, String, String) -> String
 
 private fun Scenario.mapReferences(sp: String, ref: RefFn): Scenario {
-    fun loc(l: TileLocation, p: String, owner: String) = l.copy(placement = ref(ObjectKind.PLACEMENT, l.placement, "$p.placement", owner))
+    fun loc(l: Location, p: String, owner: String): Location =
+        if (l is TileLocation) l.copy(placement = ref(ObjectKind.PLACEMENT, l.placement, "$p.placement", owner)) else l
     return copy(
         startChapter = ref(ObjectKind.CHAPTER, startChapter, "$sp.startChapter", id),
         startObjective = ref(ObjectKind.OBJECTIVE, startObjective, "$sp.startObjective", id),

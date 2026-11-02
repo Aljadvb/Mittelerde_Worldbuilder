@@ -16,7 +16,11 @@ data class MaterialCatalog(
     val expansions: List<Expansion> = emptyList(),
     val tiles: List<TileDefinition> = emptyList(),
     val enemyTypes: List<EnemyType> = emptyList(),
+    val battleBoards: List<BattleBoard> = emptyList(),
+    val terrainPieces: List<TerrainPiece> = emptyList(),
 ) {
+    fun battleBoard(id: String): BattleBoard? = battleBoards.firstOrNull { it.id == id }
+    fun terrainPiece(id: String): TerrainPiece? = terrainPieces.firstOrNull { it.id == id }
     fun tile(id: String): TileDefinition? = tiles.firstOrNull { it.id == id }
     fun enemyType(id: String): EnemyType? = enemyTypes.firstOrNull { it.id == id }
     fun expansion(id: String): Expansion? = expansions.firstOrNull { it.id == id }

@@ -1,5 +1,7 @@
 package io.github.aljadvb.worldbuilder.editor.map
 
+import io.github.aljadvb.worldbuilder.hexmap.mapCell
+import io.github.aljadvb.worldbuilder.model.placementId
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -68,7 +70,7 @@ class MapController(private val model: EditorModel) {
                 s.chapter(sel) != null -> sel
                 s.placement(sel) != null -> s.chapterOfPlacement(sel)?.id
                 s.token(sel) != null -> s.chapterOfToken(sel)?.id
-                s.enemyGroup(sel) != null -> s.chapterOfPlacement(s.enemyGroup(sel)!!.location.placement)?.id
+                s.enemyGroup(sel) != null -> s.chapterOfPlacement(s.enemyGroup(sel)!!.location.placementId.orEmpty())?.id
                 else -> null
             }
             return s.chapter(id ?: s.startChapter) ?: s.chapters.firstOrNull()
@@ -134,8 +136,8 @@ class MapController(private val model: EditorModel) {
             }
             MapTool.Select -> {
                 val visible = visibleChapters.map { it.id }.toSet()
-                val token = visibleChapters.flatMap { it.tokens }.firstOrNull { s.placement(it.location.placement)?.toMap(it.location.cell) == cell }
-                val enemy = s.enemyGroups.firstOrNull { g -> s.chapterOfPlacement(g.location.placement)?.id in visible && s.placement(g.location.placement)?.toMap(g.location.cell) == cell }
+                val token = visibleChapters.flatMap { it.tokens }.firstOrNull { s.mapCell(it.location) == cell }
+                val enemy = s.enemyGroups.firstOrNull { g -> s.chapterOfPlacement(g.location.placementId.orEmpty())?.id in visible && s.mapCell(g.location) == cell }
                 val placement = ch.tiles.firstOrNull { cell in it.mapCells(model.catalog) }
                 when {
                     token != null -> { model.selection = token.id; drag = Drag.Token(token.id, cell) }

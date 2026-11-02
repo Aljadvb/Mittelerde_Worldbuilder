@@ -1,5 +1,7 @@
 package io.github.aljadvb.worldbuilder.editor.map
 
+import io.github.aljadvb.worldbuilder.hexmap.mapCell
+import io.github.aljadvb.worldbuilder.model.placementId
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.focusable
@@ -95,13 +97,13 @@ fun editorScene(model: EditorModel, c: MapController, highlight: Color): MapScen
     })
     val tokens = visible.flatMap { it.tokens }.mapNotNull { t ->
         val cell = (drag as? Drag.Token)?.takeIf { it.tokenId == t.id }?.cell
-            ?: s.placement(t.location.placement)?.toMap(t.location.cell) ?: return@mapNotNull null
+            ?: s.mapCell(t.location) ?: return@mapNotNull null
         MapToken(t.id, cell, t.type, TOKEN_LETTERS.getValue(t.type), selected = t.id == model.selection)
     }
     val visibleIds = visible.map { it.id }.toSet()
-    val enemies = s.enemyGroups.filter { s.chapterOfPlacement(it.location.placement)?.id in visibleIds }.mapNotNull { g ->
+    val enemies = s.enemyGroups.filter { s.chapterOfPlacement(it.location.placementId.orEmpty())?.id in visibleIds }.mapNotNull { g ->
         val cell = (drag as? Drag.Enemy)?.takeIf { it.groupId == g.id }?.cell
-            ?: s.placement(g.location.placement)?.toMap(g.location.cell) ?: return@mapNotNull null
+            ?: s.mapCell(g.location) ?: return@mapNotNull null
         MapEnemy(g.id, cell, g.count[2] ?: 0, selected = g.id == model.selection)
     }
     val placing = c.tool is MapTool.PlaceToken || c.tool == MapTool.PlaceEnemy

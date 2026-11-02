@@ -1,6 +1,15 @@
 # Schlachtspielpläne – Plan und Formatentwurf zur Freigabe
 
-Stand: 2026-11-01 · Noch kein Code. Details werden nach den Scans (Pläne und Geländeteile) angepasst.
+Stand: 2026-11-02 · **Schritt 1 umgesetzt** (Format, Schema, Validator, Tests; Beispiel `examples/beispiel-schlacht.json`).
+
+**Abweichungen bei der Umsetzung von Schritt 1:**
+- Statt `"map": "battle"` gilt: Ein Kapitel mit `battlefield` ist ein Schlacht-Kapitel. So gibt es keinen widersprüchlichen Zustand.
+- Geländeteil-Seiten haben zusätzlich `effect` (kurze Wirkung in eigenen Worten für Editor und KI) und `blocksMovement`
+  (Mauer, Barrikade: für die Hinweise zur Erreichbarkeit).
+- Die Feld-Liste eines Plans heißt `areas`. Fehlt sie, ist jedes Quadrat ein eigenes Feld.
+- Gegnergruppen stehen in Schlachten ebenfalls mit `{"square": {…}}`.
+- Die Tischprüfung nimmt bei gemischten Szenarien die größere der beiden Karten (Reise oder Schlacht), weil die Schlacht die
+  Reisekarte ersetzt.
 
 **Nachtrag nach dem Beispielfoto:** Die Pläne sind nicht fein gerastert, sondern durch Linien in **wenige große Felder
 (Bereiche)** geteilt. Figuren, Standfahnen und runde Geländeteile stehen *in* einem Bereich, **Mauern liegen *auf den

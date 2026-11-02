@@ -4,6 +4,7 @@ import io.github.aljadvb.worldbuilder.model.HexCoord
 import io.github.aljadvb.worldbuilder.model.HexOrientation
 import io.github.aljadvb.worldbuilder.model.MaterialCatalog
 import io.github.aljadvb.worldbuilder.model.Scenario
+import io.github.aljadvb.worldbuilder.model.battleMap
 import kotlin.math.sqrt
 
 /** Size of the real table the map is laid out on. */
@@ -53,6 +54,19 @@ data class MapExtent(val widthCm: Double, val heightCm: Double) {
     private data class Quad(val a: List<Double>, val b: List<Double>, val c: Double, val d: Double)
 }
 
-/** Extent of everything placed in [scenario] (all chapters lie on the table together). */
-fun Scenario.mapExtent(catalog: MaterialCatalog): MapExtent =
-    MapExtent.of(placements.flatMap { it.mapCells(catalog) }, catalog.hexOrientation, catalog.hexSizeMm)
+/**
+ * Extent of everything placed in this scenario: all travel chapters lie on the table together,
+ * and so do all battle boards. A battle map replaces the travel map, so the larger one counts.
+ */
+fun Scenario.mapExtent(catalog: MaterialCatalog): MapExtent {
+    val travel = MapExtent.of(placements.flatMap { it.mapCells(catalog) }, catalog.hexOrientation, catalog.hexSizeMm)
+    val battle = battleExtent(catalog)
+    return if (battle.widthCm * battle.heightCm > travel.widthCm * travel.heightCm) battle else travel
+}
+
+/** Extent of all battle boards of this scenario. */
+fun Scenario.battleExtent(catalog: MaterialCatalog): MapExtent {
+    val (w, h) = battleMap(catalog).extent()
+    val cellMm = boardPlacements.firstNotNullOfOrNull { catalog.battleBoard(it.board)?.sides?.get(it.side)?.cellSizeMm } ?: return MapExtent.EMPTY
+    return MapExtent(w * cellMm / 10.0, h * cellMm / 10.0)
+}

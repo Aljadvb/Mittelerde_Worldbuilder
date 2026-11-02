@@ -1,5 +1,6 @@
 package io.github.aljadvb.worldbuilder.validation
 
+import io.github.aljadvb.worldbuilder.model.TileLocation
 import io.github.aljadvb.worldbuilder.model.EventStep
 import io.github.aljadvb.worldbuilder.model.HexCoord
 import io.github.aljadvb.worldbuilder.model.Scenario
@@ -78,7 +79,7 @@ class CampaignValidatorTest {
     fun `token on a non-existing cell`() {
         val report = validate { s ->
             s.editChapter("ch_dorf") { ch ->
-                ch.editToken("tok_brunnen") { it.copy(location = it.location.copy(cell = HexCoord(5, 5))) }
+                ch.editToken("tok_brunnen") { it.copy(location = (it.location as TileLocation).copy(cell = HexCoord(5, 5))) }
             }
         }
         val issue = report.single(IssueCode.CELL_NOT_ON_TILE)

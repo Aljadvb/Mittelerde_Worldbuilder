@@ -1,5 +1,6 @@
 package io.github.aljadvb.worldbuilder.ui.game
 
+import io.github.aljadvb.worldbuilder.model.placementId
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -106,7 +107,7 @@ private fun NoticeContent(prompt: Prompt.Notice, scenario: Scenario, catalog: Ma
             if (tokens.isNotEmpty()) {
                 Text(stringResource(R.string.prompt_setup_tokens), fontWeight = FontWeight.Bold)
                 tokens.forEach { t ->
-                    Text("• " + stringResource(R.string.prompt_setup_token_line, t.label, tokenTypeLabel(t), tileLabel(t.location.placement)))
+                    Text("• " + stringResource(R.string.prompt_setup_token_line, t.label, tokenTypeLabel(t), tileLabel(t.location.placementId.orEmpty())))
                 }
             }
             Hint(stringResource(R.string.prompt_setup_hint))
@@ -115,17 +116,17 @@ private fun NoticeContent(prompt: Prompt.Notice, scenario: Scenario, catalog: Ma
             val group = scenario.enemyGroup(prompt.groupId) ?: return
             Title(stringResource(R.string.prompt_spawn_title))
             val name = catalog.enemyType(group.enemyType)?.name ?: group.enemyType
-            Body(stringResource(R.string.prompt_spawn_text, prompt.count, name, tileLabel(group.location.placement)))
+            Body(stringResource(R.string.prompt_spawn_text, prompt.count, name, tileLabel(group.location.placementId.orEmpty())))
         }
         is Prompt.PlaceToken -> {
             val token = scenario.token(prompt.tokenId) ?: return
             Title(stringResource(R.string.prompt_place_token_title))
-            Body(stringResource(R.string.prompt_place_token_text, token.label, tokenTypeLabel(token), tileLabel(token.location.placement)))
+            Body(stringResource(R.string.prompt_place_token_text, token.label, tokenTypeLabel(token), tileLabel(token.location.placementId.orEmpty())))
         }
         is Prompt.RemoveToken -> {
             val token = scenario.token(prompt.tokenId) ?: return
             Title(stringResource(R.string.prompt_remove_token_title))
-            Body(stringResource(R.string.prompt_remove_token_text, token.label, tileLabel(token.location.placement)))
+            Body(stringResource(R.string.prompt_remove_token_text, token.label, tileLabel(token.location.placementId.orEmpty())))
         }
         is Prompt.ThreatChanged -> {
             Title(stringResource(R.string.prompt_threat_title))

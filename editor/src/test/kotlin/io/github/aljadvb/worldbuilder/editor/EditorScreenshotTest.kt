@@ -34,7 +34,7 @@ class EditorScreenshotTest {
     fun exampleWithError() {
         val m = EditorModel(InMemoryEditorPrefs())
         m.openExample()
-        m.edit { c -> c.updateToken("tok_brunnen") { it.copy(location = it.location.copy(cell = HexCoord(9, 9))) } }
+        m.edit { c -> c.updateToken("tok_brunnen") { it.copy(location = (it.location as io.github.aljadvb.worldbuilder.model.TileLocation).copy(cell = HexCoord(9, 9))) } }
         m.selection = "tok_brunnen"
         render("e02_structure", m)
     }

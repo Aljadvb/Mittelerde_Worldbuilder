@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/Aljadvb/Mittelerde_Worldbuilder/schema/material.schema.json",
   "title": "Material-Katalog",
-  "description": "Katalog des physisch vorhandenen Spielmaterials (Kacheln, Gegnertypen, Erweiterungen). Wird vom Nutzer selbst gepflegt; Kampagnen verweisen per ID darauf.",
+  "description": "Katalog des physisch vorhandenen Spielmaterials (Kacheln, Schlachtpläne, Geländeteile, Gegnertypen, Erweiterungen). Wird vom Nutzer selbst gepflegt; Kampagnen verweisen per ID darauf.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -42,6 +42,18 @@
       "type": "array",
       "items": {
         "$ref": "#/$defs/enemyType"
+      }
+    },
+    "battleBoards": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/battleBoard"
+      }
+    },
+    "terrainPieces": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/terrainPiece"
       }
     }
   },
@@ -221,6 +233,272 @@
         },
         "expansion": {
           "$ref": "#/$defs/id"
+        }
+      }
+    },
+    "square": {
+      "description": "Quadrat auf dem Raster eines Schlachtplans (x nach rechts, y nach unten).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "x",
+        "y"
+      ],
+      "properties": {
+        "x": {
+          "type": "integer"
+        },
+        "y": {
+          "type": "integer"
+        }
+      }
+    },
+    "boardSide": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "width",
+        "height"
+      ],
+      "properties": {
+        "width": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Breite in Quadraten."
+        },
+        "height": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Höhe in Quadraten."
+        },
+        "cellSizeMm": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "default": 95,
+          "description": "Kantenlänge eines Quadrats in Millimetern."
+        },
+        "areas": {
+          "description": "Die aufgedruckten Felder: je eine Liste der Quadrate, die zusammen ein Feld bilden. Jedes Quadrat gehört zu genau einem Feld. Leer = jedes Quadrat ist ein eigenes Feld.",
+          "type": "array",
+          "items": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "$ref": "#/$defs/square"
+            }
+          }
+        },
+        "image": {
+          "description": "Optionales Bild der Seite, ungedreht. originX/originY = Pixelposition der linken oberen Ecke von Quadrat (0,0), cellSize = Kantenlänge eines Quadrats in Pixeln.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "file",
+            "cellSize"
+          ],
+          "properties": {
+            "file": {
+              "type": "string",
+              "minLength": 1
+            },
+            "originX": {
+              "type": "number",
+              "default": 0
+            },
+            "originY": {
+              "type": "number",
+              "default": 0
+            },
+            "cellSize": {
+              "type": "number",
+              "exclusiveMinimum": 0
+            }
+          }
+        },
+        "terrain": {
+          "description": "Was die Seite zeigt (feste Liste), z. B. zum Auswählen passender Kacheln für eine Geschichte.",
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "wiese",
+              "gebuesch",
+              "lichtung",
+              "wald_licht",
+              "wald_dicht",
+              "huegel",
+              "felsen",
+              "gebirge",
+              "oedland",
+              "weg",
+              "fluss",
+              "gewaesser",
+              "sumpf",
+              "ruinen",
+              "bauwerk",
+              "siedlung",
+              "hoehle",
+              "innenraum",
+              "duester"
+            ]
+          }
+        },
+        "description": {
+          "type": "string",
+          "description": "Kurze Beschreibung in eigenen Worten."
+        }
+      }
+    },
+    "battleBoard": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "expansion",
+        "sides"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Name für die Spieler, z. B. S1."
+        },
+        "expansion": {
+          "$ref": "#/$defs/id"
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 1,
+          "description": "Anzahl gleicher Exemplare im Besitz."
+        },
+        "sides": {
+          "type": "object",
+          "additionalProperties": false,
+          "minProperties": 1,
+          "properties": {
+            "A": {
+              "$ref": "#/$defs/boardSide"
+            },
+            "B": {
+              "$ref": "#/$defs/boardSide"
+            }
+          }
+        }
+      }
+    },
+    "terrainPieceSide": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "placement"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "placement": {
+          "enum": [
+            "area",
+            "edge"
+          ],
+          "description": "area = liegt in einem Feld, edge = liegt auf einer Feldgrenze."
+        },
+        "image": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "file"
+          ],
+          "properties": {
+            "file": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "terrain": {
+          "description": "Was die Seite zeigt (feste Liste), z. B. zum Auswählen passender Kacheln für eine Geschichte.",
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "wiese",
+              "gebuesch",
+              "lichtung",
+              "wald_licht",
+              "wald_dicht",
+              "huegel",
+              "felsen",
+              "gebirge",
+              "oedland",
+              "weg",
+              "fluss",
+              "gewaesser",
+              "sumpf",
+              "ruinen",
+              "bauwerk",
+              "siedlung",
+              "hoehle",
+              "innenraum",
+              "duester"
+            ]
+          }
+        },
+        "effect": {
+          "type": "string",
+          "description": "Kurze Zusammenfassung der Wirkung in eigenen Worten (für Editor und KI)."
+        },
+        "cardText": {
+          "type": "string",
+          "description": "Text der eigenen Geländekarte. Nur im privaten Katalog, nie im Repo."
+        },
+        "blocksMovement": {
+          "type": "boolean",
+          "default": false,
+          "description": "Kante: nicht überquerbar; Feld: nicht betretbar. Nur für Hinweise zur Erreichbarkeit."
+        }
+      }
+    },
+    "terrainPiece": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "expansion",
+        "sides"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "expansion": {
+          "$ref": "#/$defs/id"
+        },
+        "count": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 1,
+          "description": "Anzahl Pappteile (beide Seiten zusammen)."
+        },
+        "sides": {
+          "type": "object",
+          "additionalProperties": false,
+          "minProperties": 1,
+          "properties": {
+            "A": {
+              "$ref": "#/$defs/terrainPieceSide"
+            },
+            "B": {
+              "$ref": "#/$defs/terrainPieceSide"
+            }
+          }
         }
       }
     }

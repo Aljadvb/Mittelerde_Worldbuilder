@@ -10,7 +10,7 @@ data class Token(
     /** Required if [type] is [TokenType.CUSTOM]; forbidden otherwise. */
     val customType: String? = null,
     val label: String,
-    val location: TileLocation,
+    val location: Location,
     val initiallyActive: Boolean = true,
     val inspectText: String? = null,
     /** Event run when the token is interacted with. */

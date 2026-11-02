@@ -1,5 +1,6 @@
 package io.github.aljadvb.worldbuilder.editor.play
 
+import io.github.aljadvb.worldbuilder.model.placementId
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -236,8 +237,8 @@ fun describe(prompt: Prompt, scenario: Scenario, catalog: MaterialCatalog): Stri
         is Prompt.Text -> prompt.text
         is Prompt.Inspect -> scenario.token(prompt.tokenId)?.let { "${it.label}: ${it.inspectText.orEmpty()}" }.orEmpty()
         is Prompt.Setup -> scenario.chapter(prompt.chapterId)?.let { Texts.setup(it.title) + if (it.setupText.isNotBlank()) "\n" + it.setupText else "" }.orEmpty()
-        is Prompt.SpawnEnemies -> scenario.enemyGroup(prompt.groupId)?.let { Texts.spawn(prompt.count, catalog.enemyType(it.enemyType)?.name ?: it.enemyType, tile(it.location.placement)) }.orEmpty()
-        is Prompt.PlaceToken -> scenario.token(prompt.tokenId)?.let { Texts.placeToken(it.label, tile(it.location.placement)) }.orEmpty()
+        is Prompt.SpawnEnemies -> scenario.enemyGroup(prompt.groupId)?.let { Texts.spawn(prompt.count, catalog.enemyType(it.enemyType)?.name ?: it.enemyType, tile(it.location.placementId.orEmpty())) }.orEmpty()
+        is Prompt.PlaceToken -> scenario.token(prompt.tokenId)?.let { Texts.placeToken(it.label, tile(it.location.placementId.orEmpty())) }.orEmpty()
         is Prompt.RemoveToken -> scenario.token(prompt.tokenId)?.let { Texts.removeToken(it.label) }.orEmpty()
         is Prompt.ThreatChanged -> Texts.threatChanged(prompt.delta, prompt.threat)
         is Prompt.RoundEnded -> Texts.roundEnded(prompt.round, prompt.threatAdded, prompt.threat)

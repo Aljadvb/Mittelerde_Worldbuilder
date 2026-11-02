@@ -1,6 +1,7 @@
 package io.github.aljadvb.worldbuilder.editing
 
 import io.github.aljadvb.worldbuilder.model.CURRENT_FORMAT_VERSION
+import io.github.aljadvb.worldbuilder.model.Battlefield
 import io.github.aljadvb.worldbuilder.model.Campaign
 import io.github.aljadvb.worldbuilder.model.Chapter
 import io.github.aljadvb.worldbuilder.model.EnemyGroup
@@ -13,7 +14,7 @@ import io.github.aljadvb.worldbuilder.model.Resolution
 import io.github.aljadvb.worldbuilder.model.Scenario
 import io.github.aljadvb.worldbuilder.model.ThreatConfig
 import io.github.aljadvb.worldbuilder.model.ThreatPerRound
-import io.github.aljadvb.worldbuilder.model.TileLocation
+import io.github.aljadvb.worldbuilder.model.Location
 import io.github.aljadvb.worldbuilder.model.TilePlacement
 import io.github.aljadvb.worldbuilder.model.TileSide
 import io.github.aljadvb.worldbuilder.model.Token
@@ -99,13 +100,13 @@ fun Campaign.addResolution(scenarioId: String, title: String, outcome: Outcome):
     return Created(updateScenario(scenarioId) { it.copy(resolutions = it.resolutions + Resolution(id, title, "", outcome)) }, id)
 }
 
-fun Campaign.addEnemyGroup(scenarioId: String, name: String, enemyType: String, location: TileLocation): Created {
+fun Campaign.addEnemyGroup(scenarioId: String, name: String, enemyType: String, location: Location): Created {
     val id = Ids.fromTitle(ObjectKind.ENEMY_GROUP, name, allIds())
     val group = EnemyGroup(id, enemyType, (1..5).associateWith { 1 }, location)
     return Created(updateScenario(scenarioId) { it.copy(enemyGroups = it.enemyGroups + group) }, id)
 }
 
-fun Campaign.addToken(chapterId: String, label: String, type: TokenType, location: TileLocation): Created {
+fun Campaign.addToken(chapterId: String, label: String, type: TokenType, location: Location): Created {
     val id = Ids.fromTitle(ObjectKind.TOKEN, label, allIds())
     val token = Token(id, type, customType = if (type == TokenType.CUSTOM) "Eigenes" else null, label = label, location = location)
     return Created(updateChapter(chapterId) { it.copy(tokens = it.tokens + token) }, id)
@@ -185,6 +186,8 @@ fun Campaign.rename(oldId: String, newId: String): Campaign {
         ObjectKind.OBJECTIVE -> renamed.updateObjective(oldId) { it.copy(id = newId) }
         ObjectKind.ENEMY_GROUP -> renamed.updateEnemyGroup(oldId) { it.copy(id = newId) }
         ObjectKind.RESOLUTION -> renamed.updateResolution(oldId) { it.copy(id = newId) }
+        ObjectKind.BOARD_PLACEMENT -> renamed.updateBattlefields(oldId) { bf -> bf.copy(boards = bf.boards.map { if (it.id == oldId) it.copy(id = newId) else it }) }
+        ObjectKind.TERRAIN_PLACEMENT -> renamed.updateBattlefields(oldId) { bf -> bf.copy(terrain = bf.terrain.map { if (it.id == oldId) it.copy(id = newId) else it }) }
     }
 }
 
@@ -205,5 +208,11 @@ fun Campaign.delete(id: String): Campaign {
         ObjectKind.OBJECTIVE -> updateOwningScenario(id) { s -> s.copy(objectives = s.objectives.filterNot { it.id == id }) }
         ObjectKind.ENEMY_GROUP -> updateOwningScenario(id) { s -> s.copy(enemyGroups = s.enemyGroups.filterNot { it.id == id }) }
         ObjectKind.RESOLUTION -> updateOwningScenario(id) { s -> s.copy(resolutions = s.resolutions.filterNot { it.id == id }) }
+        ObjectKind.BOARD_PLACEMENT -> updateBattlefields(id) { bf -> bf.copy(boards = bf.boards.filterNot { it.id == id }) }
+        ObjectKind.TERRAIN_PLACEMENT -> updateBattlefields(id) { bf -> bf.copy(terrain = bf.terrain.filterNot { it.id == id }) }
     }
 }
+
+/** Applies [f] to every battlefield of the scenario that owns [id]. */
+internal fun Campaign.updateBattlefields(id: String, f: (Battlefield) -> Battlefield): Campaign =
+    updateOwningScenario(id) { s -> s.copy(chapters = s.chapters.map { ch -> ch.battlefield?.let { ch.copy(battlefield = f(it)) } ?: ch }) }

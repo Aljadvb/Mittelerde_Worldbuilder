@@ -12,4 +12,5 @@ object RepoFiles {
     val materialSchema get() = read("schema/material.schema.json")
     val exampleCampaign get() = read("examples/beispiel-kampagne.json")
     val exampleMaterial get() = read("examples/beispiel-material.json")
+    val exampleBattle get() = read("examples/beispiel-schlacht.json")
 }

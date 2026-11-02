@@ -29,6 +29,27 @@ class CatalogValidatorTest {
     }
 }
 
+class BattleCatalogValidationTest {
+    @Test
+    fun `board fields must cover every square once`() {
+        val board = Examples.catalog.battleBoard("sx1")!!
+        val side = board.sides.getValue(TileSide.A)
+        val broken = board.copy(count = 0, sides = mapOf(TileSide.A to side.copy(areas = side.areas.drop(1) + listOf(listOf(io.github.aljadvb.worldbuilder.model.GridCoord(1, 1), io.github.aljadvb.worldbuilder.model.GridCoord(3, 0))))))
+        val report = CatalogValidator.validate(Examples.catalog.copy(battleBoards = listOf(broken)))
+        val fields = report.issues.single { it.code == IssueCode.INVALID_BOARD_FIELDS }
+        assertTrue("außerhalb: (3,0)" in fields.message && "doppelt: (1,1)" in fields.message && "fehlt: (0,0), (0,1)" in fields.message, fields.message)
+        assertTrue(report.issues.any { it.code == IssueCode.INVALID_NUMBER && it.path == "battleBoards[0].count" })
+    }
+
+    @Test
+    fun `terrain pieces need names and known expansions`() {
+        val piece = Examples.catalog.terrainPiece("bach_wall")!!
+        val broken = piece.copy(expansion = "weg", sides = piece.sides.mapValues { (_, s) -> s.copy(name = "", terrain = listOf("lava")) })
+        val codes = CatalogValidator.validate(Examples.catalog.copy(terrainPieces = listOf(broken))).issues.map { it.code }
+        assertTrue(IssueCode.UNKNOWN_EXPANSION in codes && IssueCode.BLANK_TEXT in codes && IssueCode.UNKNOWN_TERRAIN in codes, codes.toString())
+    }
+}
+
 class TileImageValidationTest {
     @Test
     fun `image paths must be relative`() {

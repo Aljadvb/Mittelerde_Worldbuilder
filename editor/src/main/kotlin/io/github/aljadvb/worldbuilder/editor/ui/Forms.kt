@@ -44,6 +44,7 @@ import io.github.aljadvb.worldbuilder.model.HexCoord
 import io.github.aljadvb.worldbuilder.model.Outcome
 import io.github.aljadvb.worldbuilder.model.Scenario
 import io.github.aljadvb.worldbuilder.model.ScenarioTransition
+import io.github.aljadvb.worldbuilder.model.Location
 import io.github.aljadvb.worldbuilder.model.TileLocation
 import io.github.aljadvb.worldbuilder.model.TokenType
 import io.github.aljadvb.worldbuilder.model.TriggerCondition
@@ -70,6 +71,8 @@ fun ObjectForm(model: EditorModel, def: Definition) {
         ObjectKind.TRIGGER -> TriggerForm(model, scenario!!, def, ask)
         ObjectKind.PLACEMENT -> PlacementInfo(model, scenario!!, def)
         ObjectKind.EVENT -> EventForm(model, scenario!!, def, ask)
+        // Battle map forms follow with the battle map editor.
+        ObjectKind.BOARD_PLACEMENT, ObjectKind.TERRAIN_PLACEMENT -> { Text(def.id); FieldIssues(model, def.path) }
     }
 
     request?.let { r ->
@@ -230,8 +233,13 @@ private fun EnemyGroupForm(model: EditorModel, s: Scenario, def: Definition) {
 }
 
 @Composable
-private fun LocationInfo(model: EditorModel, s: Scenario, loc: TileLocation, path: String) {
+private fun LocationInfo(model: EditorModel, s: Scenario, location: Location, path: String) {
     SectionHeader(Texts.LOCATION)
+    val loc = location as? TileLocation ?: run {
+        Text(location.toString())
+        FieldIssues(model, path)
+        return
+    }
     val p = s.placement(loc.placement)
     val tile = p?.let { model.catalog.tile(it.tile)?.label ?: it.tile } ?: loc.placement.ifEmpty { "–" }
     Text(Texts.location(tile, loc.cell.toString()))

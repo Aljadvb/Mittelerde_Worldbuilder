@@ -36,5 +36,37 @@
   "enemyTypes": [
     { "id": "nebelwolf", "name": "Nebelwolf", "expansion": "beispiel" },
     { "id": "aschekraehe", "name": "Aschekrähe", "expansion": "beispiel" }
+  ],
+  "battleBoards": [
+    {
+      "id": "sx1",
+      "label": "SX1",
+      "expansion": "beispiel",
+      "count": 2,
+      "sides": {
+        "A": { "width": 3, "height": 3, "areas": [ [{"x":0,"y":0},{"x":0,"y":1}], [{"x":1,"y":0},{"x":2,"y":0}], [{"x":2,"y":1},{"x":2,"y":2}], [{"x":0,"y":2},{"x":1,"y":2}], [{"x":1,"y":1}] ], "terrain": ["wiese"], "description": "Offene Wiese" },
+        "B": { "width": 3, "height": 3, "areas": [ [{"x":0,"y":0},{"x":0,"y":1}], [{"x":1,"y":0},{"x":2,"y":0}], [{"x":2,"y":1},{"x":2,"y":2}], [{"x":0,"y":2},{"x":1,"y":2}], [{"x":1,"y":1}] ], "terrain": ["innenraum"], "description": "Steinboden einer Halle" }
+      }
+    }
+  ],
+  "terrainPieces": [
+    {
+      "id": "bach_wall",
+      "expansion": "beispiel",
+      "count": 4,
+      "sides": {
+        "A": { "name": "Bach", "placement": "edge", "terrain": ["fluss"], "effect": "Wer den Bach überquert, muss danach stehen bleiben." },
+        "B": { "name": "Steinwall", "placement": "edge", "terrain": ["bauwerk"], "effect": "Nicht überquerbar; trennt die Felder.", "blocksMovement": true }
+      }
+    },
+    {
+      "id": "busch_kiste",
+      "expansion": "beispiel",
+      "count": 2,
+      "sides": {
+        "A": { "name": "Dornbusch", "placement": "area", "terrain": ["gebuesch"], "effect": "Bietet Deckung." },
+        "B": { "name": "Sperrholz", "placement": "area", "effect": "Feld kann nicht betreten werden.", "blocksMovement": true }
+      }
+    }
   ]
 }

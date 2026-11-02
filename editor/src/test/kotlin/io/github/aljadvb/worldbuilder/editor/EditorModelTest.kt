@@ -29,7 +29,7 @@ class EditorModelTest {
     fun `edits validate live and can be undone`() {
         val m = model()
         m.openExample()
-        m.edit { c -> c.updateToken("tok_brunnen") { it.copy(location = it.location.copy(cell = HexCoord(9, 9))) } }
+        m.edit { c -> c.updateToken("tok_brunnen") { it.copy(location = (it.location as io.github.aljadvb.worldbuilder.model.TileLocation).copy(cell = HexCoord(9, 9))) } }
         val issue = m.report.errors.single()
         assertEquals("tok_brunnen", m.objectOf(issue))
         assertTrue(m.issuesUnder("scenarios[0].chapters[0]").isNotEmpty())

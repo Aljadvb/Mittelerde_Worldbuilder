@@ -11,6 +11,7 @@ object Examples {
     private val root = File(System.getProperty("repoRoot") ?: "..")
     val campaign: Campaign = FormatJson.decodeCampaign(File(root, "examples/beispiel-kampagne.json").readText())
     val catalog: MaterialCatalog = FormatJson.decodeCatalog(File(root, "examples/beispiel-material.json").readText())
+    val battle: Campaign = FormatJson.decodeCampaign(File(root, "examples/beispiel-schlacht.json").readText())
 }
 
 fun Campaign.validate(): ValidationReport = CampaignValidator.validate(this, Examples.catalog)

@@ -1,6 +1,11 @@
 package io.github.aljadvb.worldbuilder.model
 
+import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.JsonContentPolymorphicSerializer
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.jsonObject
 
 const val CURRENT_FORMAT_VERSION = 1
 
@@ -46,6 +51,8 @@ data class Scenario(
 ) {
     val tokens: List<Token> get() = chapters.flatMap { it.tokens }
     val placements: List<TilePlacement> get() = chapters.flatMap { it.tiles }
+    val boardPlacements: List<BoardPlacement> get() = chapters.flatMap { it.battlefield?.boards.orEmpty() }
+    val terrainPlacements: List<TerrainPlacement> get() = chapters.flatMap { it.battlefield?.terrain.orEmpty() }
 
     fun chapter(id: String) = chapters.firstOrNull { it.id == id }
     fun token(id: String) = tokens.firstOrNull { it.id == id }
@@ -58,6 +65,9 @@ data class Scenario(
 
     /** The chapter that defines the given placement. */
     fun chapterOfPlacement(placementId: String) = chapters.firstOrNull { c -> c.tiles.any { it.id == placementId } }
+
+    fun boardPlacement(id: String) = boardPlacements.firstOrNull { it.id == id }
+    fun terrainPlacement(id: String) = terrainPlacements.firstOrNull { it.id == id }
 
     /** The chapter that defines the given token. */
     fun chapterOfToken(tokenId: String) = chapters.firstOrNull { c -> c.tokens.any { it.id == tokenId } }
@@ -86,7 +96,11 @@ data class Chapter(
     val onUnlock: String? = null,
     val tiles: List<TilePlacement> = emptyList(),
     val tokens: List<Token> = emptyList(),
-)
+    /** Present for battle chapters: boards and terrain pieces instead of tiles. */
+    val battlefield: Battlefield? = null,
+) {
+    val isBattle: Boolean get() = battlefield != null
+}
 
 @Serializable
 data class TilePlacement(
@@ -103,12 +117,33 @@ data class TilePlacement(
     fun toMap(local: HexCoord): HexCoord = local.rotateClockwise(rotation) + position
 }
 
+/**
+ * Where a token or enemy group stands: on a hex of a placed tile (travel map) or in a field of
+ * the battle map. Distinguished in JSON by its keys, without a "type" property.
+ */
+@Serializable(with = LocationSerializer::class)
+sealed interface Location
+
+/** The placement ID if this is a [TileLocation]. */
+val Location.placementId: String? get() = (this as? TileLocation)?.placement
+
 /** A cell on a specific placed tile, in tile-local coordinates. */
 @Serializable
 data class TileLocation(
     val placement: String,
     val cell: HexCoord,
-)
+) : Location
+
+internal object LocationSerializer : JsonContentPolymorphicSerializer<Location>(Location::class) {
+    override fun selectDeserializer(element: JsonElement): DeserializationStrategy<Location> {
+        val keys = element.jsonObject.keys
+        return when {
+            "square" in keys -> SquareLocation.serializer()
+            "placement" in keys || "cell" in keys -> TileLocation.serializer()
+            else -> throw SerializationException("Ort braucht entweder 'placement' und 'cell' oder 'square'.")
+        }
+    }
+}
 
 @Serializable
 data class EnemyGroup(
@@ -117,7 +152,7 @@ data class EnemyGroup(
     val enemyType: String,
     /** Number of enemies by hero count (keys 1–5). */
     val count: Map<Int, Int>,
-    val location: TileLocation,
+    val location: Location,
 )
 
 @Serializable

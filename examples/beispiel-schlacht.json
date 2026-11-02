@@ -1,0 +1,206 @@
+{
+  "formatVersion": 1,
+  "id": "cmp_uebungsplatz",
+  "title": "Der Übungsplatz",
+  "description": "Kleines Beispiel für ein Schlacht-Kapitel mit frei erfundenen Texten.",
+  "startScenario": "scn_ueberfall",
+  "scenarios": [
+    {
+      "id": "scn_ueberfall",
+      "title": "Überfall am Bach",
+      "intro": "Am Bach hinter dem Übungsplatz lauern Nebelwölfe. Haltet sie auf, bevor sie die Vorräte erreichen.",
+      "threat": {
+        "max": 12,
+        "perRound": {
+          "base": 1,
+          "perHero": 1
+        }
+      },
+      "startChapter": "ch_bach",
+      "startObjective": "obj_woelfe",
+      "chapters": [
+        {
+          "id": "ch_bach",
+          "title": "Am Bach",
+          "setupText": "Legt zwei Pläne nebeneinander, links die Wiese, rechts die Halle.",
+          "onUnlock": "evt_angriff",
+          "battlefield": {
+            "boards": [
+              {
+                "id": "bp_wiese",
+                "board": "sx1",
+                "side": "A",
+                "position": {
+                  "x": 0,
+                  "y": 0
+                }
+              },
+              {
+                "id": "bp_halle",
+                "board": "sx1",
+                "side": "B",
+                "position": {
+                  "x": 1,
+                  "y": 0
+                },
+                "rotation": 1
+              }
+            ],
+            "terrain": [
+              {
+                "id": "gt_bach_1",
+                "piece": "bach_wall",
+                "side": "A",
+                "edge": {
+                  "x": 2,
+                  "y": 0,
+                  "side": "east"
+                }
+              },
+              {
+                "id": "gt_wall_1",
+                "piece": "bach_wall",
+                "side": "B",
+                "edge": {
+                  "x": 1,
+                  "y": 1,
+                  "side": "west"
+                }
+              },
+              {
+                "id": "gt_busch",
+                "piece": "busch_kiste",
+                "side": "A",
+                "area": {
+                  "x": 1,
+                  "y": 1
+                },
+                "customName": "Versteck der Späherin",
+                "customRule": {
+                  "mode": "add",
+                  "text": "Wer hier seinen Zug beendet, darf einen Blick auf die nächste Gegnerkarte werfen."
+                }
+              }
+            ]
+          },
+          "tokens": [
+            {
+              "id": "tok_vorraete",
+              "type": "search",
+              "label": "Vorräte",
+              "location": {
+                "square": {
+                  "x": 4,
+                  "y": 1
+                }
+              },
+              "inspectText": "Säcke mit Mehl und ein Fass Äpfel."
+            }
+          ]
+        }
+      ],
+      "enemyGroups": [
+        {
+          "id": "eg_woelfe",
+          "enemyType": "nebelwolf",
+          "count": {
+            "1": 1,
+            "2": 2,
+            "3": 2,
+            "4": 3,
+            "5": 3
+          },
+          "location": {
+            "square": {
+              "x": 0,
+              "y": 2
+            }
+          }
+        }
+      ],
+      "events": [
+        {
+          "id": "evt_angriff",
+          "steps": [
+            {
+              "type": "text",
+              "text": "Aus dem Nebel jenseits des Baches lösen sich graue Schatten."
+            },
+            {
+              "type": "spawnEnemies",
+              "group": "eg_woelfe"
+            }
+          ]
+        },
+        {
+          "id": "evt_sieg",
+          "steps": [
+            {
+              "type": "endScenario",
+              "resolution": "res_sieg"
+            }
+          ]
+        },
+        {
+          "id": "evt_niederlage",
+          "steps": [
+            {
+              "type": "endScenario",
+              "resolution": "res_niederlage"
+            }
+          ]
+        }
+      ],
+      "triggers": [
+        {
+          "id": "trg_woelfe_besiegt",
+          "on": {
+            "type": "enemyGroupDefeated",
+            "group": "eg_woelfe"
+          }
+        },
+        {
+          "id": "trg_ziel_erfuellt",
+          "on": {
+            "type": "objectiveCompleted",
+            "objective": "obj_woelfe"
+          },
+          "events": [
+            "evt_sieg"
+          ]
+        },
+        {
+          "id": "trg_bedrohung_max",
+          "on": {
+            "type": "threatMax"
+          },
+          "events": [
+            "evt_niederlage"
+          ]
+        }
+      ],
+      "objectives": [
+        {
+          "id": "obj_woelfe",
+          "title": "Vertreibt die Nebelwölfe",
+          "reminder": "Besiegt alle Nebelwölfe, bevor die Bedrohung zu groß wird.",
+          "completedBy": "trg_woelfe_besiegt"
+        }
+      ],
+      "resolutions": [
+        {
+          "id": "res_sieg",
+          "title": "Die Vorräte sind sicher",
+          "text": "Die letzten Wölfe fliehen über den Bach zurück in den Nebel.",
+          "outcome": "victory"
+        },
+        {
+          "id": "res_niederlage",
+          "title": "Geplündert",
+          "text": "Als ihr euch zurückzieht, reißen die Wölfe die Säcke auf.",
+          "outcome": "defeat"
+        }
+      ]
+    }
+  ]
+}
