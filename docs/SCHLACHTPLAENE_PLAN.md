@@ -63,6 +63,20 @@ der App als Wort angezeigt. Ein Szenario kann einem gelegten Teil eine **eigene 
 Geländeteil, erscheint ein Fenster mit Name, Bild, Kartentext und – deutlich hervorgehoben – der abweichenden Regel im
 Szenario. Die KI darf `customName`/`customRule` setzen; ihre Texte formuliert sie selbst.
 
+**Abgleich mit den Regelbüchern (02.11.)** (nur Regelwissen in eigenen Worten, kein Regeltext im Repo):
+- **Lage geklärt:** Fluss, Graben, Mauer und Zaun liegen auf **Feldgrenzen**, alle anderen Teile immer **in einem Feld**.
+  Ein Feld ist ein von Linien umschlossener Bereich (bei unserem Plan: die 5 Windrad-Bereiche).
+- **Nachbarschaft für die Prüfung der Erreichbarkeit:** Mauer trennt (auch diagonal über Ecken), Barrikade-Felder sind nicht
+  betretbar. Fluss, Graben und Zaun erschweren nur die Bewegung, die Felder bleiben benachbart.
+- **Abenteuerspezifisches Gelände:** In der offiziellen App ersetzt eine abenteuerspezifische Regel die Geländekarte, und
+  das Teil wird hervorgehoben. Deshalb ist `replace` der Standard. `add` ist unsere Erweiterung für „gilt zusätzlich“.
+- **Erweiterungen der Teile:** Grundspiel: Fluss/Mauer, Gebüsch/Felsen, Fässer/Tisch, Feuerstelle/Statue, Grube/Nebel.
+  Dunkle Pfade: Anhöhe/Baumstamm, Spinnennetz/Geröll. Schatten des Krieges: Graben/Zaun, Truhe/Barrikade,
+  Teich/Springbrunnen. Daraus wird `expansion` im Katalog belegt, sodass nur Teile aus Erweiterungen „im Besitz“ benutzt
+  werden.
+- Die Spielregeln selbst bildet die App weiterhin nicht nach. Die KI bekommt pro Teil nur eine kurze eigene Zusammenfassung
+  der Wirkung, damit Platzierung und eigene Bedeutungen sinnvoll sind.
+
 ## 1. Ziel
 
 Neben **Reiseabenteuern** auf Sechseck-Kacheln gibt es **Schlachten** auf viereckigen Schlachtspielplänen mit
