@@ -54,7 +54,7 @@ class CampaignFormTest {
             MaterialTheme(colorScheme = lightColorScheme()) { io.github.aljadvb.worldbuilder.editor.ui.EditorContent(m) }
         }
         try {
-            s.render(); File("build/screenshots/e31_campaign_form.png").writeBytes(s.render(1_000_000_000L).encodeToData(EncodedImageFormat.PNG)!!.bytes)
+            File("build/screenshots").mkdirs(); s.render(); File("build/screenshots/e31_campaign_form.png").writeBytes(s.render(1_000_000_000L).encodeToData(EncodedImageFormat.PNG)!!.bytes)
         } finally { s.close() }
     }
 }
