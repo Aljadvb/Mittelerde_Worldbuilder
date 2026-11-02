@@ -13,6 +13,9 @@ Gesamtwissen (2a), alle Helden erhalten gleich viele EP (3).
 "bilder/kampagnenkarte.jpg"}`) – nur im privaten Katalog, nie im Repo. App und Editor zeigen es dann statt der
 schematischen Karte; die Orte liegen relativ (0–1) darauf und werden im Editor auf dem Bild gesetzt.
 
+**Lager-Hintergrund:** `app/src/main/res/drawable-nodpi/camp_background.jpg` – vom Nutzer selbst erstelltes Bild,
+für die App freigegeben.
+
 ## Format
 ```json
 "places": [{"id": "pt_bree", "name": "Bree", "x": 0.27, "y": 0.38}],

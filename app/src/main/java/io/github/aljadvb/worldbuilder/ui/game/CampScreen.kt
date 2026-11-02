@@ -1,5 +1,6 @@
 package io.github.aljadvb.worldbuilder.ui.game
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -44,21 +45,33 @@ import io.github.aljadvb.worldbuilder.model.Campaign
 @Composable
 fun CampContent(campaign: Campaign, progress: CampaignProgress, background: androidx.compose.ui.graphics.ImageBitmap? = null, onAction: ((CampaignProgress) -> CampaignProgress) -> Unit) {
     val last = progress.completed.lastOrNull()
-    Column(
-        Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-        Text(stringResource(R.string.camp_title), style = MaterialTheme.typography.headlineMedium)
-        last?.let { c ->
-            val s = campaign.scenario(c.scenarioId)
-            Text(stringResource(R.string.camp_last, s?.title ?: c.scenarioId, s?.resolution(c.resolutionId)?.title ?: c.resolutionId))
-            if (c.lore > 0 || c.xp > 0) Text(stringResource(R.string.camp_rewards, c.lore, c.xp), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
-        }
-        CampaignOverview(campaign, progress, background)
-        HeroesSection(progress, editable = true, onAction = onAction)
-        val next = progress.currentScenario?.let { campaign.scenario(it) }
-        Button(onClick = { onAction(Camp::leave) }, modifier = Modifier.fillMaxWidth()) {
-            Text(stringResource(R.string.camp_continue, next?.title.orEmpty()))
+    androidx.compose.foundation.layout.Box(Modifier.fillMaxSize()) {
+        // Camp picture (created by the user) behind everything, darkened for legibility.
+        androidx.compose.foundation.Image(
+            androidx.compose.ui.res.painterResource(R.drawable.camp_background), contentDescription = null,
+            contentScale = androidx.compose.ui.layout.ContentScale.Crop, modifier = Modifier.fillMaxSize(),
+        )
+        androidx.compose.foundation.layout.Box(Modifier.fillMaxSize().background(androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.35f)))
+        Column(
+            Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            Text(stringResource(R.string.camp_title), style = MaterialTheme.typography.headlineMedium, color = androidx.compose.ui.graphics.Color.White, fontWeight = FontWeight.Bold)
+            last?.let { c ->
+                val s = campaign.scenario(c.scenarioId)
+                Card(Modifier.fillMaxWidth()) {
+                    Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text(stringResource(R.string.camp_last, s?.title ?: c.scenarioId, s?.resolution(c.resolutionId)?.title ?: c.resolutionId))
+                        if (c.lore > 0 || c.xp > 0) Text(stringResource(R.string.camp_rewards, c.lore, c.xp), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                    }
+                }
+            }
+            CampaignOverview(campaign, progress, background)
+            HeroesSection(progress, editable = true, onAction = onAction, onImage = true)
+            val next = progress.currentScenario?.let { campaign.scenario(it) }
+            Button(onClick = { onAction(Camp::leave) }, modifier = Modifier.fillMaxWidth()) {
+                Text(stringResource(R.string.camp_continue, next?.title.orEmpty()))
+            }
         }
     }
 }
@@ -99,10 +112,11 @@ fun CampaignOverview(campaign: Campaign, progress: CampaignProgress, background:
 }
 
 @Composable
-fun HeroesSection(progress: CampaignProgress, editable: Boolean, onAction: ((CampaignProgress) -> CampaignProgress) -> Unit = {}) {
+fun HeroesSection(progress: CampaignProgress, editable: Boolean, onAction: ((CampaignProgress) -> CampaignProgress) -> Unit = {}, onImage: Boolean = false) {
     var buyFor by remember { mutableStateOf<Int?>(null) }
     var roleFor by remember { mutableStateOf<Int?>(null) }
-    Text(stringResource(R.string.camp_heroes), style = MaterialTheme.typography.titleMedium)
+    Text(stringResource(R.string.camp_heroes), style = MaterialTheme.typography.titleMedium,
+        color = if (onImage) androidx.compose.ui.graphics.Color.White else androidx.compose.ui.graphics.Color.Unspecified, fontWeight = if (onImage) FontWeight.Bold else null)
     progress.party.forEachIndexed { i, h ->
         Card(Modifier.fillMaxWidth()) {
             Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
