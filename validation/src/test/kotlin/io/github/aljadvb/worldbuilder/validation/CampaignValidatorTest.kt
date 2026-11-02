@@ -212,8 +212,8 @@ class CampaignMapValidationTest {
         assertEquals("", CampaignValidator.validate(good, Examples.catalog).format())
         val bad = good.copy(
             places = listOf(io.github.aljadvb.worldbuilder.model.Place("pt_bree", "Bree", 1.3, 0.4)),
-            flags = good.flags + io.github.aljadvb.worldbuilder.model.CampaignFlag("fl_b", "B"),
-            scenarios = listOf(s.copy(place = "pt_gibtsnicht", resolutions = s.resolutions.map { it.copy(xp = -1) })),
+            flags = good.flags + io.github.aljadvb.worldbuilder.model.CampaignFlag("fl_b", "B") + io.github.aljadvb.worldbuilder.model.CampaignFlag("fl_c", "C"),
+            scenarios = listOf(s.copy(place = "pt_gibtsnicht", resolutions = s.resolutions.map { it.copy(xp = -1, setFlags = listOf("fl_c")) })),
             transitions = good.transitions + good.transitions.first().copy(requiresFlag = "fl_b") + good.transitions.first().copy(requiresFlag = "fl_b"),
         )
         val codes = CampaignValidator.validate(bad, Examples.catalog).issues.map { it.code }.toSet()
