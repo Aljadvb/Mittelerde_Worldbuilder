@@ -7,6 +7,24 @@ Stand: 2026-11-01 · Noch kein Code. Details werden nach den Scans (Pläne und G
 Kanten*** zwischen zwei Bereichen oder am Rand. Mehrere Pläne werden aneinandergelegt. Der Entwurf unten ist daran
 angepasst (Abschnitte 3 und 4).
 
+**Nachtrag nach dem ersten Scan (Plan 1, Seite A, 28,5 × 28,5 cm):** Der Plan ist ein **3 × 3-Raster aus Quadraten
+von 9,5 cm**; einige Rasterlinien fehlen, dadurch entstehen **5 Bereiche** (vier Rechtecke aus je 2 Quadraten im Windrad
+um ein Mittelfeld). Im Katalog wird ein Plan deshalb als Raster (`width`/`height` in Quadraten, `cellSizeMm`) plus Liste
+der **Bereiche** (welche Quadrate zusammengehören) beschrieben:
+
+```json
+"A": {
+  "width": 3, "height": 3, "cellSizeMm": 95,
+  "areas": [
+    [{"x":0,"y":0},{"x":0,"y":1}], [{"x":1,"y":0},{"x":2,"y":0}], [{"x":2,"y":1},{"x":2,"y":2}],
+    [{"x":0,"y":2},{"x":1,"y":2}], [{"x":1,"y":1}]
+  ],
+  "image": {"file": "bilder/schlacht1A.jpg", "originX": 0, "originY": 0, "cellSize": 561}
+}
+```
+
+Figuren/Token/Gegner stehen in einem Bereich (angegeben über ein Quadrat des Bereichs), Mauern liegen auf Quadratkanten.
+
 ## 1. Ziel
 
 Neben **Reiseabenteuern** auf Sechseck-Kacheln gibt es **Schlachten** auf viereckigen Schlachtspielplänen mit
