@@ -26,4 +26,7 @@ tasks.test {
     useJUnitPlatform()
     // Example files live at the repository root.
     systemProperty("repoRoot", rootDir.absolutePath)
+    // Tests read the examples and schemas: rerun them when those change.
+    inputs.dir(rootProject.file("examples")).withPropertyName("examples")
+    inputs.dir(rootProject.file("schema")).withPropertyName("schemas")
 }

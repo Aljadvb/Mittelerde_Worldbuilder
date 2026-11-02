@@ -127,6 +127,7 @@
     <string name="inspiration_chosen">Ein Held eurer Wahl erhält %1$d Inspiration.</string>
     <string name="game_tap_hint_explore">Tippe auf ein Token oder einen Erkundungsmarker (grüner Kompass).</string>
     <string name="prompt_setup_tile_unexplored">Kachel %1$s, Seite %2$s – unerforscht: Erkundungsmarker darauflegen</string>
+    <string name="prompt_setup_clear">Räumt zuerst alle bisherigen Schlachtpläne, Geländeteile und Marker darauf ab.</string>
     <string name="prompt_setup_boards">Schlachtpläne</string>
     <string name="prompt_setup_board_line">%1$s, Seite %2$s</string>
     <string name="prompt_setup_terrain">Geländeteile</string>

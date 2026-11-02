@@ -86,6 +86,11 @@ Szenario. Die KI darf `customName`/`customRule` setzen; ihre Texte formuliert si
 - Die Spielregeln selbst bildet die App weiterhin nicht nach. Die KI bekommt pro Teil nur eine kurze eigene Zusammenfassung
   der Wirkung, damit Platzierung und eigene Bedeutungen sinnvoll sind.
 
+**Abräumen und zwei Pläne (02.11.):** Ein Schlacht-Kapitel mit `"clearBattlefield": true` räumt beim Aufbau alle
+bisherigen Pläne, Geländeteile und die Marker darauf ab; danach dürfen Pläne und Teile neu gelegt werden (die Prüfung zählt
+jeden Aufbau für sich). Normalerweise liegen **zwei Pläne** nebeneinander – liegt nur einer aus, gibt die Prüfung einen
+Hinweis, und die KI plant standardmäßig zwei Pläne.
+
 ## 1. Ziel
 
 Neben **Reiseabenteuern** auf Sechseck-Kacheln gibt es **Schlachten** auf viereckigen Schlachtspielplänen mit

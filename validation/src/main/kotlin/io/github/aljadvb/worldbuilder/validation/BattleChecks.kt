@@ -7,7 +7,7 @@ import io.github.aljadvb.worldbuilder.model.MaterialCatalog
 import io.github.aljadvb.worldbuilder.model.PiecePlacement
 import io.github.aljadvb.worldbuilder.model.Scenario
 import io.github.aljadvb.worldbuilder.model.SquareLocation
-import io.github.aljadvb.worldbuilder.model.battleMap
+import io.github.aljadvb.worldbuilder.model.battleSegments
 
 /** Checks the battle chapters of one scenario: boards, terrain pieces and their counts. */
 internal class BattleChecks(
@@ -19,24 +19,33 @@ internal class BattleChecks(
 ) {
     fun run() {
         if (s.chapters.none { it.isBattle }) return
-        checkBoards()
-        val map = s.battleMap(catalog)
-        checkTerrain(map)
-        checkReachability(map)
+        s.chapters.filter { it.tiles.isNotEmpty() && it.isBattle }.forEach { ch ->
+            c.error(IssueCode.MIXED_MAP, "${chapterPath(s.chapters.indexOf(ch))}.tiles", ch.id, "Kapitel '${ch.id}' hat Kacheln und einen Schlachtplan – ein Kapitel ist entweder Reise oder Schlacht.")
+        }
+        // Each layout on the table is checked on its own: cleared boards and pieces may be used again.
+        for (segment in s.battleSegments()) {
+            val ids = segment.map { it.id }.toSet()
+            checkBoards(ids)
+            val map = BattleMap(segment.flatMap { it.battlefield!!.boards }, catalog)
+            checkTerrain(map, ids)
+            checkReachability(map, ids)
+            if (segment.sumOf { it.battlefield!!.boards.size } == 1 && (catalog.battleBoard(segment.first().battlefield!!.boards.first().board)?.count ?: 1) > 1) {
+                val ci = s.chapters.indexOf(segment.first())
+                c.warn(IssueCode.SINGLE_BOARD, "${chapterPath(ci)}.battlefield.boards", segment.first().id, "Nur ein Schlachtplan liegt aus – meist braucht eine Schlacht zwei Pläne nebeneinander, damit es genug Felder gibt.")
+            }
+        }
     }
 
     private fun chapterPath(ci: Int) = "$sp.chapters[$ci]"
 
-    private fun checkBoards() {
+    private fun checkBoards(seg: Set<String>) {
         val covered = mutableMapOf<GridCoord, String>()
         val used = mutableMapOf<String, Int>()
         var size: Pair<Int, Int>? = null
         s.chapters.forEachIndexed { ci, ch ->
             val bf = ch.battlefield ?: return@forEachIndexed
+            if (ch.id !in seg) return@forEachIndexed
             val cp = chapterPath(ci)
-            if (ch.tiles.isNotEmpty()) {
-                c.error(IssueCode.MIXED_MAP, "$cp.tiles", ch.id, "Kapitel '${ch.id}' hat Kacheln und einen Schlachtplan – ein Kapitel ist entweder Reise oder Schlacht.")
-            }
             bf.boards.forEachIndexed { bi, b ->
                 val bp = "$cp.battlefield.boards[$bi]"
                 if (b.rotation !in 0..3) c.error(IssueCode.INVALID_ROTATION, "$bp.rotation", b.id, "Drehung ${b.rotation} ist ungültig (erlaubt: 0–3).")
@@ -68,11 +77,12 @@ internal class BattleChecks(
         }
     }
 
-    private fun checkTerrain(map: BattleMap) {
+    private fun checkTerrain(map: BattleMap, seg: Set<String>) {
         val used = mutableMapOf<String, Int>()
         val edges = mutableMapOf<GridEdge, String>()
         s.chapters.forEachIndexed { ci, ch ->
             val bf = ch.battlefield ?: return@forEachIndexed
+            if (ch.id !in seg) return@forEachIndexed
             bf.terrain.forEachIndexed { gi, t ->
                 val tp = "${chapterPath(ci)}.battlefield.terrain[$gi]"
                 t.customName?.let { if (it.isBlank()) c.error(IssueCode.BLANK_TEXT, "$tp.customName", t.id, "Eigener Name von '${t.id}' ist leer.") }
@@ -124,17 +134,17 @@ internal class BattleChecks(
     }
 
     /** Hints only: figures in blocked fields, and fields cut off by walls or barricades. */
-    private fun checkReachability(map: BattleMap) {
+    private fun checkReachability(map: BattleMap, seg: Set<String>) {
         val blockedEdges = mutableSetOf<GridEdge>()
         val blockedFields = mutableSetOf<BattleMap.Field>()
-        for (t in s.terrainPlacements) {
+        for (t in s.chapters.filter { it.id in seg }.flatMap { it.battlefield?.terrain.orEmpty() }) {
             val side = catalog.terrainPiece(t.piece)?.sides?.get(t.side) ?: continue
             if (!side.blocksMovement) continue
             t.edge?.let { blockedEdges += it.normalized() }
             t.area?.let { a -> map.field(a)?.let { blockedFields += it } }
         }
         val figures = s.chapters.flatMapIndexed { ci, ch ->
-            ch.tokens.mapIndexedNotNull { ti, tok -> (tok.location as? SquareLocation)?.let { Triple(tok.id, "${chapterPath(ci)}.tokens[$ti].location", it) } }
+            if (ch.id !in seg) emptyList() else ch.tokens.mapIndexedNotNull { ti, tok -> (tok.location as? SquareLocation)?.let { Triple(tok.id, "${chapterPath(ci)}.tokens[$ti].location", it) } }
         } + s.enemyGroups.mapIndexedNotNull { i, g -> (g.location as? SquareLocation)?.let { Triple(g.id, "$sp.enemyGroups[$i].location", it) } }
         val placed = figures.mapNotNull { (id, path, loc) -> map.field(loc.square)?.let { Triple(id, path, it) } }
         placed.filter { it.third in blockedFields }.forEach { (id, path, _) ->

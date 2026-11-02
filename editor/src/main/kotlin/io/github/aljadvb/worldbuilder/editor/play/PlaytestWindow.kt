@@ -257,6 +257,7 @@ private fun PromptCard(game: PlaytestModel, scenario: Scenario, catalog: Materia
                     if (prompt is Prompt.Setup) {
                         scenario.chapter(prompt.chapterId)?.tiles?.forEach { Text(Texts.tileLine(catalog.tile(it.tile)?.label ?: it.tile, it.side.name)) }
                         scenario.battleSetup(prompt.chapterId, catalog)?.let { setup ->
+                            if (setup.clearFirst) Text(Texts.CLEAR_BATTLEFIELD_SETUP, fontWeight = FontWeight.Bold)
                             setup.boards.forEach { (label, side) -> Text(Texts.boardLine(label, side.name)) }
                             setup.pieces.forEach { (name, n) -> Text(Texts.pieceLine(n, name)) }
                         }

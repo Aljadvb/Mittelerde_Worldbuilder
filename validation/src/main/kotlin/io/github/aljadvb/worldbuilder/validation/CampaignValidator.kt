@@ -10,6 +10,7 @@ import io.github.aljadvb.worldbuilder.model.Location
 import io.github.aljadvb.worldbuilder.model.SquareLocation
 import io.github.aljadvb.worldbuilder.model.TileLocation
 import io.github.aljadvb.worldbuilder.model.battleMap
+import io.github.aljadvb.worldbuilder.model.battleSegmentOf
 import io.github.aljadvb.worldbuilder.model.TokenType
 import io.github.aljadvb.worldbuilder.model.TriggerCondition
 
@@ -268,7 +269,8 @@ private class CampaignChecks(
                     c.error(IssueCode.LOCATION_WRONG_MAP, path, ownerId, "'$ownerId' steht auf einem Schlachtplan-Feld, aber Kapitel '${chapter.id}' ist ein Reise-Kapitel.")
                     return
                 }
-                val board = s.battleMap(catalog).field(location.square)?.boardPlacement
+                val segment = chapter?.let { s.battleSegmentOf(it.id).map { ch -> ch.id }.toSet() }
+                val board = s.battleMap(catalog, segment).field(location.square)?.boardPlacement
                 if (board == null) {
                     c.error(IssueCode.SQUARE_NOT_ON_MAP, "$path.square", ownerId, "Feld ${location.square} von '$ownerId' liegt auf keinem Schlachtplan.")
                     return

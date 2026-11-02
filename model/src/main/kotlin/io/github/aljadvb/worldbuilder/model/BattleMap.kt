@@ -96,3 +96,22 @@ class BattleMap(boards: List<BoardPlacement>, catalog: MaterialCatalog) {
 /** The shared battle map of all battle chapters of this scenario (or of [chapterIds] only). */
 fun Scenario.battleMap(catalog: MaterialCatalog, chapterIds: Set<String>? = null): BattleMap =
     BattleMap(chapters.filter { chapterIds == null || it.id in chapterIds }.flatMap { it.battlefield?.boards.orEmpty() }, catalog)
+
+/**
+ * Battle chapters grouped into layouts on the table: a chapter with [Chapter.clearBattlefield]
+ * starts a new layout (earlier boards and pieces are cleared away). In chapter order.
+ */
+fun Scenario.battleSegments(): List<List<Chapter>> {
+    val result = mutableListOf<MutableList<Chapter>>()
+    for (ch in chapters.filter { it.isBattle }) {
+        if (result.isEmpty() || ch.clearBattlefield) result += mutableListOf<Chapter>()
+        result.last() += ch
+    }
+    return result
+}
+
+/** The battle chapters lying on the table together with [chapterId] (up to and including it if [upTo]). */
+fun Scenario.battleSegmentOf(chapterId: String, upTo: Boolean = false): List<Chapter> {
+    val seg = battleSegments().firstOrNull { s -> s.any { it.id == chapterId } } ?: return emptyList()
+    return if (upTo) seg.take(seg.indexOfFirst { it.id == chapterId } + 1) else seg
+}

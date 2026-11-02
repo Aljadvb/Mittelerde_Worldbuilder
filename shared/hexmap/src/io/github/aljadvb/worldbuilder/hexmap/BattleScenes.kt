@@ -74,7 +74,9 @@ fun battlePlayScene(
     tokenLetters: Map<String, String>,
     images: TileImageCache? = null,
 ): BattleScene {
-    val chapters = state.unlockedChapters.mapNotNull { scenario.chapter(it) }.filter { it.isBattle }
+    val unlocked = state.unlockedChapters.mapNotNull { scenario.chapter(it) }.filter { it.isBattle }
+    // Only the current layout lies on the table: everything before the last clearing chapter is gone.
+    val chapters = unlocked.drop(unlocked.indexOfLast { it.clearBattlefield }.coerceAtLeast(0))
     val boards = chapters.flatMap { it.battlefield!!.boards }
     val map = BattleMap(boards, catalog)
     val boardViews = boards.mapNotNull { battleBoardView(it, catalog, images, emphasized = it.id in highlight.placements) }
@@ -119,12 +121,12 @@ fun Scenario.terrainInfo(id: String, catalog: MaterialCatalog): TerrainInfo? {
 }
 
 /** Setup lines for a battle chapter: boards with side, and terrain pieces grouped by name. */
-data class BattleSetup(val boards: List<Pair<String, TileSide>>, val pieces: List<Pair<String, Int>>)
+data class BattleSetup(val boards: List<Pair<String, TileSide>>, val pieces: List<Pair<String, Int>>, val clearFirst: Boolean = false)
 
 fun Scenario.battleSetup(chapterId: String, catalog: MaterialCatalog): BattleSetup? {
     val bf = chapter(chapterId)?.battlefield ?: return null
     val boards = bf.boards.map { (catalog.battleBoard(it.board)?.label ?: it.board) to it.side }
     val pieces = bf.terrain.groupBy { catalog.terrainPiece(it.piece)?.sides?.get(it.side)?.name ?: it.piece }
         .map { (name, list) -> name to list.size }
-    return BattleSetup(boards, pieces)
+    return BattleSetup(boards, pieces, chapter(chapterId)?.clearBattlefield == true)
 }

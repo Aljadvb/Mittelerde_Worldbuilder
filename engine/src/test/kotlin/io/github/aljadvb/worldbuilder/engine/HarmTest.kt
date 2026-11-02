@@ -30,4 +30,25 @@ class HarmTest {
         val step = FormatJson.json.decodeFromString(EventStep.serializer(), json)
         assertEquals(EventStep.SufferHarm(fear = 2, who = HeroTarget.EACH), step)
     }
+
+    @Test
+    fun `clearing the battlefield removes the tokens lying on it`() {
+        val root = java.io.File(System.getProperty("repoRoot") ?: "..")
+        val b = FormatJson.decodeCampaign(java.io.File(root, "examples/beispiel-schlacht.json").readText()).scenarios.single()
+        val first = b.chapters.single()
+        val second = first.copy(id = "ch_zwei", title = "Zwei", clearBattlefield = true, onUnlock = null, tokens = emptyList())
+        val sc = b.copy(
+            chapters = listOf(first, second),
+            events = b.events + io.github.aljadvb.worldbuilder.model.Event("evt_weiter", listOf(EventStep.UnlockChapter("ch_zwei"))),
+            triggers = b.triggers + io.github.aljadvb.worldbuilder.model.Trigger("trg_vorraete", io.github.aljadvb.worldbuilder.model.TriggerCondition.TokenInteracted("tok_vorraete"), events = listOf("evt_weiter")),
+        )
+        val engine = GameEngine(sc)
+        var st = engine.start(2)
+        while (!st.isIdle) st = engine.apply(st, Command.Acknowledge)
+        kotlin.test.assertTrue("tok_vorraete" in st.activeTokens)
+        st = engine.apply(st, Command.InteractToken("tok_vorraete"))
+        while (!st.isIdle) st = engine.apply(st, Command.Acknowledge)
+        kotlin.test.assertTrue("ch_zwei" in st.unlockedChapters)
+        kotlin.test.assertTrue("tok_vorraete" !in st.activeTokens)
+    }
 }

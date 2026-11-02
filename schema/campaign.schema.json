@@ -278,6 +278,11 @@
         },
         "battlefield": {
           "$ref": "#/$defs/battlefield"
+        },
+        "clearBattlefield": {
+          "type": "boolean",
+          "default": false,
+          "description": "Schlacht-Kapitel: vorher alle bisherigen Schlachtpläne und Geländeteile abräumen; sie dürfen neu gelegt werden."
         }
       }
     },

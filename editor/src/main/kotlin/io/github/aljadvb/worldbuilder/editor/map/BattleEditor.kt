@@ -225,7 +225,7 @@ private fun BattleToolbar(model: EditorModel, controller: BattleController, onFi
         Box {
             FilterChip(selected = controller.tool is BattleTool.PlaceBoard, onClick = { boardsOpen = true }, label = { Text(Texts.BATTLE_ADD_BOARD + " ▾") })
             DropdownMenu(expanded = boardsOpen, onDismissRequest = { boardsOpen = false }) {
-                val free = s?.freeBoards(model.catalog).orEmpty()
+                val free = s?.freeBoards(model.catalog, controller.chapter?.id).orEmpty()
                 model.catalog.battleBoards.filter { it.expansion in owned }.forEach { board ->
                     board.sides.keys.sorted().forEach { side ->
                         val desc = board.sides.getValue(side).description
@@ -241,7 +241,7 @@ private fun BattleToolbar(model: EditorModel, controller: BattleController, onFi
         Box {
             FilterChip(selected = controller.tool is BattleTool.PlacePiece, onClick = { piecesOpen = true }, label = { Text(Texts.BATTLE_ADD_PIECE + " ▾") })
             DropdownMenu(expanded = piecesOpen, onDismissRequest = { piecesOpen = false }) {
-                val free = s?.freePieces(model.catalog).orEmpty()
+                val free = s?.freePieces(model.catalog, controller.chapter?.id).orEmpty()
                 model.catalog.terrainPieces.filter { it.expansion in owned }.forEach { piece ->
                     piece.sides.keys.sorted().forEach { side ->
                         val ps = piece.sides.getValue(side)

@@ -5,6 +5,7 @@ import io.github.aljadvb.worldbuilder.model.HexOrientation
 import io.github.aljadvb.worldbuilder.model.MaterialCatalog
 import io.github.aljadvb.worldbuilder.model.Scenario
 import io.github.aljadvb.worldbuilder.model.battleMap
+import io.github.aljadvb.worldbuilder.model.battleSegments
 import kotlin.math.sqrt
 
 /** Size of the real table the map is laid out on. */
@@ -66,7 +67,9 @@ fun Scenario.mapExtent(catalog: MaterialCatalog): MapExtent {
 
 /** Extent of all battle boards of this scenario. */
 fun Scenario.battleExtent(catalog: MaterialCatalog): MapExtent {
-    val (w, h) = battleMap(catalog).extent()
     val cellMm = boardPlacements.firstNotNullOfOrNull { catalog.battleBoard(it.board)?.sides?.get(it.side)?.cellSizeMm } ?: return MapExtent.EMPTY
-    return MapExtent(w * cellMm / 10.0, h * cellMm / 10.0)
+    // Layouts that are cleared away never lie on the table together: the largest counts.
+    return battleSegments().map { seg -> battleMap(catalog, seg.map { it.id }.toSet()).extent() }
+        .map { (w, h) -> MapExtent(w * cellMm / 10.0, h * cellMm / 10.0) }
+        .maxByOrNull { it.widthCm * it.heightCm } ?: MapExtent.EMPTY
 }

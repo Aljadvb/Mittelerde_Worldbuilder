@@ -31,7 +31,7 @@ class CampaignAndSaveTest {
         val (after, next) = runner.advance(progress, playToDefeat(state))
         assertNull(next)
         assertTrue(after.isCampaignOver)
-        assertEquals(listOf(CompletedScenario("scn_muehle", "res_muehle_niederlage")), after.completed)
+        assertEquals(listOf(CompletedScenario("scn_muehle", "res_muehle_niederlage", lore = 0, xp = 1)), after.completed)
     }
 
     @Test

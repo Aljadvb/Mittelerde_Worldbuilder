@@ -102,6 +102,7 @@ private fun NoticeContent(prompt: Prompt.Notice, scenario: Scenario, catalog: Ma
             Title(stringResource(R.string.prompt_setup_title, chapter.title))
             if (chapter.setupText.isNotBlank()) Body(chapter.setupText)
             scenario.battleSetup(chapter.id, catalog)?.let { setup ->
+                if (setup.clearFirst) Text(stringResource(R.string.prompt_setup_clear), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error)
                 if (setup.boards.isNotEmpty()) {
                     Text(stringResource(R.string.prompt_setup_boards), fontWeight = FontWeight.Bold)
                     setup.boards.forEach { (label, side) -> Text("• " + stringResource(R.string.prompt_setup_board_line, label, side.name)) }

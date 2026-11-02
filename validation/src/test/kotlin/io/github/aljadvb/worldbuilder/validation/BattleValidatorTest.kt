@@ -178,4 +178,31 @@ class BattleValidatorTest {
         }
         r.has(IssueCode.LOCATION_ON_LATER_CHAPTER, Severity.WARNING)
     }
+
+    @Test
+    fun `a cleared battlefield lets boards and pieces be used again`() {
+        fun withSecond(clear: Boolean) = validate { s ->
+            val first = s.chapters.single()
+            val again = first.copy(
+                id = "ch_halle", title = "Halle", clearBattlefield = clear, onUnlock = null, tokens = emptyList(),
+                battlefield = first.battlefield!!.copy(
+                    boards = first.battlefield!!.boards.map { it.copy(id = it.id + "_2") },
+                    terrain = first.battlefield!!.terrain.map { it.copy(id = it.id + "_2") },
+                ),
+            )
+            s.copy(chapters = listOf(first, again))
+        }
+        val reused = withSecond(clear = true)
+        assertTrue(reused.issues.none { it.code == IssueCode.BOARD_COUNT_EXCEEDED || it.code == IssueCode.BOARDS_OVERLAP || it.code == IssueCode.EDGE_OCCUPIED }, reused.format())
+        val stacked = withSecond(clear = false)
+        assertTrue(stacked.issues.any { it.code == IssueCode.BOARD_COUNT_EXCEEDED }, stacked.format())
+        assertTrue(stacked.issues.any { it.code == IssueCode.BOARDS_OVERLAP }, stacked.format())
+    }
+
+    @Test
+    fun `a single board is a hint`() {
+        val r = validate { s -> s.editField { bf -> bf.copy(boards = bf.boards.take(1), terrain = bf.terrain.filter { it.id == "gt_wall_1" || it.id == "gt_busch" }) }
+            .editChapter("ch_bach") { ch -> ch.editToken("tok_vorraete") { it.copy(location = SquareLocation(GridCoord(2, 2))) } } }
+        r.has(IssueCode.SINGLE_BOARD, Severity.WARNING)
+    }
 }

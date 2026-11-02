@@ -133,6 +133,9 @@ Editor statt der Sechseck-Karte den **Schlachtplan-Editor**:
 | Verschieben | ziehen (Pläne, Teile, Token, Gegner) |
 | Drehen / Wenden | **R** dreht den Plan um 90°, **F** wendet Plan oder Geländeteil |
 
+Normalerweise liegen **zwei Pläne** nebeneinander. Für eine weitere Schlacht an einem anderen Ort setzt du im
+Kapitel-Formular **„Vorher abräumen“**: Die bisherigen Pläne und Teile kommen vom Tisch und können neu gelegt werden.
+
 Ein gewähltes Geländeteil bekommt im Formular optional einen **eigenen Namen** und eine **eigene Regel** für dieses
 Szenario – entweder *ersetzt* sie die Geländekarte oder sie *gilt zusätzlich*. In der App erscheint das Teil mit goldenem
 Stern; beim Antippen sieht man Name, Bild, die eigene Regel und den Kartentext.

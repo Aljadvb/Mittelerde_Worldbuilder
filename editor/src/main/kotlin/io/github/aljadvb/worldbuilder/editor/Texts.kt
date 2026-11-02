@@ -325,6 +325,8 @@ object Texts {
     const val BATTLE_HINT_BOARD = "Klicke, wo der Plan liegen soll (er rastet bündig ein) · R dreht · F wendet · Esc beendet"
     const val BATTLE_HINT_PIECE = "Klicke in ein Feld bzw. nahe an eine Feldgrenze · mehrere nacheinander möglich · F wendet · Esc beendet"
     const val MAP_KIND = "Kartenart"
+    const val CLEAR_BATTLEFIELD = "Vorher alle bisherigen Schlachtpläne und Geländeteile abräumen (sie können neu gelegt werden)"
+    const val CLEAR_BATTLEFIELD_SETUP = "Räumt zuerst alle bisherigen Schlachtpläne, Geländeteile und Marker darauf ab."
     const val MAP_KIND_TRAVEL = "Reise (Kacheln)"
     const val MAP_KIND_BATTLE = "Schlacht (Schlachtplan)"
     const val BOARD = "Schlachtplan"

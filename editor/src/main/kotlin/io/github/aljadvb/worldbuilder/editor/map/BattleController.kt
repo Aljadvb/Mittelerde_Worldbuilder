@@ -32,6 +32,7 @@ import io.github.aljadvb.worldbuilder.model.Scenario
 import io.github.aljadvb.worldbuilder.model.SquareLocation
 import io.github.aljadvb.worldbuilder.model.TileSide
 import io.github.aljadvb.worldbuilder.model.TokenType
+import io.github.aljadvb.worldbuilder.model.battleSegmentOf
 import io.github.aljadvb.worldbuilder.validation.ObjectKind
 
 /** Active tool of the battle map editor. */
@@ -90,7 +91,7 @@ class BattleController(private val model: EditorModel) {
         get() {
             val s = scenario ?: return emptyList()
             val idx = s.chapters.indexOf(chapter ?: return emptyList())
-            return s.chapters.take(idx + 1).filter { it.isBattle }
+            return s.battleSegmentOf(s.chapters[idx].id, upTo = true)
         }
 
     fun map(): BattleMap = BattleMap(visibleChapters.flatMap { it.battlefield!!.boards }, model.catalog)
@@ -106,7 +107,7 @@ class BattleController(private val model: EditorModel) {
         val square = proj.squareAt(p)
         when (val t = tool) {
             is BattleTool.PlaceBoard -> {
-                if ((s.freeBoards(model.catalog)[t.board] ?: 0) <= 0) return true.also { model.message = Texts.BATTLE_NO_BOARD_LEFT }
+                if ((s.freeBoards(model.catalog, ch.id)[t.board] ?: 0) <= 0) return true.also { model.message = Texts.BATTLE_NO_BOARD_LEFT }
                 val pos = boardPositionAt(square, model.catalog, t.board, t.side, t.rotation) ?: return true
                 if (boardOverlaps(t.board, t.side, t.rotation, pos, ignore = null)) return true.also { model.message = Texts.MAP_OVERLAP }
                 create { it.addBoard(ch.id, t.board, t.side, pos, t.rotation) }
@@ -114,7 +115,7 @@ class BattleController(private val model: EditorModel) {
                 return true
             }
             is BattleTool.PlacePiece -> {
-                if ((s.freePieces(model.catalog)[t.piece] ?: 0) <= 0) return true.also { model.message = Texts.BATTLE_NO_PIECE_LEFT }
+                if ((s.freePieces(model.catalog, ch.id)[t.piece] ?: 0) <= 0) return true.also { model.message = Texts.BATTLE_NO_PIECE_LEFT }
                 val edgePiece = model.catalog.isEdgePiece(t.piece, t.side)
                 val map = map()
                 if (edgePiece) {

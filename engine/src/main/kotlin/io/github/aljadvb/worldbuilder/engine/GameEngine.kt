@@ -243,6 +243,12 @@ class GameEngine(val scenario: Scenario, private val campaignFlags: Set<String> 
         private fun unlockChapter(chapterId: String) {
             val chapter = scenario.chapter(chapterId) ?: return
             if (chapterId in unlockedChapters) return
+            if (chapter.isBattle && chapter.clearBattlefield) {
+                // Earlier boards and pieces are cleared away, and with them the tokens lying on them.
+                val cleared = unlockedChapters.mapNotNull { scenario.chapter(it) }.filter { it.isBattle }
+                    .flatMap { it.tokens }.filter { it.location is io.github.aljadvb.worldbuilder.model.SquareLocation }.map { it.id }
+                activeTokens -= cleared.toSet()
+            }
             unlockedChapters += chapterId
             // Tokens on unexplored tiles appear only when the tile is explored.
             val hidden = chapter.tiles.filter { it.unexplored && it.id !in explored }.map { it.id }.toSet()

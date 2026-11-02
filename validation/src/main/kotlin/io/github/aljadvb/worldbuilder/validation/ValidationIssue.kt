@@ -55,6 +55,7 @@ enum class IssueCode {
     EDGE_OCCUPIED,
     FIELD_BLOCKED,
     FIELD_UNREACHABLE,
+    SINGLE_BOARD,
 
     // Content rules
     CUSTOM_TYPE_MISSING,

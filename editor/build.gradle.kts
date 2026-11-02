@@ -41,6 +41,9 @@ dependencies {
 
 tasks.test {
     systemProperty("repoRoot", rootDir.absolutePath)
+    // Tests read the examples and schemas: rerun them when those change.
+    inputs.dir(rootProject.file("examples")).withPropertyName("examples")
+    inputs.dir(rootProject.file("schema")).withPropertyName("schemas")
     // Optional: local screenshot with the user's own tile pictures (never committed).
     providers.environmentVariable("WB_PRIVATE_CATALOG").orNull?.let { environment("WB_PRIVATE_CATALOG", it) }
 }

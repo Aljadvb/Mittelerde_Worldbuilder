@@ -10,6 +10,7 @@ import io.github.aljadvb.worldbuilder.editing.Definition
 import io.github.aljadvb.worldbuilder.editing.EditException
 import io.github.aljadvb.worldbuilder.editing.setBattleChapter
 import io.github.aljadvb.worldbuilder.editing.updateBoard
+import io.github.aljadvb.worldbuilder.editing.updateChapter
 import io.github.aljadvb.worldbuilder.editing.updateTerrain
 import io.github.aljadvb.worldbuilder.editor.EditorModel
 import io.github.aljadvb.worldbuilder.editor.Texts
@@ -28,6 +29,7 @@ internal fun MapKindInput(model: EditorModel, ch: Chapter) {
             Text(label)
         }
     }
+    if (ch.isBattle) CheckInput(Texts.CLEAR_BATTLEFIELD, ch.clearBattlefield) { v -> model.edit { it.updateChapter(ch.id) { x -> x.copy(clearBattlefield = v) } } }
 }
 
 @Composable

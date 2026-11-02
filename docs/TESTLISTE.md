@@ -37,6 +37,8 @@ Hardware bzw. mit einer echten KI gelaufen**. Die wichtigsten Punkte stehen oben
 - [ ] KI-Generator mit „Automatisch“: Wählt die KI bei einer Geschichte an einem Ort einen Schlachtplan? Begründung sinnvoll?
 - [ ] KI-Generator mit „Schlacht“: gültiges Szenario, sinnvoll platzierte Geländeteile?
 - [ ] Neue Kacheln 200–227: Bilder gerade, Raster passt, Nummern stimmen
+- [ ] Zweites Schlacht-Kapitel mit „Vorher abräumen“: beide Pläne neu legbar, App zeigt „Räumt zuerst … ab“ und nur den neuen Aufbau
+- [ ] Nur ein Schlachtplan → Hinweis in der Prüfung; KI plant zwei Pläne
 
 ## 1d. Erkunden und Inspiration (neu in 1.4.0)
 

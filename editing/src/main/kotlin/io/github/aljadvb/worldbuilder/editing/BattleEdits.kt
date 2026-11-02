@@ -14,6 +14,7 @@ import io.github.aljadvb.worldbuilder.model.SquareLocation
 import io.github.aljadvb.worldbuilder.model.TerrainPlacement
 import io.github.aljadvb.worldbuilder.model.TileLocation
 import io.github.aljadvb.worldbuilder.model.TileSide
+import io.github.aljadvb.worldbuilder.model.battleSegmentOf
 import io.github.aljadvb.worldbuilder.validation.ObjectKind
 
 /** Turns a chapter into a battle chapter (empty battlefield) or back into a travel chapter. */
@@ -72,14 +73,17 @@ fun boardPositionAt(square: GridCoord, catalog: MaterialCatalog, board: String, 
 }
 
 /** How many pieces of each catalog piece are still free in this scenario (both sides together). */
-fun Scenario.freePieces(catalog: MaterialCatalog): Map<String, Int> {
-    val used = terrainPlacements.groupingBy { it.piece }.eachCount()
+/** Free pieces for the layout of [chapterId] (whole scenario if null); cleared layouts do not count. */
+fun Scenario.freePieces(catalog: MaterialCatalog, chapterId: String? = null): Map<String, Int> {
+    val chs = chapterId?.let { battleSegmentOf(it) } ?: chapters
+    val used = chs.flatMap { it.battlefield?.terrain.orEmpty() }.groupingBy { it.piece }.eachCount()
     return catalog.terrainPieces.associate { it.id to it.count - (used[it.id] ?: 0) }
 }
 
 /** How many copies of each board are still free in this scenario. */
-fun Scenario.freeBoards(catalog: MaterialCatalog): Map<String, Int> {
-    val used = boardPlacements.groupingBy { it.board }.eachCount()
+fun Scenario.freeBoards(catalog: MaterialCatalog, chapterId: String? = null): Map<String, Int> {
+    val chs = chapterId?.let { battleSegmentOf(it) } ?: chapters
+    val used = chs.flatMap { it.battlefield?.boards.orEmpty() }.groupingBy { it.board }.eachCount()
     return catalog.battleBoards.associate { it.id to it.count - (used[it.id] ?: 0) }
 }
 

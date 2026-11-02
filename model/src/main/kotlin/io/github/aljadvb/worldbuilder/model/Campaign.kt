@@ -121,6 +121,8 @@ data class Chapter(
     val tokens: List<Token> = emptyList(),
     /** Present for battle chapters: boards and terrain pieces instead of tiles. */
     val battlefield: Battlefield? = null,
+    /** Battle chapter: earlier boards and terrain pieces are cleared away first, so they can be used again. */
+    val clearBattlefield: Boolean = false,
 ) {
     val isBattle: Boolean get() = battlefield != null
 }
