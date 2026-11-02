@@ -191,6 +191,11 @@ Schlacht-Kapitel ersetzt beim Aufbau die Reisekarte. Die App zeigt dann die Anwe
 
 ## 7. KI-Generator
 
+- **Kartenart bei den Eingaben (02.11.):** Auswahl **Automatisch / Reise / Schlacht**.
+  - *Reise* oder *Schlacht*: vorab fest vorgegeben, die KI hält sich daran.
+  - *Automatisch*: Die KI entscheidet anhand der Vorlage. Spielt die Geschichte an **einem Ort** (Verteidigung,
+    Überfall, Kampf in einer Halle) → Schlachtplan. Geht es um **Erkundung, Reise, Flucht, Suche** über mehrere Orte →
+    Reisekarte. Die Entscheidung steht mit kurzer Begründung im Story-Entwurf und lässt sich dort umstellen.
 - Im Story-Entwurf kann ein Kapitel als **Schlacht** markiert werden.
 - Die KI wählt Plan und Seite passend zur Landschaft und platziert Geländeteile und Gegner auf Felder.
 - Prüfung und Korrekturschleife funktionieren wie bisher.
