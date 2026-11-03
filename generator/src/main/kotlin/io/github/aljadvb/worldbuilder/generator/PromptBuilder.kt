@@ -23,7 +23,8 @@ class PromptBuilder(private val catalog: MaterialCatalog, private val input: Gen
         if (input.allowedEnemies.isEmpty()) owned else e.id in input.allowedEnemies
     }.sortedBy { it.name }
 
-    private val items = catalog.items.filter { catalog.expansion(it.expansion)?.owned != false }.sortedBy { it.name }
+    // Finds are level-I cards; higher levels come only from upgrading in camp.
+    private val items = catalog.items.filter { catalog.expansion(it.expansion)?.owned != false && it.level == 1 }.sortedBy { it.name }
 
     val allowedTileIds: Set<String> get() = tiles.map { it.id }.toSet()
 
@@ -154,7 +155,7 @@ class PromptBuilder(private val catalog: MaterialCatalog, private val input: Gen
             if (input.campaignFlags.isEmpty()) "" else " Bestehende Merker der Kampagne: " + input.campaignFlags.joinToString(", ") { "${it.id} („${it.label}“)" } + " – nutze checkFlag, damit dieses Szenario darauf reagiert (z. B. andere Begrüßung, zusätzlicher Verbündeter oder Gegner).")
         appendLine("- Kachel-Symbole nutzen: Dunkelheit-Felder für bedrückende Orte (Furcht in der Schattenphase), befestigte Felder für Verteidigung oder Wachposten, unwegsame Felder für mühsames Gelände. Unterirdische Kacheln (Höhlen, Gewölbe) brauchen eine Verbindung nach draußen; die App legt sie so an, dass Durchgänge (Pfeile) anschließen.")
         appendLine("- Schattenphase: Am Ende jeder Runde greifen aktive Gegner an (die App würfelt Ziel und Angriff), danach wirkt Dunkelheit, dann steigt die Bedrohung. Dazu zieht die App jede Runde ein Event aus scenario.shadowEvents: lege 4–8 eigene Events an – etwa die Hälfte harmlos oder stimmungsvoll (ein Geräusch, eine ruhige Nacht, ein kleiner Fund, Inspiration), die anderen mit Folgen (Schaden/Furcht, Gegner erscheinen, selten Bedrohung). Für dunkle Orte (Höhlen, verfluchte Wälder) setDarkness im onUnlock des Kapitels.")
-        if (items.isNotEmpty()) appendLine("- 1–2 Mal pro Szenario finden die Helden ein Schmuckstück (gainItem): an einem Suchmarker, in einer Truhe, nach einer bestandenen Probe oder als Dank einer Person. Meist ohne 'item' (dann wählt die App ein zufälliges, das die Gruppe noch nicht hat); ein bestimmtes nur, wenn es zur Geschichte passt.")
+        if (items.isNotEmpty()) appendLine("- Schmuckstücke sind selten: höchstens ein Fund (gainItem) pro Szenario, in etwa jedem zweiten Szenario gar keiner – als besondere Belohnung an einem versteckten Ort, nach einer schweren Probe oder als Dank einer wichtigen Person. Meist ohne 'item' (die App wählt eines, das die Gruppe noch nicht hat); ein bestimmtes nur, wenn es zur Geschichte passt.")
         appendLine("- Belohne mit gainInspiration: nach bestandenen Proben (im onSuccess-Event), gelungenen Interaktionen, erfüllten Zielen oder besiegten Gegnern – sparsam, etwa 1–3 Mal pro Kapitel.")
         appendLine("- Schwierigkeit „${input.difficulty.label}“: ${difficultyHint()}")
         appendLine()

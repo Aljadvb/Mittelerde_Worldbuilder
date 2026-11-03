@@ -1,6 +1,6 @@
 # Testliste – was noch von Hand zu prüfen ist
 
-Stand: 2026-11-02 · Version 1.12.0 · Abhaken mit `[x]`. Rückmeldungen (Screenshots, Dateien) einfach im Chat schicken.
+Stand: 2026-11-02 · Version 1.13.0 · Abhaken mit `[x]`. Rückmeldungen (Screenshots, Dateien) einfach im Chat schicken.
 
 Alles hier ist automatisch getestet (Unit-Tests, simulierte Maus, gerenderte Screenshots), aber **noch nie auf echter
 Hardware bzw. mit einer echten KI gelaufen**. Die wichtigsten Punkte stehen oben.
@@ -101,6 +101,13 @@ Hardware bzw. mit einer echten KI gelaufen**. Die wichtigsten Punkte stehen oben
 - [ ] App: Meldung „Schmuckstück gefunden“ mit Name, Wirkung bzw. Kartentext (und Kartenbild, sobald gescannt)
 - [ ] Nach dem Szenario: Lager und ⋮ → Kampagne zeigen das Gruppeninventar; im nächsten Szenario kommt dasselbe Schmuckstück nicht noch einmal
 - [ ] KI-Generator: 1–2 Funde pro Szenario an passenden Stellen
+
+## 1l. Schmuckstücke mit Stufen (neu in 1.13.0)
+
+- [ ] Katalog-Fenster → Schmuckstücke: 35 Karten mit Bild, Stufe, Linie, Wissenswert und Verbrauchsmarkern; Kartentexte stimmen
+- [ ] Erweiterung je Schmuckstück prüfen (Zahnkette/Zepter → Schurken aus Eriador, Proviant/Wasserschlauch → Schatten des Krieges, Kronen → Dunkle Pfade sind geraten)
+- [ ] Funde sind selten (höchstens 1 pro Szenario, oft keiner) und immer Stufe I
+- [ ] Lager: Inventar zeigt Stufe; „Aufwerten zu …“ erscheint erst ab dem Wissenswert der Karte
 
 ## 1k. Proben, Stimmungs-Marker, Gegnermenü und Banner (neu in 1.12.0)
 

@@ -144,3 +144,33 @@ class TestKindsTest {
         assertTrue(s.testProgress.isEmpty())
     }
 }
+
+class ItemLevelTest {
+    private val items = listOf(
+        Item("stiefel", "Stiefel", "b", line = "stiefel", level = 1, lore = 20),
+        Item("gruen", "Grünweg", "b", line = "stiefel", level = 2, lore = 50),
+        Item("brosche", "Brosche", "b", line = "brosche", level = 1, lore = 26),
+    )
+
+    @Test
+    fun `upgrade needs enough lore and moves to the next level`() {
+        val p = CampaignProgress(heroCount = 2, currentScenario = null, inventory = listOf("stiefel"), lore = 19)
+        assertTrue(Camp.upgradable(p, items).isEmpty())
+        kotlin.test.assertFailsWith<EngineException> { Camp.upgradeItem(p, "stiefel", items) }
+        val up = Camp.upgradeItem(p.copy(lore = 20), "stiefel", items)
+        assertEquals(listOf("gruen"), up.inventory)
+        kotlin.test.assertFailsWith<EngineException> { Camp.upgradeItem(up.copy(lore = 99), "gruen", items) }
+    }
+
+    @Test
+    fun `random finds skip owned lines and higher levels`() {
+        val s0 = Examples.scenario
+        val sc = s0.copy(events = s0.events.map { e -> if (e.id == "evt_brunnen") e.copy(steps = listOf(EventStep.GainItem()) + e.steps) else e })
+        val e = GameEngine(sc, items = items, ownedItems = setOf("gruen"))
+        var s = e.start(2)
+        while (!s.isIdle) s = e.apply(s, Command.Acknowledge)
+        s = e.apply(s, Command.InteractToken("tok_brunnen"))
+        while (s.itemsFound.isEmpty() && !s.isIdle) s = if (s.currentPrompt is Prompt.Test) e.apply(s, Command.ReportTest(0)) else e.apply(s, Command.Acknowledge)
+        assertEquals(listOf("brosche"), s.itemsFound)
+    }
+}

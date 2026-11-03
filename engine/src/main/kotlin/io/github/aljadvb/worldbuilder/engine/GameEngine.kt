@@ -430,7 +430,10 @@ class GameEngine(
                     val taken = ownedItemsAtStart + itemsFound
                     val wanted = step.item?.takeIf { it !in taken && items.any { i -> i.id == it } }
                     // A fixed item already owned (e.g. a replayed scenario) is replaced by a random trinket.
-                    val pool = items.filter { it.kind == io.github.aljadvb.worldbuilder.model.ItemKind.TRINKET && it.id !in taken }
+                    // Random finds are the lowest level of a line the group does not own in any level.
+                    val ownedLines = items.filter { it.id in taken }.mapNotNull { it.line }.toSet()
+                    val pool = items.filter { it.kind == io.github.aljadvb.worldbuilder.model.ItemKind.TRINKET && it.id !in taken && (it.line == null || it.line !in ownedLines) }
+                        .groupBy { it.line ?: it.id }.values.map { line -> line.minBy { it.level } }
                     val found = wanted ?: pool.takeIf { it.isNotEmpty() }?.let { it[random(it.size)].id }
                     found?.let { itemsFound += it }
                     prompts += Prompt.ItemFound(found, step.who, step.text)

@@ -66,7 +66,7 @@ fun CampContent(campaign: Campaign, progress: CampaignProgress, background: andr
                     }
                 }
             }
-            CampaignOverview(campaign, progress, background, catalog)
+            CampaignOverview(campaign, progress, background, catalog, onUpgrade = { id -> onAction { p -> Camp.upgradeItem(p, id, catalog?.items.orEmpty()) } })
             HeroesSection(progress, editable = true, onAction = onAction, onImage = true)
             val next = progress.currentScenario?.let { campaign.scenario(it) }
             Button(onClick = { onAction(Camp::leave) }, modifier = Modifier.fillMaxWidth()) {
@@ -78,7 +78,7 @@ fun CampContent(campaign: Campaign, progress: CampaignProgress, background: andr
 
 /** Map, lore and the list of played scenarios. Shared by camp, campaign end and the in-game overview. */
 @Composable
-fun CampaignOverview(campaign: Campaign, progress: CampaignProgress, background: androidx.compose.ui.graphics.ImageBitmap? = null, catalog: io.github.aljadvb.worldbuilder.model.MaterialCatalog? = null) {
+fun CampaignOverview(campaign: Campaign, progress: CampaignProgress, background: androidx.compose.ui.graphics.ImageBitmap? = null, catalog: io.github.aljadvb.worldbuilder.model.MaterialCatalog? = null, onUpgrade: ((String) -> Unit)? = null) {
     var selected by remember { mutableStateOf<String?>(null) }
     if (campaign.places.isNotEmpty()) {
         val scene = campaignMapScene(campaign, progress.completed.map { it.scenarioId to it.resolutionId }, progress.currentScenario, selected, background)
@@ -113,10 +113,21 @@ fun CampaignOverview(campaign: Campaign, progress: CampaignProgress, background:
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(stringResource(R.string.camp_inventory), style = MaterialTheme.typography.titleMedium)
             if (progress.inventory.isEmpty()) Text(stringResource(R.string.camp_inventory_empty), style = MaterialTheme.typography.bodySmall)
+            val items = catalog?.items.orEmpty()
             progress.inventory.forEach { id ->
                 val item = catalog?.item(id)
-                Text("• " + (item?.name ?: id), fontWeight = FontWeight.Bold)
+                val roman = item?.let { listOf("I", "II", "III").getOrNull(it.level - 1) }
+                Text("• " + (item?.name ?: id) + (roman?.let { " ($it)" } ?: ""), fontWeight = FontWeight.Bold)
                 item?.effect?.takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+                val next = item?.upgrade(items)
+                if (item != null && next != null) {
+                    val needed = item.lore ?: 0
+                    if (onUpgrade != null && progress.lore >= needed) {
+                        androidx.compose.material3.OutlinedButton(onClick = { onUpgrade(id) }) { Text(stringResource(R.string.camp_upgrade, next.name)) }
+                    } else {
+                        Text(stringResource(R.string.camp_upgrade_later, next.name, needed), style = MaterialTheme.typography.bodySmall)
+                    }
+                }
             }
         }
     }

@@ -147,8 +147,8 @@ fun CatalogEditor(model: CatalogEditorModel) {
                         }
                     }
                 }
-                items(catalog.items, key = { "i_" + it.id }) { i ->
-                    ListRow(i.name, model.selection == CatalogSelection.Item(i.id)) { model.selection = CatalogSelection.Item(i.id) }
+                items(catalog.items.sortedWith(compareBy({ it.line ?: it.id }, { it.level })), key = { "i_" + it.id }) { i ->
+                    ListRow(i.name + "  ·  " + listOf("I", "II", "III").getOrElse(i.level - 1) { "" }, model.selection == CatalogSelection.Item(i.id)) { model.selection = CatalogSelection.Item(i.id) }
                 }
                 item {
                     ListHeader(Texts.CATALOG_EXPANSIONS) {
@@ -335,6 +335,16 @@ private fun ItemDetail(model: CatalogEditorModel, id: String) {
     Text("${Texts.CATALOG_ITEMS} · ${item.id}", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
     OutlinedTextField(item.name, { v -> model.edit("$id.name") { it.updateItem(id) { x -> x.copy(name = v) } } }, label = { Text(Texts.NAME) }, singleLine = true)
     ExpansionChoice(model, item.expansion) { x -> model.edit { it.updateItem(id) { t -> t.copy(expansion = x) } } }
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        OutlinedTextField(item.line.orEmpty(), { v -> model.edit("$id.line") { it.updateItem(id) { x -> x.copy(line = v.trim().ifEmpty { null }) } } }, label = { Text(Texts.ITEM_LINE) }, singleLine = true, modifier = Modifier.weight(1f))
+        listOf(
+            Triple(Texts.ITEM_LEVEL, item.level) { v: Int -> model.edit("$id.level") { it.updateItem(id) { x -> x.copy(level = v.coerceIn(1, 3)) } } },
+            Triple(Texts.ITEM_LORE, item.lore ?: 0) { v: Int -> model.edit("$id.lore") { it.updateItem(id) { x -> x.copy(lore = v) } } },
+            Triple(Texts.ITEM_USES, item.uses ?: 0) { v: Int -> model.edit("$id.uses") { it.updateItem(id) { x -> x.copy(uses = v) } } },
+        ).forEach { (label, value, set) ->
+            OutlinedTextField(value.toString(), { v -> v.filter(Char::isDigit).take(3).toIntOrNull()?.let(set) }, label = { Text(label) }, singleLine = true, modifier = Modifier.width(120.dp))
+        }
+    }
     OutlinedTextField(item.effect, { v -> model.edit("$id.effect") { it.updateItem(id) { x -> x.copy(effect = v) } } }, label = { Text(Texts.ITEM_EFFECT) }, modifier = Modifier.fillMaxWidth())
     OutlinedTextField(item.cardText, { v -> model.edit("$id.cardText") { it.updateItem(id) { x -> x.copy(cardText = v) } } }, label = { Text(Texts.ITEM_CARD_TEXT) }, minLines = 3, modifier = Modifier.fillMaxWidth())
     item.image?.let { img -> model.tileImages.bitmap(img.file)?.let { androidx.compose.foundation.Image(it, contentDescription = item.name, modifier = Modifier.heightIn(max = 260.dp)) } }

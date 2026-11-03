@@ -163,7 +163,18 @@ data class Item(
     /** The user's own transcription of the card (private catalog only). */
     val cardText: String = "",
     val image: ItemImage? = null,
-)
+    /** Upgrade line: cards with the same line (same picture) are levels of one item. */
+    val line: String? = null,
+    /** Level (roman numeral on the card), 1–3. */
+    val level: Int = 1,
+    /** Lore value on the card: total lore the group needs before this card can be upgraded. */
+    val lore: Int? = null,
+    /** Consumption markers placed when equipped (number in the circle). */
+    val uses: Int? = null,
+) {
+    /** The next level of the same line, if any. */
+    fun upgrade(items: List<Item>): Item? = line?.let { l -> items.firstOrNull { it.line == l && it.level == level + 1 } }
+}
 
 @Serializable
 enum class ItemKind { @SerialName("trinket") TRINKET }

@@ -111,6 +111,20 @@ object Camp {
 
     fun leave(p: CampaignProgress): CampaignProgress = p.copy(inCamp = false)
 
+    /** Replaces trinket [itemId] by its next level, if the group's lore reaches the card's lore value. */
+    fun upgradeItem(p: CampaignProgress, itemId: String, items: List<io.github.aljadvb.worldbuilder.model.Item>): CampaignProgress {
+        if (itemId !in p.inventory) throw EngineException("Die Gruppe besitzt dieses Schmuckstück nicht.")
+        val item = items.firstOrNull { it.id == itemId } ?: throw EngineException("Unbekanntes Schmuckstück '$itemId'.")
+        val next = item.upgrade(items) ?: throw EngineException("„${item.name}“ hat keine höhere Stufe.")
+        val needed = item.lore ?: 0
+        if (p.lore < needed) throw EngineException("Dafür braucht die Gruppe $needed Wissen (vorhanden: ${p.lore}).")
+        return p.copy(inventory = p.inventory.map { if (it == itemId) next.id else it })
+    }
+
+    /** Trinkets of the inventory that can be upgraded now. */
+    fun upgradable(p: CampaignProgress, items: List<io.github.aljadvb.worldbuilder.model.Item>): List<String> =
+        p.inventory.filter { id -> items.firstOrNull { it.id == id }?.let { it.upgrade(items) != null && p.lore >= (it.lore ?: 0) } == true }
+
     private fun updateHero(p: CampaignProgress, index: Int, f: (Hero) -> Hero): CampaignProgress {
         val party = p.party
         if (index !in party.indices) throw EngineException("Unbekannter Held.")

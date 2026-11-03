@@ -694,6 +694,27 @@
               "minLength": 1
             }
           }
+        },
+        "line": {
+          "$ref": "#/$defs/id",
+          "description": "Upgrade-Linie: Karten mit demselben Bild sind Stufen desselben Gegenstands."
+        },
+        "level": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3,
+          "default": 1,
+          "description": "Stufe (römische Ziffer)."
+        },
+        "lore": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Wissenswert der Karte: so viel Wissen braucht die Gruppe, um sie auf die nächste Stufe aufzuwerten."
+        },
+        "uses": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Verbrauchsmarker beim Ausrüsten."
         }
       }
     }
