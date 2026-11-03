@@ -464,6 +464,9 @@ class GameEngine(
                 val cleared = unlockedChapters.mapNotNull { scenario.chapter(it) }.filter { it.isBattle }
                     .flatMap { it.tokens }.filter { it.location is io.github.aljadvb.worldbuilder.model.SquareLocation }.map { it.id }
                 activeTokens -= cleared.toSet()
+                // Enemies standing on the cleared boards leave the table too (no defeat, no reward).
+                val gone = activeGroups.filter { scenario.enemyGroup(it)?.location is io.github.aljadvb.worldbuilder.model.SquareLocation }
+                activeGroups -= gone.toSet(); gone.forEach { enemyHealth -= it; enemyBanners -= it; exhausted -= it }
             }
             unlockedChapters += chapterId
             // Tokens on unexplored tiles appear only when the tile is explored.

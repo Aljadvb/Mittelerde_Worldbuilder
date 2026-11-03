@@ -22,6 +22,11 @@ internal class BattleChecks(
         s.chapters.filter { it.tiles.isNotEmpty() && it.isBattle }.forEach { ch ->
             c.error(IssueCode.MIXED_MAP, "${chapterPath(s.chapters.indexOf(ch))}.tiles", ch.id, "Kapitel '${ch.id}' hat Kacheln und einen Schlachtplan – ein Kapitel ist entweder Reise oder Schlacht.")
         }
+        // Rebuilding the whole battlefield in the middle of a scenario is discouraged.
+        s.chapters.forEachIndexed { ci, ch ->
+            if (ch.isBattle && ch.clearBattlefield) c.warn(IssueCode.CLEAR_BATTLEFIELD, "${chapterPath(ci)}.clearBattlefield", ch.id,
+                "Kapitel '${ch.id}' räumt das Schlachtfeld ab und baut alles neu auf. Besser die liegende Karte erweitern oder Gegner und Marker auf ihr erscheinen lassen.")
+        }
         // Each layout on the table is checked on its own: cleared boards and pieces may be used again.
         for (segment in s.battleSegments()) {
             val ids = segment.map { it.id }.toSet()

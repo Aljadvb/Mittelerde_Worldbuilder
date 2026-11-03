@@ -1,6 +1,6 @@
 # Testliste – was noch von Hand zu prüfen ist
 
-Stand: 2026-11-02 · Version 1.13.2 · Abhaken mit `[x]`. Rückmeldungen (Screenshots, Dateien) einfach im Chat schicken.
+Stand: 2026-11-02 · Version 1.13.3 · Abhaken mit `[x]`. Rückmeldungen (Screenshots, Dateien) einfach im Chat schicken.
 
 Alles hier ist automatisch getestet (Unit-Tests, simulierte Maus, gerenderte Screenshots), aber **noch nie auf echter
 Hardware bzw. mit einer echten KI gelaufen**. Die wichtigsten Punkte stehen oben.
@@ -37,7 +37,7 @@ Hardware bzw. mit einer echten KI gelaufen**. Die wichtigsten Punkte stehen oben
 - [ ] KI-Generator mit „Automatisch“: Wählt die KI bei einer Geschichte an einem Ort einen Schlachtplan? Begründung sinnvoll?
 - [ ] KI-Generator mit „Schlacht“: gültiges Szenario, sinnvoll platzierte Geländeteile?
 - [ ] Neue Kacheln 200–227: Bilder gerade, Raster passt, Nummern stimmen
-- [ ] Zweites Schlacht-Kapitel mit „Vorher abräumen“: beide Pläne neu legbar, App zeigt „Räumt zuerst … ab“ und nur den neuen Aufbau
+- [ ] „Vorher abräumen“ im Editor → Prüfung warnt (Karte soll nicht mitten im Szenario neu aufgebaut werden); KI nutzt es nicht mehr
 - [ ] Nur ein Schlachtplan → Hinweis in der Prüfung; KI plant zwei Pläne
 
 ## 1d. Erkunden und Inspiration (neu in 1.4.0)
