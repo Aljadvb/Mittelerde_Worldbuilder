@@ -284,4 +284,9 @@
     <string name="attack_defense">Rüstung %1$d · Schutzzauber %2$d (ziehen je Angriff Treffer ab)</string>
     <string name="map_fit">Einpassen</string>
     <string name="game_objective_line">Ziel: %1$s</string>
+    <string name="camp_map">Kampagnenkarte</string>
+    <string name="camp_lore_short">Wissen: %1$d</string>
+    <string name="camp_inventory_button">Inventar (%1$d)</string>
+    <string name="camp_xp_label">EP</string>
+    <string name="camp_found_items">Gefunden: %1$s</string>
 </resources>

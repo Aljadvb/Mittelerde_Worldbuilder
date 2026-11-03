@@ -307,8 +307,12 @@ class ScreenshotTest {
             lore = 7, inCamp = true,
         )
         compose.setContent { Screen { io.github.aljadvb.worldbuilder.ui.game.CampContent(camp, progress) {} } }
-        compose.onNodeWithText("Gesamtwissen: 7").assertExists()
+        compose.onNodeWithText("Wissen: 7").assertExists()
+        compose.onNodeWithText("Aragorn").assertExists()
         snapshot("14_camp")
+        // A hero card opens the hero's experience and skills.
+        compose.onNodeWithText("Aragorn").performClick()
+        compose.onNodeWithText("Fertigkeit kaufen").assertExists()
     }
 
     /** Mill chapter, idle, with the enemy group in play. */
