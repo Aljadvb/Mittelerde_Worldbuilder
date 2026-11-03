@@ -383,4 +383,14 @@ class ScreenshotTest {
         compose.onNodeWithText("Schließen").assertExists()
         snapshot("19_enemy_menu")
     }
+
+    @Test
+    fun attackDialogShowsHealthAndArmor() {
+        val s = millWithEnemies()
+        if (s.activeEnemyGroups.isEmpty()) return
+        show(s)
+        compose.onAllNodesWithText("Angreifen")[0].performClick()
+        compose.onNodeWithText("Feind 1:", substring = true).assertExists()
+        compose.onNodeWithText("(ziehen je Angriff Treffer ab)", substring = true).assertExists()
+    }
 }

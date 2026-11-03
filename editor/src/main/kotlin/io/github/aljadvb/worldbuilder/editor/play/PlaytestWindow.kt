@@ -243,7 +243,7 @@ private fun BattlePlayMap(
 @Composable
 private fun IdleActions(game: PlaytestModel, scenario: Scenario, catalog: MaterialCatalog, state: GameState) {
     var attacking by remember { mutableStateOf<String?>(null) }
-    attacking?.let { gid -> AttackDialog(catalog.enemyType(scenario.enemyGroup(gid)?.enemyType.orEmpty())?.name ?: gid, onDismiss = { attacking = null }) { hits, mods ->
+    attacking?.let { gid -> AttackDialog(catalog.enemyType(scenario.enemyGroup(gid)?.enemyType.orEmpty())?.name ?: gid, enemyStatus(scenario, catalog, state, gid), onDismiss = { attacking = null }) { hits, mods ->
         attacking = null
         game.send(Command.AttackEnemy(gid, hits, pierce = "pierce" in mods, smite = "smite" in mods, sunder = "sunder" in mods, cleave = "cleave" in mods, stun = "stun" in mods, lethal = "lethal" in mods))
     } }
@@ -282,7 +282,14 @@ private fun IdleActions(game: PlaytestModel, scenario: Scenario, catalog: Materi
 
 /** Hits and modifiers of an attack on an enemy group. */
 @Composable
-private fun AttackDialog(name: String, onDismiss: () -> Unit, onAttack: (Int, Set<String>) -> Unit) {
+private fun enemyStatus(scenario: Scenario, catalog: MaterialCatalog, state: GameState, gid: String): String {
+    val type = catalog.enemyType(scenario.enemyGroup(gid)?.enemyType.orEmpty()) ?: return ""
+    val health = state.enemyHealth[gid]?.filter { it > 0 }.orEmpty()
+    return Texts.enemyHealth(health.joinToString(" · ") { "$it/${type.health}" }, (type.armor - (state.armorLoss[gid] ?: 0)).coerceAtLeast(0), type.sorcery, gid in state.exhaustedGroups)
+}
+
+@Composable
+private fun AttackDialog(name: String, status: String, onDismiss: () -> Unit, onAttack: (Int, Set<String>) -> Unit) {
     var hits by remember { mutableIntStateOf(0) }
     var mods by remember { mutableStateOf(setOf<String>()) }
     androidx.compose.material3.AlertDialog(
@@ -290,6 +297,7 @@ private fun AttackDialog(name: String, onDismiss: () -> Unit, onAttack: (Int, Se
         title = { Text(Texts.attackTitle(name)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                if (status.isNotBlank()) Text(status, fontWeight = FontWeight.Bold)
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(Texts.HITS)
                     OutlinedButton(onClick = { if (hits > 0) hits-- }) { Text("−") }

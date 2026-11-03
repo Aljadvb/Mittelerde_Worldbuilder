@@ -281,4 +281,5 @@
     <string name="token_interact">Interagieren</string>
     <string name="token_interact_hint">Interagieren kostet eine Aktion. Stehen Feinde auf dem Feld, provoziert ihr sie vorher.</string>
     <string name="token_no_text">Keine Beschreibung.</string>
+    <string name="attack_defense">Rüstung %1$d · Schutzzauber %2$d (ziehen je Angriff Treffer ab)</string>
 </resources>

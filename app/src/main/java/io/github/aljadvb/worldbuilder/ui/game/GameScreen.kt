@@ -566,9 +566,21 @@ private fun AttackDialog(scenario: Scenario, catalog: MaterialCatalog, game: Gam
     )
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.attack_title, catalog.enemyType(group.enemyType)?.name ?: group.enemyType)) },
+        title = { Text(stringResource(R.string.attack_title, enemyLabel(catalog, game, groupId, group.enemyType))) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                // Current state of the group: health of each enemy, armor (after "Zerfallen") and sorcery.
+                val type = catalog.enemyType(group.enemyType)
+                val health = game.enemyHealth[groupId]?.withIndex()?.filter { it.value > 0 }.orEmpty()
+                Card(Modifier.fillMaxWidth()) {
+                    Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        health.forEach { (i, hp) -> Text(stringResource(R.string.enemy_menu_health, i + 1, hp, type?.health ?: hp), fontWeight = FontWeight.Bold) }
+                        if (type != null) {
+                            val armor = (type.armor - (game.armorLoss[groupId] ?: 0)).coerceAtLeast(0)
+                            Text(stringResource(R.string.attack_defense, armor, type.sorcery), style = MaterialTheme.typography.bodyMedium)
+                        }
+                    }
+                }
                 Text(stringResource(R.string.attack_hits))
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                     OutlinedButton(onClick = { if (hits > 0) hits-- }) { Text("−") }
