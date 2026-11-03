@@ -895,6 +895,35 @@
           }
         },
         {
+          "description": "Helden erhalten einen Zustand: Gunst (Versteckt, Ermutigt, Entschlossen) oder Fluch (Gefangen, Verzagt, Verängstigt).",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "condition"
+          ],
+          "properties": {
+            "type": {
+              "const": "gainCondition"
+            },
+            "condition": {
+              "enum": ["hidden", "inspired", "determined", "captured", "disheartened", "frightened"]
+            },
+            "who": {
+              "enum": [
+                "active",
+                "each",
+                "chosen"
+              ],
+              "default": "active"
+            },
+            "text": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        {
           "description": "Belohnung: Helden legen Schaden- und/oder Furchtkarten ab (die App zählt nicht mit).",
           "type": "object",
           "additionalProperties": false,

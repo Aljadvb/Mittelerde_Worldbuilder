@@ -12,7 +12,7 @@ import kotlin.test.assertTrue
 
 class ShadowPhaseTest {
     private val wolf = EnemyType("nebelwolf", "Nebelwolf", "beispiel", health = 4, armor = 1, sorcery = 0, movement = 3,
-        attacks = listOf(EnemyAttack(2, 0, "Biss", Attribute.AGILITY), EnemyAttack(1, 1, "Heulen", Attribute.SPIRIT)))
+        attacks = listOf(EnemyAttack(2, 0, "Biss", Attribute.AGILITY), EnemyAttack(1, 1, "Heulen", Attribute.SPIRIT, io.github.aljadvb.worldbuilder.model.Condition.FRIGHTENED)))
     private val base = Examples.scenario
     private val scenario = base.copy(
         events = base.events + listOf(
@@ -44,6 +44,7 @@ class ShadowPhaseTest {
         val act = after.prompts.first() as Prompt.EnemyActivation
         assertTrue(act.hero in 0..2 && act.movement == 3 && (act.damage to act.fear) in listOf(2 to 0, 1 to 1))
         assertEquals(if (act.damage == 2) Attribute.AGILITY else Attribute.SPIRIT, act.negate)
+        assertEquals(if (act.damage == 2) null else io.github.aljadvb.worldbuilder.model.Condition.FRIGHTENED, act.condition)
         var x = after
         val texts = mutableListOf<String>()
         while (!x.isIdle) { (x.currentPrompt as? Prompt.Text)?.let { texts += it.text }; x = engine.apply(x, Command.Acknowledge) }

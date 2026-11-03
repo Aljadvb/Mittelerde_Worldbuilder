@@ -223,6 +223,7 @@ private fun NoticeContent(prompt: Prompt.Notice, scenario: Scenario, catalog: Ma
             Text(stringResource(R.string.enemy_attack_values, prompt.damage, prompt.fear), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error)
             if (prompt.text.isNotBlank()) Body(prompt.text)
             NegateLine(prompt.negate)
+            prompt.condition?.let { Body(stringResource(R.string.attack_condition, conditionName(it))) }
             Hint(stringResource(R.string.enemy_activation_hint))
         }
         is Prompt.EnemyRegroup -> {
@@ -237,6 +238,7 @@ private fun NoticeContent(prompt: Prompt.Notice, scenario: Scenario, catalog: Ma
             Text(stringResource(R.string.enemy_attack_values, prompt.damage, prompt.fear), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error)
             if (prompt.text.isNotBlank()) Body(prompt.text)
             NegateLine(prompt.negate)
+            prompt.condition?.let { Body(stringResource(R.string.attack_condition, conditionName(it))) }
         }
         is Prompt.EnemyAttack -> {
             val name = enemyName(scenario, catalog, prompt.groupId)
@@ -245,6 +247,7 @@ private fun NoticeContent(prompt: Prompt.Notice, scenario: Scenario, catalog: Ma
             Text(stringResource(R.string.enemy_attack_values, prompt.damage, prompt.fear), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error)
             if (prompt.text.isNotBlank()) Body(prompt.text)
             NegateLine(prompt.negate)
+            prompt.condition?.let { Body(stringResource(R.string.attack_condition, conditionName(it))) }
         }
         is Prompt.HeroSurvives -> {
             Title(stringResource(R.string.hero_survives_title, heroName(heroNames, prompt.hero)))
@@ -299,6 +302,17 @@ private fun NoticeContent(prompt: Prompt.Notice, scenario: Scenario, catalog: Ma
             Text(prompt.elvish, style = MaterialTheme.typography.bodyMedium, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic, color = MaterialTheme.colorScheme.onSurfaceVariant)
             if (prompt.translationHidden) Hint(stringResource(R.string.inscription_riddle))
             else Text(stringResource(R.string.inscription_translation, prompt.translation), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
+        }
+        is Prompt.Condition -> {
+            val name = conditionName(prompt.condition)
+            Title(stringResource(if (prompt.condition.isCurse) R.string.condition_curse_title else R.string.condition_boon_title, name))
+            prompt.text?.let { Body(it) }
+            Body(conditionText(prompt))
+            Hint(when {
+                prompt.condition == io.github.aljadvb.worldbuilder.model.Condition.CAPTURED -> stringResource(R.string.condition_captured_hint)
+                prompt.condition.isCurse -> stringResource(R.string.condition_curse_hint, name)
+                else -> stringResource(R.string.condition_boon_hint, name)
+            })
         }
         is Prompt.Recover -> {
             Title(stringResource(R.string.recover_title))
@@ -386,6 +400,23 @@ internal fun inspirationText(prompt: Prompt.Inspiration): String = when (prompt.
     io.github.aljadvb.worldbuilder.model.HeroTarget.ACTIVE -> stringResource(R.string.inspiration_active, prompt.amount)
     io.github.aljadvb.worldbuilder.model.HeroTarget.EACH -> stringResource(R.string.inspiration_each, prompt.amount)
     io.github.aljadvb.worldbuilder.model.HeroTarget.CHOSEN -> stringResource(R.string.inspiration_chosen, prompt.amount)
+}
+
+@Composable
+internal fun conditionName(c: io.github.aljadvb.worldbuilder.model.Condition): String = stringResource(when (c) {
+    io.github.aljadvb.worldbuilder.model.Condition.HIDDEN -> R.string.condition_hidden
+    io.github.aljadvb.worldbuilder.model.Condition.INSPIRED -> R.string.condition_inspired
+    io.github.aljadvb.worldbuilder.model.Condition.DETERMINED -> R.string.condition_determined
+    io.github.aljadvb.worldbuilder.model.Condition.CAPTURED -> R.string.condition_captured
+    io.github.aljadvb.worldbuilder.model.Condition.DISHEARTENED -> R.string.condition_disheartened
+    io.github.aljadvb.worldbuilder.model.Condition.FRIGHTENED -> R.string.condition_frightened
+})
+
+@Composable
+internal fun conditionText(prompt: Prompt.Condition): String = when (prompt.who) {
+    io.github.aljadvb.worldbuilder.model.HeroTarget.ACTIVE -> stringResource(R.string.condition_active, conditionName(prompt.condition))
+    io.github.aljadvb.worldbuilder.model.HeroTarget.EACH -> stringResource(R.string.condition_each, conditionName(prompt.condition))
+    io.github.aljadvb.worldbuilder.model.HeroTarget.CHOSEN -> stringResource(R.string.condition_chosen, conditionName(prompt.condition))
 }
 
 @Composable

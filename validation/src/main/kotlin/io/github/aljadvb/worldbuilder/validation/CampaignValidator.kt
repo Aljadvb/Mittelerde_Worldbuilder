@@ -424,6 +424,7 @@ private class CampaignChecks(
                     }
                     step.text?.let { blank(it, "$p.text", eventId, "$what: Text") }
                 }
+                is EventStep.GainCondition -> step.text?.let { blank(it, "$p.text", eventId, "$what: Text") }
                 is EventStep.Inscription -> {
                     blank(step.elvish, "$p.elvish", eventId, "$what: elbischer Text")
                     blank(step.translation, "$p.translation", eventId, "$what: Übersetzung")
@@ -512,5 +513,6 @@ internal fun stepName(step: EventStep): String = when (step) {
     is EventStep.Recover -> "recover"
     is EventStep.AffectEnemy -> "affectEnemy"
     is EventStep.Inscription -> "inscription"
+    is EventStep.GainCondition -> "gainCondition"
     is EventStep.EndScenario -> "endScenario"
 }

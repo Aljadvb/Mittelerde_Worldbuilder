@@ -177,6 +177,7 @@ object Texts {
         "sufferHarm" to "Schaden/Furcht erleiden",
         "gainItem" to "Schmuckstück finden",
         "recover" to "Erholung (Schaden/Furcht ablegen)",
+        "gainCondition" to "Zustand erhalten (Gunst oder Fluch)",
         "affectEnemy" to "Gegner schwächen (Treffer, Betäuben …)",
         "inscription" to "Elbische Inschrift (mit Übersetzung, optional als Rätsel)",
         "gainLore" to "Wissen erhalten",
@@ -204,6 +205,31 @@ object Texts {
             io.github.aljadvb.worldbuilder.model.HeroTarget.CHOSEN -> "Ein Held eurer Wahl legt $what ab."
         }
     }
+    const val HERO_CONDITION = "Zustand"
+    const val HERO_CONDITION_NONE = "kein"
+    val HERO_CONDITIONS = listOf(
+        "HIDDEN" to "Versteckt (Gunst)", "INSPIRED" to "Ermutigt (Gunst)", "DETERMINED" to "Entschlossen (Gunst)",
+        "CAPTURED" to "Gefangen (Fluch)", "DISHEARTENED" to "Verzagt (Fluch)", "FRIGHTENED" to "Verängstigt (Fluch)",
+    )
+    fun conditionName(c: io.github.aljadvb.worldbuilder.model.Condition) = when (c) {
+        io.github.aljadvb.worldbuilder.model.Condition.HIDDEN -> "Versteckt"
+        io.github.aljadvb.worldbuilder.model.Condition.INSPIRED -> "Ermutigt"
+        io.github.aljadvb.worldbuilder.model.Condition.DETERMINED -> "Entschlossen"
+        io.github.aljadvb.worldbuilder.model.Condition.CAPTURED -> "Gefangen"
+        io.github.aljadvb.worldbuilder.model.Condition.DISHEARTENED -> "Verzagt"
+        io.github.aljadvb.worldbuilder.model.Condition.FRIGHTENED -> "Verängstigt"
+    }
+    fun condition(c: io.github.aljadvb.worldbuilder.model.Condition, who: io.github.aljadvb.worldbuilder.model.HeroTarget): String {
+        val subject = when (who) {
+            io.github.aljadvb.worldbuilder.model.HeroTarget.ACTIVE -> "Der handelnde Held wird"
+            io.github.aljadvb.worldbuilder.model.HeroTarget.EACH -> "Jeder Held wird"
+            io.github.aljadvb.worldbuilder.model.HeroTarget.CHOSEN -> "Ein Held eurer Wahl wird"
+        }
+        val card = if (c == io.github.aljadvb.worldbuilder.model.Condition.CAPTURED) "Zieht eine zufällige Fluchkarte „Gefangen“, ohne die Rückseite anzusehen."
+            else "Nehmt die ${if (c.isCurse) "Fluchkarte" else "Gunstkarte"} „${conditionName(c)}“ (nicht doppelt)."
+        return "$subject ${conditionName(c)}. $card"
+    }
+    fun attackCondition(c: io.github.aljadvb.worldbuilder.model.Condition?) = c?.let { "\nZusätzlich wird der angegriffene Held ${conditionName(it)}, falls nicht der ganze Angriff negiert wird." }.orEmpty()
     const val RANDOM_TRINKET = "zufälliges Schmuckstück (noch nicht im Besitz)"
     const val ITEM_WHO = "Wer nimmt die Karte?"
     fun itemFound(name: String?, who: String) = if (name == null) "Ihr findet nichts Neues – alle Schmuckstücke sind schon im Besitz der Gruppe."

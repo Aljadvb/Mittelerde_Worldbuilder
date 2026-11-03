@@ -113,6 +113,7 @@ private fun stepLabel(step: EventStep): String {
         is EventStep.SufferHarm -> "sufferHarm"
         is EventStep.GainItem -> "gainItem"
         is EventStep.Recover -> "recover"
+        is EventStep.GainCondition -> "gainCondition"
         is EventStep.Inscription -> "inscription"
         is EventStep.AffectEnemy -> "affectEnemy"
         is EventStep.GainLore -> "gainLore"
@@ -141,6 +142,7 @@ fun newStep(type: String, s: Scenario): EventStep = when (type) {
     "sufferHarm" -> EventStep.SufferHarm(damage = 1)
     "gainItem" -> EventStep.GainItem()
     "recover" -> EventStep.Recover(damage = 1)
+    "gainCondition" -> EventStep.GainCondition(io.github.aljadvb.worldbuilder.model.Condition.HIDDEN)
     "inscription" -> EventStep.Inscription("Mae govannen", "Willkommen")
     "affectEnemy" -> EventStep.AffectEnemy(s.enemyGroups.firstOrNull()?.id.orEmpty(), hits = 2)
     "gainLore" -> EventStep.GainLore(1)
@@ -287,6 +289,17 @@ private fun StepFields(
                     set(step.copy(onFailure = v))
                 }
             }
+        }
+        is EventStep.GainCondition -> {
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                ChoiceInput(model, Texts.HERO_CONDITION, step.condition.name, Texts.HERO_CONDITIONS.map { Choice(it.first, it.second) }, null, modifier = Modifier.weight(1f)) { v ->
+                    set(step.copy(condition = io.github.aljadvb.worldbuilder.model.Condition.valueOf(v!!)))
+                }
+                ChoiceInput(model, Texts.HARM_WHO, step.who.name, Texts.INSPIRATION_TARGETS.map { Choice(it.first, it.second) }, null, modifier = Modifier.weight(1f)) { v ->
+                    set(step.copy(who = io.github.aljadvb.worldbuilder.model.HeroTarget.valueOf(v!!)))
+                }
+            }
+            TextInput(model, Texts.OPTIONAL_TEXT, step.text.orEmpty(), "$key.text", "$p.text") { v -> setText(step.copy(text = v.ifEmpty { null })) }
         }
         is EventStep.Recover -> {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {

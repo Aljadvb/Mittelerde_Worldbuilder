@@ -35,7 +35,7 @@
   ],
   "enemyTypes": [
     { "id": "nebelwolf", "name": "Nebelwolf", "expansion": "beispiel", "health": 3, "movement": 3,
-      "attacks": [ { "damage": 2, "text": "Ein Biss aus dem Nebel.", "negate": "agility" }, { "damage": 1, "fear": 1, "text": "Heulen ringsum.", "negate": "spirit" } ] },
+      "attacks": [ { "damage": 2, "text": "Ein Biss aus dem Nebel.", "negate": "agility" }, { "damage": 1, "fear": 1, "text": "Heulen ringsum.", "negate": "spirit", "condition": "frightened" } ] },
     { "id": "aschekraehe", "name": "Aschekrähe", "expansion": "beispiel", "health": 2, "movement": 4, "ranged": true,
       "attacks": [ { "damage": 1, "text": "Schnabelhieb von oben.", "negate": "agility" }, { "fear": 2, "text": "Ein Schwarm verdunkelt den Himmel.", "negate": "spirit" } ] }
   ],

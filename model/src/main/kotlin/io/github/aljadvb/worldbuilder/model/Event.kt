@@ -83,6 +83,15 @@ sealed interface EventStep {
         val text: String? = null,
     ) : EventStep
 
+    /** Heroes take a boon (Hidden, Inspired, Determined) or curse card (Captured, Disheartened, Frightened). */
+    @Serializable
+    @SerialName("gainCondition")
+    data class GainCondition(
+        val condition: Condition,
+        val who: HeroTarget = HeroTarget.ACTIVE,
+        val text: String? = null,
+    ) : EventStep
+
     /** Darkness: in each shadow phase heroes in darkness suffer [fear] (0 switches it off). */
     @Serializable
     @SerialName("setDarkness")
@@ -198,3 +207,15 @@ data class ChoiceOption(
     val label: String,
     val event: String,
 )
+
+/** Conditions a hero can receive as a card: boons help, curses hinder. A hero never holds the same one twice. */
+@Serializable
+enum class Condition(val isCurse: Boolean) {
+    @SerialName("hidden") HIDDEN(false),
+    @SerialName("inspired") INSPIRED(false),
+    @SerialName("determined") DETERMINED(false),
+    /** Curse: the hero takes a random "Captured" card face down. */
+    @SerialName("captured") CAPTURED(true),
+    @SerialName("disheartened") DISHEARTENED(true),
+    @SerialName("frightened") FRIGHTENED(true),
+}

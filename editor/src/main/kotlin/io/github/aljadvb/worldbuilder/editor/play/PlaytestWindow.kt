@@ -444,7 +444,7 @@ fun describe(prompt: Prompt, scenario: Scenario, catalog: MaterialCatalog): Stri
         is Prompt.Explored -> Texts.explored(tile(prompt.placementId)) + prompt.tokenIds.mapNotNull { scenario.token(it) }.joinToString("") { "\n• " + Texts.placeToken(it.label, tile(prompt.placementId)) }
         is Prompt.EnemyActivation -> scenario.enemyGroup(prompt.groupId)?.let { g ->
             Texts.activation(catalog.enemyType(g.enemyType)?.name ?: g.enemyType, prompt.movement, "Held ${prompt.hero + 1}", prompt.damage, prompt.fear, prompt.ranged) +
-                (if (prompt.text.isNotBlank()) "\n${prompt.text}" else "") + Texts.negate(attr(prompt.negate))
+                (if (prompt.text.isNotBlank()) "\n${prompt.text}" else "") + Texts.negate(attr(prompt.negate)) + Texts.attackCondition(prompt.condition)
         }.orEmpty()
         is Prompt.EnemyRecovers -> Texts.recovers(scenario.enemyGroup(prompt.groupId)?.let { catalog.enemyType(it.enemyType)?.name } ?: prompt.groupId)
         is Prompt.Darkness -> Texts.darkness(prompt.fear)
@@ -455,12 +455,13 @@ fun describe(prompt: Prompt, scenario: Scenario, catalog: MaterialCatalog): Stri
         is Prompt.Choice -> prompt.step.text
         is Prompt.Test -> prompt.step.text.orEmpty()
         is Prompt.EnemyRegroup -> Texts.regroup(enemy(prompt.groupId), prompt.movement)
-        is Prompt.EnemyHalted -> Texts.halted(enemy(prompt.groupId), prompt.damage, prompt.fear) + (if (prompt.text.isNotBlank()) "\n${prompt.text}" else "") + Texts.negate(attr(prompt.negate))
+        is Prompt.EnemyHalted -> Texts.halted(enemy(prompt.groupId), prompt.damage, prompt.fear) + (if (prompt.text.isNotBlank()) "\n${prompt.text}" else "") + Texts.negate(attr(prompt.negate)) + Texts.attackCondition(prompt.condition)
         is Prompt.EnemyAttack -> Texts.enemyAttack(enemy(prompt.groupId), prompt.reason == AttackReason.COUNTER, prompt.damage, prompt.fear) +
-            (if (prompt.text.isNotBlank()) "\n${prompt.text}" else "") + Texts.negate(attr(prompt.negate))
+            (if (prompt.text.isNotBlank()) "\n${prompt.text}" else "") + Texts.negate(attr(prompt.negate)) + Texts.attackCondition(prompt.condition)
         is Prompt.TestResult -> Texts.testResult(prompt.passed)
         is Prompt.TestProgress -> Texts.testProgress(prompt.total, prompt.step.successes, prompt.step.hidden)
         is Prompt.Inscription -> listOfNotNull(prompt.text, Texts.inscription(prompt.elvish, if (prompt.translationHidden) "?" else prompt.translation)).joinToString("\n")
+        is Prompt.Condition -> listOfNotNull(prompt.text, Texts.condition(prompt.condition, prompt.who)).joinToString("\n")
         is Prompt.Recover -> listOfNotNull(prompt.text, Texts.recover(prompt.damage, prompt.fear, prompt.who)).joinToString("\n")
         is Prompt.ItemFound -> listOfNotNull(prompt.text, Texts.itemFound(prompt.itemId?.let { catalog.item(it)?.name ?: it },
             if (prompt.who == io.github.aljadvb.worldbuilder.model.HeroTarget.CHOSEN) "Ein Held eurer Wahl" else "Der handelnde Held")).joinToString("\n")

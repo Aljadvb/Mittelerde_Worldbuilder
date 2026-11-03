@@ -122,10 +122,26 @@ internal fun EnemyStats(model: CatalogEditorModel, e: io.github.aljadvb.worldbui
             OutlinedTextField(a.fear.toString(), { v -> v.filter(Char::isDigit).take(2).toIntOrNull()?.let { n -> setA { it.copy(fear = n) } } }, label = { Text(Texts.FEAR) }, singleLine = true, modifier = Modifier.width(110.dp))
             OutlinedTextField(a.text, { v -> setA { it.copy(text = v) } }, label = { Text(Texts.TEXT) }, modifier = Modifier.weight(1f))
             NegateInput(a.negate) { v -> setA { it.copy(negate = v) } }
+            ConditionInput(a.condition) { v -> setA { it.copy(condition = v) } }
             androidx.compose.material3.TextButton(onClick = { upd("attacks") { t -> t.copy(attacks = t.attacks.filterIndexed { j, _ -> j != i }) } }) { Text("✕") }
         }
     }
     OutlinedButton(onClick = { upd("attacks") { it.copy(attacks = it.attacks + io.github.aljadvb.worldbuilder.model.EnemyAttack(damage = 1)) } }) { Text(Texts.ENEMY_ADD_ATTACK) }
+}
+
+/** Condition the attacked hero also receives ("kein" = none). */
+@androidx.compose.runtime.Composable
+private fun ConditionInput(value: io.github.aljadvb.worldbuilder.model.Condition?, onChange: (io.github.aljadvb.worldbuilder.model.Condition?) -> Unit) {
+    var open by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+    fun label(c: io.github.aljadvb.worldbuilder.model.Condition?) = c?.let(Texts::conditionName) ?: Texts.HERO_CONDITION_NONE
+    androidx.compose.foundation.layout.Box {
+        OutlinedButton(onClick = { open = true }) { Text(Texts.HERO_CONDITION + ": " + label(value)) }
+        androidx.compose.material3.DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            (listOf<io.github.aljadvb.worldbuilder.model.Condition?>(null) + io.github.aljadvb.worldbuilder.model.Condition.entries).forEach { c ->
+                androidx.compose.material3.DropdownMenuItem(text = { Text(label(c)) }, onClick = { open = false; onChange(c) })
+            }
+        }
+    }
 }
 
 /** Attribute of the test that negates an attack ("–" = cannot be negated). */

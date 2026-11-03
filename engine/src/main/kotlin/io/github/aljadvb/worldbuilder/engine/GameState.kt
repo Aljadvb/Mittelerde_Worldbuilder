@@ -134,7 +134,7 @@ sealed interface Prompt {
 
     /** Shadow phase: an enemy group moves and attacks hero number [hero] (0-based). */
     @Serializable @SerialName("enemyActivation")
-    data class EnemyActivation(val groupId: String, val hero: Int, val movement: Int, val damage: Int, val fear: Int, val text: String, val ranged: Boolean, val negate: io.github.aljadvb.worldbuilder.model.Attribute? = null) : Notice
+    data class EnemyActivation(val groupId: String, val hero: Int, val movement: Int, val damage: Int, val fear: Int, val text: String, val ranged: Boolean, val negate: io.github.aljadvb.worldbuilder.model.Attribute? = null, val condition: io.github.aljadvb.worldbuilder.model.Condition? = null) : Notice
 
     /** Shadow phase: an exhausted group recovers instead of acting. */
     @Serializable @SerialName("enemyRecovers")
@@ -146,11 +146,11 @@ sealed interface Prompt {
 
     /** "Bewegung beendet": the group stops at a river, fence or ditch and attacks only a hero in reach. */
     @Serializable @SerialName("enemyHalted")
-    data class EnemyHalted(val groupId: String, val damage: Int, val fear: Int, val text: String, val ranged: Boolean, val negate: io.github.aljadvb.worldbuilder.model.Attribute? = null) : Notice
+    data class EnemyHalted(val groupId: String, val damage: Int, val fear: Int, val text: String, val ranged: Boolean, val negate: io.github.aljadvb.worldbuilder.model.Attribute? = null, val condition: io.github.aljadvb.worldbuilder.model.Condition? = null) : Notice
 
     /** A provoked group or a counterattack hits the hero who provoked or attacked it. */
     @Serializable @SerialName("enemyAttack")
-    data class EnemyAttack(val groupId: String, val reason: AttackReason, val damage: Int, val fear: Int, val text: String, val ranged: Boolean, val negate: io.github.aljadvb.worldbuilder.model.Attribute? = null) : Notice
+    data class EnemyAttack(val groupId: String, val reason: AttackReason, val damage: Int, val fear: Int, val text: String, val ranged: Boolean, val negate: io.github.aljadvb.worldbuilder.model.Attribute? = null, val condition: io.github.aljadvb.worldbuilder.model.Condition? = null) : Notice
 
     /** A hero survived the last stand and discards all cards of [kind]. */
     @Serializable @SerialName("heroSurvives")
@@ -166,6 +166,10 @@ sealed interface Prompt {
 
     @Serializable @SerialName("recover")
     data class Recover(val damage: Int, val fear: Int, val who: io.github.aljadvb.worldbuilder.model.HeroTarget, val text: String? = null) : Notice
+
+    /** Heroes take the boon or curse card [condition]. */
+    @Serializable @SerialName("condition")
+    data class Condition(val condition: io.github.aljadvb.worldbuilder.model.Condition, val who: io.github.aljadvb.worldbuilder.model.HeroTarget, val text: String? = null) : Notice
 
     @Serializable @SerialName("inscription")
     data class Inscription(

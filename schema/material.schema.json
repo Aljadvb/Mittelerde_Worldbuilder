@@ -395,6 +395,18 @@
                   "wit"
                 ],
                 "description": "Eigenschaft der Probe, mit der der angegriffene Held den Angriff abwehren kann: jeder Erfolg verhindert 1 Schaden oder 1 Furcht. Fehlt das Feld, ist der Angriff nicht abwehrbar (selten)."
+              },
+              "condition": {
+                "type": "string",
+                "enum": [
+                  "hidden",
+                  "inspired",
+                  "determined",
+                  "captured",
+                  "disheartened",
+                  "frightened"
+                ],
+                "description": "Zustand, den der angegriffene Held zusätzlich erhält (z. B. frightened), außer der ganze Angriff wird abgewehrt."
               }
             }
           }

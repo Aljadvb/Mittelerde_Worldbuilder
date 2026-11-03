@@ -158,6 +158,8 @@ data class EnemyAttack(
     val text: String = "",
     /** Attribute of the test that negates it: each success prevents 1 damage or 1 fear. Null = cannot be negated. */
     val negate: Attribute? = null,
+    /** Condition the attacked hero also receives (e.g. Frightened), unless the whole attack is negated. */
+    val condition: Condition? = null,
 )
 
 /** A playable hero (name, folk, short description in own words). */
