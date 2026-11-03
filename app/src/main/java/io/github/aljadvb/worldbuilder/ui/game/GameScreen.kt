@@ -300,6 +300,7 @@ private fun ThreatBar(scenario: Scenario, threat: Int, modifier: Modifier = Modi
                 progress = { threat.toFloat() / max },
                 modifier = Modifier.fillMaxWidth().height(8.dp),
                 color = MaterialTheme.colorScheme.error,
+                trackColor = MaterialTheme.colorScheme.outlineVariant,
             )
             Canvas(Modifier.fillMaxWidth().height(8.dp)) {
                 thresholds.forEach { v ->

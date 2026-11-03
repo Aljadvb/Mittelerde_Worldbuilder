@@ -90,6 +90,11 @@
       "items": {
         "$ref": "#/$defs/role"
       }
+    },
+    "titleFont": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Optional: eigene Schriftdatei (TTF/OTF) für Titel und Knöpfe der App, relativ zum Katalog, z. B. schrift/titel.ttf. Nur im privaten Katalog."
     }
   },
   "$defs": {

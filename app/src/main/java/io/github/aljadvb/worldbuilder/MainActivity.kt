@@ -13,7 +13,11 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         val container = (application as WorldbuilderApp).container
         setContent {
-            WorldbuilderTheme {
+            // Own title font from the private catalog, if it brings one.
+            val titleFont = container.library.catalogImageDir?.let { dir ->
+                runCatching { container.library.catalog().titleFont }.getOrNull()?.let { java.io.File(dir, it) }
+            }
+            WorldbuilderTheme(titleFont = titleFont) {
                 AppNavigation(container)
             }
         }

@@ -26,6 +26,8 @@ data class MaterialCatalog(
     val heroes: List<HeroDefinition> = emptyList(),
     /** Roles (classes) the heroes can take. */
     val roles: List<RoleDefinition> = emptyList(),
+    /** Optional own font for titles and buttons (relative path, private catalog only). */
+    val titleFont: String? = null,
 ) {
     fun hero(id: String): HeroDefinition? = heroes.firstOrNull { it.id == id }
     fun item(id: String): Item? = items.firstOrNull { it.id == id }
