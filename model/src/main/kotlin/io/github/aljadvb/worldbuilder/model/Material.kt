@@ -22,7 +22,12 @@ data class MaterialCatalog(
     val campaignMap: CampaignMapImage? = null,
     /** Items heroes can find in adventures (for now trinkets). */
     val items: List<Item> = emptyList(),
+    /** Heroes the players can choose at the start of a campaign. */
+    val heroes: List<HeroDefinition> = emptyList(),
+    /** Roles (classes) the heroes can take. */
+    val roles: List<RoleDefinition> = emptyList(),
 ) {
+    fun hero(id: String): HeroDefinition? = heroes.firstOrNull { it.id == id }
     fun item(id: String): Item? = items.firstOrNull { it.id == id }
     fun battleBoard(id: String): BattleBoard? = battleBoards.firstOrNull { it.id == id }
     fun terrainPiece(id: String): TerrainPiece? = terrainPieces.firstOrNull { it.id == id }
@@ -149,6 +154,26 @@ data class EnemyAttack(
     val text: String = "",
     /** Attribute of the test that negates it: each success prevents 1 damage or 1 fear. Null = cannot be negated. */
     val negate: Attribute? = null,
+)
+
+/** A playable hero (name, folk, short description in own words). */
+@Serializable
+data class HeroDefinition(
+    val id: String,
+    val name: String,
+    val expansion: String,
+    /** Folk, e.g. "Mensch", "Hobbit", "Zwerg". */
+    val folk: String = "",
+    val description: String = "",
+)
+
+/** A role a hero can take (e.g. "Hauptmann"); experience is kept per role. */
+@Serializable
+data class RoleDefinition(
+    val id: String,
+    val name: String,
+    val expansion: String,
+    val description: String = "",
 )
 
 /** An item card heroes can find; card text and picture only in the private catalog. */

@@ -30,6 +30,8 @@ data class HomeUiState(
     val enemyTypeCount: Int = 0,
     /** Result of the last import, shown once. */
     val importResult: ImportOutcome? = null,
+    val heroes: List<io.github.aljadvb.worldbuilder.model.HeroDefinition> = emptyList(),
+    val roles: List<io.github.aljadvb.worldbuilder.model.RoleDefinition> = emptyList(),
 )
 
 data class ImportOutcome(val isCatalog: Boolean, val result: ImportResult)
@@ -61,6 +63,8 @@ class HomeViewModel(private val container: AppContainer) : ViewModel() {
                     usesExampleCatalog = library.usesExampleCatalog,
                     tileCount = catalog.tiles.size,
                     enemyTypeCount = catalog.enemyTypes.size,
+                    heroes = catalog.heroes.filter { h -> catalog.expansion(h.expansion)?.owned != false },
+                    roles = catalog.roles.filter { r -> catalog.expansion(r.expansion)?.owned != false },
                 )
             }
             _state.update { loaded.copy(importResult = it.importResult) }

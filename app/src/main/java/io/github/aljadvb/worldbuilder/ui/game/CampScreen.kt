@@ -127,7 +127,7 @@ fun CampContent(campaign: Campaign, progress: CampaignProgress, background: andr
         AlertDialog(
             onDismissRequest = { heroOpen = null },
             confirmButton = { TextButton(onClick = { heroOpen = null }) { Text(stringResource(R.string.close)) } },
-            text = { Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) { HeroesSection(progress, editable = true, onAction = onAction, only = i) } },
+            text = { Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) { HeroesSection(progress, editable = true, onAction = onAction, only = i, roles = catalog?.roles.orEmpty()) } },
         )
     }
     if (inventoryOpen) AlertDialog(
@@ -245,7 +245,7 @@ fun CampaignOverview(campaign: Campaign, progress: CampaignProgress, background:
 }
 
 @Composable
-fun HeroesSection(progress: CampaignProgress, editable: Boolean, onAction: ((CampaignProgress) -> CampaignProgress) -> Unit = {}, onImage: Boolean = false, only: Int? = null) {
+fun HeroesSection(progress: CampaignProgress, editable: Boolean, onAction: ((CampaignProgress) -> CampaignProgress) -> Unit = {}, onImage: Boolean = false, only: Int? = null, roles: List<io.github.aljadvb.worldbuilder.model.RoleDefinition> = emptyList()) {
     var buyFor by remember { mutableStateOf<Int?>(null) }
     var roleFor by remember { mutableStateOf<Int?>(null) }
     if (only == null) Text(stringResource(R.string.camp_heroes), style = MaterialTheme.typography.titleMedium,
@@ -301,7 +301,10 @@ fun HeroesSection(progress: CampaignProgress, editable: Boolean, onAction: ((Cam
         AlertDialog(
             onDismissRequest = { roleFor = null },
             title = { Text(stringResource(R.string.camp_change_role)) },
-            text = { OutlinedTextField(role, { role = it }, label = { Text(stringResource(R.string.new_game_hero_role)) }, singleLine = true) },
+            text = {
+                if (roles.isNotEmpty()) io.github.aljadvb.worldbuilder.ui.home.CatalogPicker(role, roles.map { it.name to it.description }, Modifier.fillMaxWidth(), stringResource(R.string.new_game_hero_role)) { role = it }
+                else OutlinedTextField(role, { role = it }, label = { Text(stringResource(R.string.new_game_hero_role)) }, singleLine = true)
+            },
             confirmButton = { Button(onClick = { onAction { Camp.changeRole(it, i, role) }; roleFor = null }) { Text(stringResource(R.string.ok)) } },
             dismissButton = { TextButton(onClick = { roleFor = null }) { Text(stringResource(R.string.cancel)) } },
         )

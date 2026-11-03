@@ -178,6 +178,8 @@ fun HomeScreen(
     newGameFor?.let { stored ->
         NewGameDialog(
             title = stored.campaign.title,
+            available = state.heroes,
+            roleOptions = state.roles,
             onDismiss = { newGameFor = null },
             onStart = { heroes ->
                 newGameFor = null
@@ -289,7 +291,7 @@ private fun CampaignCard(
 }
 
 @Composable
-private fun NewGameDialog(title: String, onDismiss: () -> Unit, onStart: (List<io.github.aljadvb.worldbuilder.engine.Hero>) -> Unit) {
+private fun NewGameDialog(title: String, available: List<io.github.aljadvb.worldbuilder.model.HeroDefinition> = emptyList(), roleOptions: List<io.github.aljadvb.worldbuilder.model.RoleDefinition> = emptyList(), onDismiss: () -> Unit, onStart: (List<io.github.aljadvb.worldbuilder.engine.Hero>) -> Unit) {
     var heroes by remember { mutableIntStateOf(2) }
     val names = remember { androidx.compose.runtime.mutableStateListOf("", "", "", "", "") }
     val roles = remember { androidx.compose.runtime.mutableStateListOf("", "", "", "", "") }
@@ -306,10 +308,15 @@ private fun NewGameDialog(title: String, onDismiss: () -> Unit, onStart: (List<i
                 }
                 Text(stringResource(R.string.new_game_hero_hint), style = MaterialTheme.typography.bodySmall)
                 (0 until heroes).forEach { i ->
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        androidx.compose.material3.OutlinedTextField(names[i], { names[i] = it }, Modifier.weight(1f), singleLine = true,
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                        if (available.isNotEmpty()) {
+                            // Choose from the catalog's heroes; each hero only once.
+                            val taken = (0 until heroes).filter { it != i }.map { names[it] }.toSet()
+                            CatalogPicker(names[i], available.filter { it.name !in taken }.map { (it.name + if (it.folk.isNotBlank()) " (${it.folk})" else "") to it.description }, Modifier.weight(1f), stringResource(R.string.new_game_hero_name, i + 1)) { names[i] = it.substringBefore(" (") }
+                        } else androidx.compose.material3.OutlinedTextField(names[i], { names[i] = it }, Modifier.weight(1f), singleLine = true,
                             label = { Text(stringResource(R.string.new_game_hero_name, i + 1)) })
-                        androidx.compose.material3.OutlinedTextField(roles[i], { roles[i] = it }, Modifier.weight(1f), singleLine = true,
+                        if (roleOptions.isNotEmpty()) CatalogPicker(roles[i], roleOptions.map { it.name to it.description }, Modifier.weight(1f), stringResource(R.string.new_game_hero_role)) { roles[i] = it }
+                        else androidx.compose.material3.OutlinedTextField(roles[i], { roles[i] = it }, Modifier.weight(1f), singleLine = true,
                             label = { Text(stringResource(R.string.new_game_hero_role)) })
                     }
                 }
@@ -322,6 +329,33 @@ private fun NewGameDialog(title: String, onDismiss: () -> Unit, onStart: (List<i
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
     )
+}
+
+/** Dropdown of catalog entries (heroes or roles) with a short description. */
+@OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
+@Composable
+internal fun CatalogPicker(selected: String, options: List<Pair<String, String>>, modifier: Modifier, label: String, onSelect: (String) -> Unit) {
+    var open by remember { mutableStateOf(false) }
+    androidx.compose.material3.ExposedDropdownMenuBox(expanded = open, onExpandedChange = { open = it }, modifier = modifier) {
+        androidx.compose.material3.OutlinedTextField(
+            value = selected, onValueChange = {}, readOnly = true, singleLine = true, label = { Text(label) },
+            trailingIcon = { androidx.compose.material3.ExposedDropdownMenuDefaults.TrailingIcon(open) },
+            modifier = Modifier.menuAnchor(androidx.compose.material3.ExposedDropdownMenuAnchorType.PrimaryNotEditable).fillMaxWidth(),
+        )
+        ExposedDropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            options.forEach { (name, desc) ->
+                androidx.compose.material3.DropdownMenuItem(
+                    text = {
+                        Column {
+                            Text(name, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                            if (desc.isNotBlank()) Text(desc, style = MaterialTheme.typography.bodySmall)
+                        }
+                    },
+                    onClick = { onSelect(name); open = false },
+                )
+            }
+        }
+    }
 }
 
 @Composable

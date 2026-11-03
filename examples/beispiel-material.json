@@ -74,5 +74,13 @@
   "items": [
     { "id": "silberne_feder", "name": "Silberne Feder", "expansion": "beispiel", "effect": "Einmal pro Abenteuer: eine Probe auf Weisheit wiederholen." },
     { "id": "rauchkraut_beutel", "name": "Beutel Rauchkraut", "expansion": "beispiel", "effect": "In der Erholungsphase: 1 Furcht ablegen." }
+  ],
+  "heroes": [
+    { "id": "wanderin", "name": "Die Wanderin", "expansion": "beispiel", "folk": "Mensch", "description": "Erfundene Beispielheldin: ausdauernd und gut zu Fuß." },
+    { "id": "pfeifer", "name": "Der Pfeifer", "expansion": "beispiel", "folk": "Hobbit", "description": "Erfundener Beispielheld: macht der Gruppe Mut." }
+  ],
+  "roles": [
+    { "id": "spaeherin", "name": "Späherin", "expansion": "beispiel", "description": "Erfundene Beispielrolle: findet Wege." },
+    { "id": "beschuetzer", "name": "Beschützer", "expansion": "beispiel", "description": "Erfundene Beispielrolle: schirmt andere ab." }
   ]
 }

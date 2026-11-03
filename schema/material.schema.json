@@ -76,6 +76,20 @@
       "items": {
         "$ref": "#/$defs/item"
       }
+    },
+    "heroes": {
+      "type": "array",
+      "description": "Spielbare Helden zur Auswahl beim Start einer Kampagne.",
+      "items": {
+        "$ref": "#/$defs/hero"
+      }
+    },
+    "roles": {
+      "type": "array",
+      "description": "Rollen, die Helden einnehmen können.",
+      "items": {
+        "$ref": "#/$defs/role"
+      }
     }
   },
   "$defs": {
@@ -721,6 +735,59 @@
           "minimum": 1,
           "default": 1,
           "description": "Anzahl der Karten im Spiel (z. B. zweimal Extrarationen)."
+        }
+      }
+    },
+    "hero": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "expansion"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expansion": {
+          "$ref": "#/$defs/id"
+        },
+        "folk": {
+          "type": "string",
+          "description": "Volk, z. B. Mensch, Hobbit, Zwerg, Elb."
+        },
+        "description": {
+          "type": "string",
+          "description": "Kurze Beschreibung in eigenen Worten."
+        }
+      }
+    },
+    "role": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "expansion"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expansion": {
+          "$ref": "#/$defs/id"
+        },
+        "description": {
+          "type": "string"
         }
       }
     }

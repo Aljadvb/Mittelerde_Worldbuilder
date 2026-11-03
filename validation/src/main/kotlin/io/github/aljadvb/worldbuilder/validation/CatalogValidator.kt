@@ -32,6 +32,15 @@ object CatalogValidator {
         checkIds(catalog.battleBoards.map { it.id }, "battleBoards", "Schlachtplan")
         checkIds(catalog.terrainPieces.map { it.id }, "terrainPieces", "Geländeteil")
         checkIds(catalog.items.map { it.id }, "items", "Gegenstand")
+        checkIds(catalog.heroes.map { it.id }, "heroes", "Held")
+        checkIds(catalog.roles.map { it.id }, "roles", "Rolle")
+        catalog.roles.forEachIndexed { i, r ->
+            if (r.expansion !in expansionIds) c.error(IssueCode.UNKNOWN_EXPANSION, "roles[$i].expansion", r.id, "Rolle '${r.id}' gehört zu unbekannter Erweiterung '${r.expansion}'.")
+        }
+        catalog.heroes.forEachIndexed { i, h ->
+            if (h.expansion !in expansionIds) c.error(IssueCode.UNKNOWN_EXPANSION, "heroes[$i].expansion", h.id, "Held '${h.id}' gehört zu unbekannter Erweiterung '${h.expansion}'.")
+            if (h.name.isBlank()) c.error(IssueCode.BLANK_TEXT, "heroes[$i].name", h.id, "Held '${h.id}' hat keinen Namen.")
+        }
 
         fun checkImage(file: String, path: String, owner: String) {
             if (file.isBlank() || file.startsWith("/") || file.contains("..") || file.contains('\\')) {
