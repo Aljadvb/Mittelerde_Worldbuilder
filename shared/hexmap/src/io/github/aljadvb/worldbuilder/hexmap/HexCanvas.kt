@@ -51,7 +51,7 @@ data class MapTile(
 
 data class MapToken(val id: String, val cell: HexCoord, val type: TokenType, val letter: String, val selected: Boolean = false)
 
-data class MapEnemy(val id: String, val cell: HexCoord, val count: Int, val selected: Boolean = false, val banner: Int? = null)
+data class MapEnemy(val id: String, val cell: HexCoord, val count: Int, val selected: Boolean = false, val banner: Int? = null, val elite: Boolean = false)
 
 /** Everything the map shows. */
 data class MapScene(
@@ -73,6 +73,7 @@ object MapColors {
     val TileBorder = Color(0xFF5D4E37)
     val Label = Color(0xFF3E3324)
     val Enemy = Color(0xFFB3261E)
+    val Elite = Color(0xFF6E0F0A)
     val HeroStart = Color(0xFF2E7D32)
     val Error = Color(0xFFD32F2F)
     val Grid = Color(0x22000000)
@@ -177,14 +178,11 @@ fun HexCanvas(
 
         for ((enemy, c) in enemyCenters(proj, scene.enemies)) {
             val r = proj.size * 0.3f
-            val diamond = Path().apply {
-                moveTo(c.x, c.y - r); lineTo(c.x + r, c.y); lineTo(c.x, c.y + r); lineTo(c.x - r, c.y); close()
-            }
             if (enemy.selected) drawCircle(highlight, r * 1.4f, c, style = Stroke(3.dp.toPx()))
-            drawPath(diamond, MapColors.Enemy)
+            drawEnemyMarker(c, r, enemy.elite)
             val m = textMeasurer.measure(enemy.count.toString(), TextStyle(fontSize = (r * 0.9f).toSp(), color = Color.White, fontWeight = FontWeight.Bold))
             drawText(m, topLeft = Offset(c.x - m.size.width / 2f, c.y - m.size.height / 2f))
-            enemy.banner?.let { drawBanner(textMeasurer, it, c + Offset(r * 0.9f, r * 0.9f), r * 0.55f) }
+            enemy.banner?.let { drawBanner(textMeasurer, it, c + Offset(r * 0.9f, r * 0.9f), r * 0.55f, enemy.elite) }
         }
 
         for ((token, c) in tokenCenters(proj, scene.tokens)) {
@@ -242,11 +240,31 @@ fun enemyAt(proj: HexProjection, enemies: List<MapEnemy>, p: Offset): MapEnemy? 
     enemyCenters(proj, enemies).minByOrNull { (it.second - p).getDistance() }
         ?.takeIf { (it.second - p).getDistance() <= proj.size * 0.4f }?.first
 
-/** Small white disc with the banner number next to an enemy marker. */
-internal fun androidx.compose.ui.graphics.drawscope.DrawScope.drawBanner(textMeasurer: androidx.compose.ui.text.TextMeasurer, banner: Int, c: Offset, r: Float) {
-    drawCircle(Color.White, r, c)
-    drawCircle(MapColors.Enemy, r, c, style = Stroke(r * 0.25f))
-    val m = textMeasurer.measure(banner.toString(), TextStyle(fontSize = (r * 1.2f).toSp(), color = MapColors.Enemy, fontWeight = FontWeight.Bold))
+/** Enemy diamond; elite groups get a jagged dark red frame (like the jagged picture frame in the rules). */
+internal fun androidx.compose.ui.graphics.drawscope.DrawScope.drawEnemyMarker(c: Offset, r: Float, elite: Boolean) {
+    if (elite) {
+        val spikes = 12
+        val star = Path().apply {
+            for (i in 0 until spikes * 2) {
+                val a = Math.PI * i / spikes - Math.PI / 2
+                val rr = if (i % 2 == 0) r * 1.45f else r * 1.1f
+                val p = Offset(c.x + (rr * kotlin.math.cos(a)).toFloat(), c.y + (rr * kotlin.math.sin(a)).toFloat())
+                if (i == 0) moveTo(p.x, p.y) else lineTo(p.x, p.y)
+            }
+            close()
+        }
+        drawPath(star, MapColors.Elite)
+    }
+    val diamond = Path().apply { moveTo(c.x, c.y - r); lineTo(c.x + r, c.y); lineTo(c.x, c.y + r); lineTo(c.x - r, c.y); close() }
+    drawPath(diamond, MapColors.Enemy)
+    if (elite) drawPath(diamond, Color.White, style = Stroke(r * 0.12f))
+}
+
+/** Small disc with the banner number next to an enemy marker: white for normal, red for elite banners. */
+internal fun androidx.compose.ui.graphics.drawscope.DrawScope.drawBanner(textMeasurer: androidx.compose.ui.text.TextMeasurer, banner: Int, c: Offset, r: Float, elite: Boolean = false) {
+    drawCircle(if (elite) MapColors.Elite else Color.White, r, c)
+    drawCircle(if (elite) Color.White else MapColors.Enemy, r, c, style = Stroke(r * 0.25f))
+    val m = textMeasurer.measure(banner.toString(), TextStyle(fontSize = (r * 1.2f).toSp(), color = if (elite) Color.White else MapColors.Enemy, fontWeight = FontWeight.Bold))
     drawText(m, topLeft = Offset(c.x - m.size.width / 2f, c.y - m.size.height / 2f))
 }
 

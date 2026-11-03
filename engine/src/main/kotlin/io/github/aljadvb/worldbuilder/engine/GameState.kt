@@ -34,6 +34,8 @@ data class GameState(
     val armorLoss: Map<String, Int> = emptyMap(),
     /** Exhausted groups skip their next activation. */
     val exhaustedGroups: Set<String> = emptySet(),
+    /** Stunned groups (also exhausted): not even elite groups counterattack. */
+    val stunnedGroups: Set<String> = emptySet(),
     /** Fear in darkness per shadow phase (0 = no darkness). */
     val darknessFear: Int = 0,
     /** State of the deterministic random generator (targets, attacks, shadow events). */
@@ -108,7 +110,7 @@ sealed interface Prompt {
     data class Setup(val chapterId: String) : Notice
 
     @Serializable @SerialName("spawnEnemies")
-    data class SpawnEnemies(val groupId: String, val count: Int, val banner: Int? = null) : Notice
+    data class SpawnEnemies(val groupId: String, val count: Int, val banner: Int? = null, val elite: Boolean = false) : Notice
 
     @Serializable @SerialName("placeToken")
     data class PlaceToken(val tokenId: String) : Notice

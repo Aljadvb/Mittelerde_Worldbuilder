@@ -108,7 +108,7 @@ fun editorBattleScene(model: EditorModel, c: BattleController): BattleScene? {
     val enemies = s.enemyGroups.mapNotNull { g ->
         val sq = (drag as? BattleDrag.Enemy)?.takeIf { it.id == g.id }?.square ?: (g.location as? SquareLocation)?.square ?: return@mapNotNull null
         if (map.field(sq) == null && drag !is BattleDrag.Enemy) return@mapNotNull null
-        SquareEnemy(g.id, sq, g.count[2] ?: 0, selected = g.id == model.selection)
+        SquareEnemy(g.id, sq, g.count[2] ?: 0, selected = g.id == model.selection, elite = g.elite)
     }
     val placingFigure = tool is BattleTool.PlaceToken || tool == BattleTool.PlaceEnemy || tool == BattleTool.HeroStart
     val cellMm = boardPlacements.firstNotNullOfOrNull { (b, _) -> catalog.battleBoard(b.board)?.sides?.get(b.side)?.cellSizeMm } ?: 95.0

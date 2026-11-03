@@ -265,6 +265,24 @@ private fun EnemyGroupForm(model: EditorModel, s: Scenario, def: Definition) {
         }
     }
     FieldIssues(model, "${def.path}.count")
+    SectionHeader("Elite")
+    CheckInput(Texts.ELITE, g.elite) { v ->
+        model.edit { it.updateEnemyGroup(g.id) { x -> if (v) x.copy(elite = true) else x.copy(elite = false, eliteBonuses = emptyList(), eliteReason = null) } }
+    }
+    FieldIssues(model, "${def.path}.elite")
+    if (g.elite) {
+        Text(Texts.ELITE_BONUSES, style = androidx.compose.material3.MaterialTheme.typography.labelLarge)
+        Texts.ELITE_BONUS_LABELS.forEach { (id, label) ->
+            val bonus = io.github.aljadvb.worldbuilder.model.EliteBonus.valueOf(id)
+            CheckInput(label, bonus in g.eliteBonuses) { v ->
+                model.edit { it.updateEnemyGroup(g.id) { x -> x.copy(eliteBonuses = if (v) (x.eliteBonuses + bonus).distinct() else x.eliteBonuses - bonus) } }
+            }
+        }
+        FieldIssues(model, "${def.path}.eliteBonuses")
+        TextInput(model, Texts.ELITE_REASON, g.eliteReason.orEmpty(), "${g.id}.eliteReason", "${def.path}.eliteReason", multiline = true) { v ->
+            { it.updateEnemyGroup(g.id) { x -> x.copy(eliteReason = v.ifEmpty { null }) } }
+        }
+    }
     LocationInfo(model, s, g.location, "${def.path}.location")
 }
 

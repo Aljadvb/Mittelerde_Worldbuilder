@@ -88,7 +88,7 @@ fun battlePlayScene(
     val enemies = state.activeEnemyGroups.mapNotNull { id ->
         val g = scenario.enemyGroup(id) ?: return@mapNotNull null
         val alive = state.enemyHealth[g.id]?.count { it > 0 } ?: (g.count[state.heroCount] ?: 0)
-        (g.location as? SquareLocation)?.let { SquareEnemy(g.id, it.square, alive, banner = state.enemyBanners[g.id]) }
+        (g.location as? SquareLocation)?.let { SquareEnemy(g.id, it.square, alive, elite = g.elite, banner = state.enemyBanners[g.id]) }
     }
     val cellMm = boards.firstNotNullOfOrNull { catalog.battleBoard(it.board)?.sides?.get(it.side)?.cellSizeMm } ?: 95.0
     val start = if (state.round == 1) (scenario.effectiveHeroStart as? SquareLocation)?.square else null

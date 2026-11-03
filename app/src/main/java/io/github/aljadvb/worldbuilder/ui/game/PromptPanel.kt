@@ -168,7 +168,8 @@ private fun NoticeContent(prompt: Prompt.Notice, scenario: Scenario, catalog: Ma
                 if (group.location is SquareLocation) stringResource(R.string.prompt_spawn_text_battle, prompt.count, name)
                 else stringResource(R.string.prompt_spawn_text, prompt.count, name, tileLabel(group.location.placementId.orEmpty())),
             )
-            prompt.banner?.let { Text(stringResource(R.string.prompt_spawn_banner, it), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error) }
+            prompt.banner?.let { Text(stringResource(if (prompt.elite) R.string.prompt_spawn_elite else R.string.prompt_spawn_banner, it), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error) }
+            EliteInfo(group)
         }
         is Prompt.PlaceToken -> {
             val token = scenario.token(prompt.tokenId) ?: return
@@ -443,4 +444,27 @@ internal fun harmText(prompt: Prompt.Harm): String {
         io.github.aljadvb.worldbuilder.model.HeroTarget.EACH -> stringResource(R.string.harm_each, parts)
         io.github.aljadvb.worldbuilder.model.HeroTarget.CHOSEN -> stringResource(R.string.harm_chosen, parts)
     }
+}
+
+/** Elite section of an enemy group: the story reason and each bonus with its effect. Nothing for normal groups. */
+@Composable
+internal fun EliteInfo(group: io.github.aljadvb.worldbuilder.model.EnemyGroup) {
+    if (!group.elite) return
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Text(stringResource(R.string.elite_title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error)
+        group.eliteReason?.let { Text(it, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic) }
+        group.eliteBonuses.forEach { b -> Text("• " + stringResource(eliteBonusText(b)), style = MaterialTheme.typography.bodyMedium) }
+        Hint(stringResource(R.string.elite_counter_hint))
+    }
+}
+
+private fun eliteBonusText(b: io.github.aljadvb.worldbuilder.model.EliteBonus): Int = when (b) {
+    io.github.aljadvb.worldbuilder.model.EliteBonus.TOUGH -> R.string.elite_tough
+    io.github.aljadvb.worldbuilder.model.EliteBonus.ARMORED -> R.string.elite_armored
+    io.github.aljadvb.worldbuilder.model.EliteBonus.WARDED -> R.string.elite_warded
+    io.github.aljadvb.worldbuilder.model.EliteBonus.CRUEL -> R.string.elite_cruel
+    io.github.aljadvb.worldbuilder.model.EliteBonus.TERRIFYING -> R.string.elite_terrifying
+    io.github.aljadvb.worldbuilder.model.EliteBonus.SWIFT -> R.string.elite_swift
+    io.github.aljadvb.worldbuilder.model.EliteBonus.STEADFAST -> R.string.elite_steadfast
+    io.github.aljadvb.worldbuilder.model.EliteBonus.FURIOUS -> R.string.elite_furious
 }

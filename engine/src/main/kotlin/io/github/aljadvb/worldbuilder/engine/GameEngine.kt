@@ -110,7 +110,11 @@ class GameEngine(
             is Command.CounterAttack -> {
                 val prompt = state.currentPrompt as? Prompt.CounterQuestion ?: throw EngineException("Keine Gegenangriffs-Frage offen.")
                 run.popPrompt(answer = if (command.canAttack) "yes" else "no")
-                if (command.canAttack) run.enemyAttack(prompt.groupId, AttackReason.COUNTER, first = true)
+                if (command.canAttack) {
+                    run.enemyAttack(prompt.groupId, AttackReason.COUNTER, first = true)
+                    // A group is exhausted after a counterattack (unlike after being provoked).
+                    run.exhausted += prompt.groupId
+                }
             }
             is Command.LimitReached -> {
                 requireIdle(state)
@@ -172,6 +176,7 @@ class GameEngine(
         val enemyHealth = s.enemyHealth.toMutableMap()
         val armorLoss = s.armorLoss.toMutableMap()
         val exhausted = s.exhaustedGroups.toMutableSet()
+        val stunned = s.stunnedGroups.toMutableSet()
         var darknessFear = s.darknessFear
         var rng = s.rng
         val defeatedHeroes = s.defeatedHeroes.toMutableSet()
@@ -197,7 +202,7 @@ class GameEngine(
             interactedTokens = interactedTokens.toSet(), activeEnemyGroups = activeGroups.toSet(),
             defeatedEnemyGroups = defeatedGroups.toSet(), activeObjectives = activeObjectives.toList(),
             completedObjectives = completedObjectives.toSet(), firedTriggers = firedTriggers.toSet(), exploredPlacements = explored.toSet(), pendingTokens = pendingTokens.toSet(), flags = flags.toSet(), loreGained = loreGained,
-            enemyHealth = enemyHealth.toMap(), armorLoss = armorLoss.toMap(), exhaustedGroups = exhausted.toSet(),
+            enemyHealth = enemyHealth.toMap(), armorLoss = armorLoss.toMap(), exhaustedGroups = exhausted.toSet(), stunnedGroups = stunned.toSet(),
             darknessFear = darknessFear, rng = rng,
             defeatedHeroes = defeatedHeroes.toSet(), lastStandUsed = lastStandUsed.toSet(),
             ownedItems = ownedItemsAtStart, itemsFound = itemsFound.toList(), testProgress = testProgress.toMap(), enemyBanners = enemyBanners.toMap(),
@@ -237,9 +242,13 @@ class GameEngine(
             fireMatching { it is TriggerCondition.TileExplored && it.placement == placementId }
         }
 
+        /** Enemy type of [groupId] with its elite bonuses applied. */
+        fun typeOf(groupId: String): io.github.aljadvb.worldbuilder.model.EnemyType? =
+            scenario.enemyGroup(groupId)?.let { g -> enemyTypes[g.enemyType]?.let(g::effectiveType) }
+
         fun attack(c: Command.AttackEnemy, counter: Boolean = true) {
             val group = scenario.enemyGroup(c.groupId) ?: return
-            val type = enemyTypes[group.enemyType]
+            val type = typeOf(c.groupId)
             val health = (enemyHealth[c.groupId] ?: List(group.count[heroCount] ?: 1) { type?.health ?: 1 }).toMutableList()
             if (c.sunder) armorLoss[c.groupId] = (armorLoss[c.groupId] ?: 0) + 1
             val armor = if (c.pierce) 0 else ((type?.armor ?: 0) - (armorLoss[c.groupId] ?: 0)).coerceAtLeast(0)
@@ -266,23 +275,27 @@ class GameEngine(
             }
             val remaining = health.count { it > 0 }
             enemyHealth[c.groupId] = health
-            if (c.stun && remaining > 0) exhausted += c.groupId
-            prompts += Prompt.AttackResult(c.groupId, before - remaining, remaining, c.stun && remaining > 0)
+            // Steadfast elite groups cannot be stunned.
+            val stun = c.stun && remaining > 0 && !group.has(io.github.aljadvb.worldbuilder.model.EliteBonus.STEADFAST)
+            if (stun) { exhausted += c.groupId; stunned += c.groupId }
+            prompts += Prompt.AttackResult(c.groupId, before - remaining, remaining, stun)
             if (remaining == 0) defeat(c.groupId)
-            // Exhausted groups (e.g. stunned) cannot counterattack.
-            else if (counter && c.groupId !in exhausted) prompts += Prompt.CounterQuestion(c.groupId)
+            // Exhausted groups cannot counterattack, elite groups can unless they are stunned (rules 25.2, 65).
+            else if (counter && (c.groupId !in exhausted || (group.elite && c.groupId !in stunned))) prompts += Prompt.CounterQuestion(c.groupId)
         }
 
         /** One attack of [groupId], picked at random from its type. */
         private fun rollAttack(groupId: String): Pair<io.github.aljadvb.worldbuilder.model.EnemyAttack?, io.github.aljadvb.worldbuilder.model.EnemyType?> {
-            val type = scenario.enemyGroup(groupId)?.let { enemyTypes[it.enemyType] }
+            val type = typeOf(groupId)
             return type?.attacks?.takeIf { it.isNotEmpty() }?.let { it[random(it.size)] } to type
         }
 
         /** Provoked attack or counterattack; [first] puts it before other waiting prompts. */
         fun enemyAttack(groupId: String, reason: AttackReason, first: Boolean = false) {
             val (attack, type) = rollAttack(groupId)
-            val p = Prompt.EnemyAttack(groupId, reason, attack?.damage ?: 1, attack?.fear ?: 0, attack?.text.orEmpty(), type?.ranged == true, attack?.negate, attack?.condition)
+            // Furious elite groups hit harder when they strike back.
+            val furious = reason == AttackReason.COUNTER && scenario.enemyGroup(groupId)?.has(io.github.aljadvb.worldbuilder.model.EliteBonus.FURIOUS) == true
+            val p = Prompt.EnemyAttack(groupId, reason, (attack?.damage ?: 1) + if (furious) 1 else 0, attack?.fear ?: 0, attack?.text.orEmpty(), type?.ranged == true, attack?.negate, attack?.condition)
             if (first) prompts.add(0, p) else prompts += p
         }
 
@@ -309,6 +322,7 @@ class GameEngine(
             // Reward: the hero who defeated the group takes 1 inspiration.
             if (groupId in activeGroups) prompts += Prompt.Inspiration(1, io.github.aljadvb.worldbuilder.model.HeroTarget.ACTIVE, DEFEAT_TEXT)
             exhausted -= groupId
+            stunned -= groupId
             activeGroups -= groupId
             defeatedGroups += groupId
             fireMatching { it is TriggerCondition.EnemyGroupDefeated && it.group == groupId }
@@ -328,11 +342,11 @@ class GameEngine(
             // Shadow phase 1: enemy activation.
             for (groupId in scenario.enemyGroups.map { it.id }.filter { it in activeGroups }) {
                 if (exhausted.remove(groupId)) {
+                    stunned -= groupId
                     prompts += Prompt.EnemyRecovers(groupId)
                     continue
                 }
-                val group = scenario.enemyGroup(groupId) ?: continue
-                val type = enemyTypes[group.enemyType]
+                val type = typeOf(groupId)
                 val attack = type?.attacks?.takeIf { it.isNotEmpty() }?.let { it[random(it.size)] }
                 prompts += Prompt.EnemyActivation(groupId, living[random(living.size)], type?.movement ?: 2, attack?.damage ?: 1, attack?.fear ?: 0, attack?.text.orEmpty(), type?.ranged == true, attack?.negate, attack?.condition)
             }
@@ -389,14 +403,17 @@ class GameEngine(
                     val group = scenario.enemyGroup(step.group) ?: return
                     if (activeGroups.add(group.id)) {
                         defeatedGroups -= group.id
-                        val type = enemyTypes[group.enemyType]
+                        val type = typeOf(group.id)
                         enemyHealth[group.id] = List(group.count[heroCount] ?: 0) { type?.health ?: 1 }
                         armorLoss -= group.id
-                        // Another group of the same type on the map: this one gets the lowest free banner number.
-                        val sameType = activeGroups.any { it != group.id && scenario.enemyGroup(it)?.enemyType == group.enemyType }
-                        val banner = if (sameType) generateSequence(1) { it + 1 }.first { it !in enemyBanners.values } else null
+                        // Elite groups always get an elite banner (numbered among elite groups); normal groups
+                        // get a banner when another normal group of the same type is on the map.
+                        fun isElite(id: String) = scenario.enemyGroup(id)?.elite == true
+                        val needsBanner = group.elite || activeGroups.any { it != group.id && !isElite(it) && scenario.enemyGroup(it)?.enemyType == group.enemyType }
+                        val taken = enemyBanners.filterKeys { isElite(it) == group.elite }.values
+                        val banner = if (needsBanner) generateSequence(1) { it + 1 }.first { it !in taken } else null
                         banner?.let { enemyBanners[group.id] = it }
-                        prompts += Prompt.SpawnEnemies(group.id, group.count[heroCount] ?: 0, banner)
+                        prompts += Prompt.SpawnEnemies(group.id, group.count[heroCount] ?: 0, banner, group.elite)
                     }
                 }
                 is EventStep.ChangeThreat -> {
@@ -491,7 +508,7 @@ class GameEngine(
                 activeTokens -= cleared.toSet()
                 // Enemies standing on the cleared boards leave the table too (no defeat, no reward).
                 val gone = activeGroups.filter { scenario.enemyGroup(it)?.location is io.github.aljadvb.worldbuilder.model.SquareLocation }
-                activeGroups -= gone.toSet(); gone.forEach { enemyHealth -= it; enemyBanners -= it; exhausted -= it }
+                activeGroups -= gone.toSet(); gone.forEach { enemyHealth -= it; enemyBanners -= it; exhausted -= it; stunned -= it }
             }
             unlockedChapters += chapterId
             // Tokens on unexplored tiles appear only when the tile is explored.

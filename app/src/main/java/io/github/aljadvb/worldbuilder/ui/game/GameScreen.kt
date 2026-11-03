@@ -365,11 +365,11 @@ private fun ActionPanel(
             Text(stringResource(R.string.provoke_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             groups.forEach { g ->
                 Column {
-                    val name = enemyLabel(catalog, game, g.id, g.enemyType)
+                    val name = enemyLabel(catalog, game, g.id, g.enemyType, g.elite)
                     val health = game.enemyHealth[g.id]
                     Column(Modifier.fillMaxWidth().clickable { onEnemyMenu(g.id) }) {
                         Text(stringResource(R.string.game_enemy_line, health?.count { it > 0 } ?: (g.count[game.heroCount] ?: 0), name), fontWeight = FontWeight.Bold)
-                        val type = catalog.enemyType(g.enemyType)
+                        val type = catalog.enemyType(g.enemyType)?.let(g::effectiveType)
                         if (health != null && type != null) {
                             Text(
                                 stringResource(R.string.enemy_health_line, health.filter { it > 0 }.joinToString(" · ") { "$it/${type.health}" },
@@ -436,22 +436,22 @@ private fun TokenDialog(scenario: Scenario, tokenId: String, onDismiss: () -> Un
 
 /** Enemy name with its banner number, e.g. "Ork-Jäger · Banner 2". */
 @Composable
-internal fun enemyLabel(catalog: MaterialCatalog, game: GameState, groupId: String, enemyType: String): String {
+internal fun enemyLabel(catalog: MaterialCatalog, game: GameState, groupId: String, enemyType: String, elite: Boolean = false): String {
     val name = catalog.enemyType(enemyType)?.name ?: enemyType
-    return game.enemyBanners[groupId]?.let { stringResource(R.string.enemy_with_banner, name, it) } ?: name
+    return game.enemyBanners[groupId]?.let { stringResource(if (elite) R.string.enemy_with_elite_banner else R.string.enemy_with_banner, name, it) } ?: name
 }
 
 /** Enemy menu of one group: values, health of each enemy, and the actions. */
 @Composable
 private fun EnemyMenu(scenario: Scenario, catalog: MaterialCatalog, game: GameState, groupId: String, onDismiss: () -> Unit, onAttack: () -> Unit, onProvoke: () -> Unit, onDefeat: () -> Unit) {
     val g = scenario.enemyGroup(groupId) ?: return
-    val type = catalog.enemyType(g.enemyType)
+    val type = catalog.enemyType(g.enemyType)?.let(g::effectiveType)
     val health = game.enemyHealth[groupId]
     val exhausted = groupId in game.exhaustedGroups
     AlertDialog(
         onDismissRequest = onDismiss,
         confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.close)) } },
-        title = { Text(enemyLabel(catalog, game, groupId, g.enemyType)) },
+        title = { Text(enemyLabel(catalog, game, groupId, g.enemyType, g.elite)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (type != null) {
@@ -460,6 +460,7 @@ private fun EnemyMenu(scenario: Scenario, catalog: MaterialCatalog, game: GameSt
                 }
                 val alive = health?.withIndex()?.filter { it.value > 0 }.orEmpty()
                 alive.forEach { (i, hp) -> Text(stringResource(R.string.enemy_menu_health, i + 1, hp, type?.health ?: hp)) }
+                EliteInfo(g)
                 if (exhausted) Text(stringResource(R.string.enemy_exhausted), color = MaterialTheme.colorScheme.error)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Button(onClick = onAttack) { Text(stringResource(R.string.attack)) }
@@ -617,11 +618,11 @@ private fun AttackDialog(scenario: Scenario, catalog: MaterialCatalog, game: Gam
     )
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.attack_title, enemyLabel(catalog, game, groupId, group.enemyType))) },
+        title = { Text(stringResource(R.string.attack_title, enemyLabel(catalog, game, groupId, group.enemyType, group.elite))) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 // Current state of the group: health of each enemy, armor (after "Zerfallen") and sorcery.
-                val type = catalog.enemyType(group.enemyType)
+                val type = catalog.enemyType(group.enemyType)?.let(group::effectiveType)
                 val health = game.enemyHealth[groupId]?.withIndex()?.filter { it.value > 0 }.orEmpty()
                 Card(Modifier.fillMaxWidth()) {
                     Column(Modifier.padding(10.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
@@ -630,6 +631,7 @@ private fun AttackDialog(scenario: Scenario, catalog: MaterialCatalog, game: Gam
                             val armor = (type.armor - (game.armorLoss[groupId] ?: 0)).coerceAtLeast(0)
                             Text(stringResource(R.string.attack_defense, armor, type.sorcery), style = MaterialTheme.typography.bodyMedium)
                         }
+                        EliteInfo(group)
                     }
                 }
                 Text(stringResource(R.string.attack_hits))

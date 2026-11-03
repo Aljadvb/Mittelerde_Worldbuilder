@@ -468,6 +468,24 @@
         },
         "location": {
           "$ref": "#/$defs/location"
+        },
+        "elite": {
+          "type": "boolean",
+          "default": false,
+          "description": "Elite-Gruppe: stärkere Variante mit Boni; greift auch erschöpft zurück an (nicht wenn betäubt)."
+        },
+        "eliteBonuses": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "enum": ["tough", "armored", "warded", "cruel", "terrifying", "swift", "steadfast", "furious"]
+          },
+          "description": "tough +2 Gesundheit je Feind, armored +1 Rüstung, warded +1 Schutzzauber, cruel Angriffe +1 Schaden, terrifying Angriffe +1 Furcht, swift +1 Bewegung, steadfast nicht betäubbar, furious Gegenangriffe +1 Schaden. Boni müssen zum Gegner passen."
+        },
+        "eliteReason": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Warum die Gruppe Elite ist, in Worten der Geschichte (passend zu den Boni)."
         }
       }
     },

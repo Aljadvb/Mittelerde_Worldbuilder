@@ -131,6 +131,10 @@ Hardware bzw. mit einer echten KI gelaufen**. Die wichtigsten Punkte stehen oben
 - [ ] Pergament-Design: Titel und Knöpfe in Uncial Antiqua (frei, OFL; eine eigene Titelschrift im Katalog geht weiter vor), Fließtext in EB Garamond; Lesbarkeit am Tisch prüfen (neu in 1.22.0, Uncial ab 1.23.0)
 - [ ] Elbische Inschrift (neu in 1.23.0): Test-Kampagne, Höhle → „Alte Inschrift“ zeigt Tengwar-Zeile, darunter die Umschrift kursiv und die Übersetzung
 - [ ] Editor: Event-Schritt „Elbische Inschrift“ mit Vorschau in Tengwar; Prüfung meldet leere Inschrift oder fehlende Übersetzung
+- [ ] Elite-Gegner (neu in 1.26.0): Test-Kampagne, Steinkreis – Hügeltroll erscheint mit „Elite-Gegner! Stellt Elite-Banner 1 dazu“, Erklärung und Boni; auf der Karte rote gezackte Raute mit rotem Banner
+- [ ] Elite-Werte: Gegnermenü und Angriffsfenster zeigen die erhöhte Rüstung (Gepanzert); Gegenangriff des Trolls hat +1 Schaden (Wütend)
+- [ ] Erschöpfung: Nach einem Gegenangriff ist eine normale Gruppe erschöpft (kein weiterer Gegenangriff, kein Provozieren, keine Aktivierung in dieser Schattenphase); eine Elite-Gruppe greift trotzdem zurück an, außer sie wurde betäubt
+- [ ] Editor: Gegnergruppe → Haken „Elite-Gruppe“, Boni, Erklärung; Prüfung warnt ohne Bonus oder Erklärung; KI setzt Elite sparsam und begründet die Boni
 - [ ] Zustände (neu in 1.25.0): Test-Kampagne zeigt alle sechs – Ermutigt (Lagerfeuer), Versteckt (Hügelkuppe), Verzagt (Inschrift misslungen), Entschlossen (Signalhorn), Gefangen (Zeltseile misslungen, Hinweis „Rückseite nicht ansehen“), Verängstigt (Altar misslungen)
 - [ ] Editor: Event-Schritt „Zustand erhalten (Gunst oder Fluch)“ mit Zustand und Wer; Katalog → Gegnertyp → Angriff: „Zustand“ (z. B. Verängstigt), erscheint in App und Probespiel beim Angriff
 - [ ] KI-Generator: 1–3 Zustände pro Szenario, Gunst als Belohnung, Flüche sparsam nach misslungenen Proben

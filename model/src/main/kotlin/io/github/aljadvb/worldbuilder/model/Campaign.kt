@@ -1,6 +1,7 @@
 package io.github.aljadvb.worldbuilder.model
 
 import kotlinx.serialization.DeserializationStrategy
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonContentPolymorphicSerializer
@@ -200,7 +201,50 @@ data class EnemyGroup(
     /** Number of enemies by hero count (keys 1–5). */
     val count: Map<Int, Int>,
     val location: Location,
-)
+    /** Elite group: a stronger variant with [eliteBonuses]; counterattacks even when exhausted (not when stunned). */
+    val elite: Boolean = false,
+    val eliteBonuses: List<EliteBonus> = emptyList(),
+    /** Why this group is elite, in story words (e.g. "Der Anführer trägt einen alten Zauberring."). */
+    val eliteReason: String? = null,
+) {
+    /** The catalog type with the elite bonuses applied. */
+    fun effectiveType(type: EnemyType): EnemyType {
+        if (!elite) return type
+        val b = eliteBonuses.toSet()
+        return type.copy(
+            health = type.health + if (EliteBonus.TOUGH in b) 2 else 0,
+            armor = type.armor + if (EliteBonus.ARMORED in b) 1 else 0,
+            sorcery = type.sorcery + if (EliteBonus.WARDED in b) 1 else 0,
+            movement = type.movement + if (EliteBonus.SWIFT in b) 1 else 0,
+            attacks = type.attacks.map { a ->
+                a.copy(damage = a.damage + if (EliteBonus.CRUEL in b) 1 else 0, fear = a.fear + if (EliteBonus.TERRIFYING in b) 1 else 0)
+            },
+        )
+    }
+
+    fun has(bonus: EliteBonus) = elite && bonus in eliteBonuses
+}
+
+/** Bonuses of an elite enemy group; the scenario explains them in [EnemyGroup.eliteReason]. */
+@Serializable
+enum class EliteBonus {
+    /** +2 health per enemy. */
+    @SerialName("tough") TOUGH,
+    /** +1 armor. */
+    @SerialName("armored") ARMORED,
+    /** +1 sorcery (magic ward). */
+    @SerialName("warded") WARDED,
+    /** Attacks +1 damage. */
+    @SerialName("cruel") CRUEL,
+    /** Attacks +1 fear. */
+    @SerialName("terrifying") TERRIFYING,
+    /** +1 movement. */
+    @SerialName("swift") SWIFT,
+    /** Cannot be stunned. */
+    @SerialName("steadfast") STEADFAST,
+    /** Counterattacks +1 damage. */
+    @SerialName("furious") FURIOUS,
+}
 
 @Serializable
 data class Objective(

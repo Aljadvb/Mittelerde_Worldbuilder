@@ -248,9 +248,9 @@ private fun IdleActions(game: PlaytestModel, scenario: Scenario, catalog: Materi
         game.send(Command.AttackEnemy(gid, hits, pierce = "pierce" in mods, smite = "smite" in mods, sunder = "sunder" in mods, cleave = "cleave" in mods, stun = "stun" in mods, lethal = "lethal" in mods))
     } }
     state.activeEnemyGroups.mapNotNull { scenario.enemyGroup(it) }.forEach { g ->
-        val type = catalog.enemyType(g.enemyType)
+        val type = catalog.enemyType(g.enemyType)?.let(g::effectiveType)
         val health = state.enemyHealth[g.id]?.filter { it > 0 }
-        val banner = state.enemyBanners[g.id]?.let { " · Banner $it" }.orEmpty()
+        val banner = state.enemyBanners[g.id]?.let { if (g.elite) " · Elite-Banner $it" else " · Banner $it" } ?: if (g.elite) " · Elite" else ""
         Row(verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text("${health?.size ?: (g.count[state.heroCount] ?: 0)}× ${type?.name ?: g.enemyType}$banner", fontWeight = FontWeight.Bold)
@@ -283,7 +283,7 @@ private fun IdleActions(game: PlaytestModel, scenario: Scenario, catalog: Materi
 /** Hits and modifiers of an attack on an enemy group. */
 @Composable
 private fun enemyStatus(scenario: Scenario, catalog: MaterialCatalog, state: GameState, gid: String): String {
-    val type = catalog.enemyType(scenario.enemyGroup(gid)?.enemyType.orEmpty()) ?: return ""
+    val type = scenario.enemyGroup(gid)?.let { g -> catalog.enemyType(g.enemyType)?.let(g::effectiveType) } ?: return ""
     val health = state.enemyHealth[gid]?.filter { it > 0 }.orEmpty()
     return Texts.enemyHealth(health.joinToString(" · ") { "$it/${type.health}" }, (type.armor - (state.armorLoss[gid] ?: 0)).coerceAtLeast(0), type.sorcery, gid in state.exhaustedGroups)
 }
@@ -434,7 +434,8 @@ fun describe(prompt: Prompt, scenario: Scenario, catalog: MaterialCatalog): Stri
         is Prompt.Inspect -> scenario.token(prompt.tokenId)?.let { "${it.label}: ${it.inspectText.orEmpty()}" }.orEmpty()
         is Prompt.Setup -> scenario.chapter(prompt.chapterId)?.let { Texts.setup(it.title) + if (it.setupText.isNotBlank()) "\n" + it.setupText else "" }.orEmpty()
         is Prompt.SpawnEnemies -> scenario.enemyGroup(prompt.groupId)?.let { Texts.spawn(prompt.count, catalog.enemyType(it.enemyType)?.name ?: it.enemyType, tile(it.location.placementId.orEmpty())) }.orEmpty() +
-            (prompt.banner?.let { "\nStellt Banner $it dazu." } ?: "")
+            (prompt.banner?.let { if (prompt.elite) "\nElite! Stellt Elite-Banner $it dazu." else "\nStellt Banner $it dazu." } ?: "") +
+                (scenario.enemyGroup(prompt.groupId)?.takeIf { it.elite }?.let { g -> "\n" + listOfNotNull(g.eliteReason, g.eliteBonuses.joinToString(", ") { Texts.eliteBonusName(it) }.ifEmpty { null }).joinToString(" – ") } ?: "")
         is Prompt.PlaceToken -> scenario.token(prompt.tokenId)?.let { Texts.placeToken(it.label, tile(it.location.placementId.orEmpty())) }.orEmpty()
         is Prompt.RemoveToken -> scenario.token(prompt.tokenId)?.let { Texts.removeToken(it.label) }.orEmpty()
         is Prompt.ThreatChanged -> Texts.threatChanged(prompt.delta, prompt.threat)

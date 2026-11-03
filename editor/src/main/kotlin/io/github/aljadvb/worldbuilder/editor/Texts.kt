@@ -205,6 +205,20 @@ object Texts {
             io.github.aljadvb.worldbuilder.model.HeroTarget.CHOSEN -> "Ein Held eurer Wahl legt $what ab."
         }
     }
+    const val ELITE = "Elite-Gruppe (stärkere Variante, greift auch erschöpft zurück an)"
+    const val ELITE_BONUSES = "Elite-Boni (passend zum Gegner wählen)"
+    const val ELITE_REASON = "Warum ist die Gruppe Elite? (Erklärung in der Geschichte, passend zu den Boni)"
+    val ELITE_BONUS_LABELS = listOf(
+        "TOUGH" to "Zäh: +2 Gesundheit je Feind",
+        "ARMORED" to "Gepanzert: +1 Rüstung",
+        "WARDED" to "Zauberbann: +1 Schutzzauber",
+        "CRUEL" to "Grausam: Angriffe +1 Schaden",
+        "TERRIFYING" to "Schrecklich: Angriffe +1 Furcht",
+        "SWIFT" to "Flink: +1 Bewegung",
+        "STEADFAST" to "Unerschütterlich: kann nicht betäubt werden",
+        "FURIOUS" to "Wütend: Gegenangriffe +1 Schaden",
+    )
+    fun eliteBonusName(b: io.github.aljadvb.worldbuilder.model.EliteBonus) = ELITE_BONUS_LABELS.first { it.first == b.name }.second.substringBefore(":")
     const val HERO_CONDITION = "Zustand"
     const val HERO_CONDITION_NONE = "kein"
     val HERO_CONDITIONS = listOf(

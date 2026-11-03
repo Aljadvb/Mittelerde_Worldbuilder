@@ -105,7 +105,7 @@ fun editorScene(model: EditorModel, c: MapController, highlight: Color): MapScen
     val enemies = s.enemyGroups.filter { s.chapterOfPlacement(it.location.placementId.orEmpty())?.id in visibleIds }.mapNotNull { g ->
         val cell = (drag as? Drag.Enemy)?.takeIf { it.groupId == g.id }?.cell
             ?: s.mapCell(g.location) ?: return@mapNotNull null
-        MapEnemy(g.id, cell, g.count[2] ?: 0, selected = g.id == model.selection)
+        MapEnemy(g.id, cell, g.count[2] ?: 0, selected = g.id == model.selection, elite = g.elite)
     }
     val placing = c.tool is MapTool.PlaceToken || c.tool == MapTool.PlaceEnemy || c.tool == MapTool.HeroStart
     return MapScene(

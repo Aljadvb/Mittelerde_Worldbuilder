@@ -347,6 +347,13 @@ private class CampaignChecks(
                 if (heroes !in 1..5 || n < 0) c.error(IssueCode.INVALID_NUMBER, "$gp.count", g.id, "Ungültiger Eintrag $heroes → $n (Heldenzahl 1–5, Anzahl ≥ 0).")
             }
             checkLocation(s, si, g.location, "$gp.location", g.id, ownerChapter = null)
+            if (g.elite) {
+                if (g.eliteBonuses.isEmpty()) c.warn(IssueCode.ELITE_INCOMPLETE, "$gp.eliteBonuses", g.id, "Elite-Gruppe ohne Bonus.")
+                if (g.eliteReason.isNullOrBlank()) c.warn(IssueCode.ELITE_INCOMPLETE, "$gp.eliteReason", g.id, "Elite-Gruppe ohne Erklärung: Beschreibe kurz, warum die Gruppe stärker ist (passend zu den Boni).")
+                if (g.eliteBonuses.size != g.eliteBonuses.toSet().size) c.warn(IssueCode.ELITE_INCOMPLETE, "$gp.eliteBonuses", g.id, "Ein Elite-Bonus ist doppelt eingetragen.")
+            } else if (g.eliteBonuses.isNotEmpty() || g.eliteReason != null) {
+                c.warn(IssueCode.ELITE_INCOMPLETE, "$gp.elite", g.id, "Boni oder Erklärung eingetragen, aber die Gruppe ist nicht als Elite markiert.")
+            }
         }
         // Start field of the heroes: on the start chapter, on an explored tile.
         // Without one the app uses the anchor field of the start chapter's first tile.
