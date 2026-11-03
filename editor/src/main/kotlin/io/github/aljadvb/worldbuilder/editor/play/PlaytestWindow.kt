@@ -460,6 +460,7 @@ fun describe(prompt: Prompt, scenario: Scenario, catalog: MaterialCatalog): Stri
             (if (prompt.text.isNotBlank()) "\n${prompt.text}" else "") + Texts.negate(attr(prompt.negate))
         is Prompt.TestResult -> Texts.testResult(prompt.passed)
         is Prompt.TestProgress -> Texts.testProgress(prompt.total, prompt.step.successes, prompt.step.hidden)
+        is Prompt.Inscription -> listOfNotNull(prompt.text, Texts.inscription(prompt.elvish, prompt.translation)).joinToString("\n")
         is Prompt.Recover -> listOfNotNull(prompt.text, Texts.recover(prompt.damage, prompt.fear, prompt.who)).joinToString("\n")
         is Prompt.ItemFound -> listOfNotNull(prompt.text, Texts.itemFound(prompt.itemId?.let { catalog.item(it)?.name ?: it },
             if (prompt.who == io.github.aljadvb.worldbuilder.model.HeroTarget.CHOSEN) "Ein Held eurer Wahl" else "Der handelnde Held")).joinToString("\n")

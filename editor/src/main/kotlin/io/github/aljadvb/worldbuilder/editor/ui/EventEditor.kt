@@ -113,6 +113,7 @@ private fun stepLabel(step: EventStep): String {
         is EventStep.SufferHarm -> "sufferHarm"
         is EventStep.GainItem -> "gainItem"
         is EventStep.Recover -> "recover"
+        is EventStep.Inscription -> "inscription"
         is EventStep.AffectEnemy -> "affectEnemy"
         is EventStep.GainLore -> "gainLore"
         is EventStep.SetDarkness -> "setDarkness"
@@ -140,6 +141,7 @@ fun newStep(type: String, s: Scenario): EventStep = when (type) {
     "sufferHarm" -> EventStep.SufferHarm(damage = 1)
     "gainItem" -> EventStep.GainItem()
     "recover" -> EventStep.Recover(damage = 1)
+    "inscription" -> EventStep.Inscription("Mae govannen", "Willkommen")
     "affectEnemy" -> EventStep.AffectEnemy(s.enemyGroups.firstOrNull()?.id.orEmpty(), hits = 2)
     "gainLore" -> EventStep.GainLore(1)
     "setDarkness" -> EventStep.SetDarkness(1)
@@ -263,6 +265,12 @@ private fun StepFields(
             }
             TextInput(model, Texts.OPTIONAL_TEXT, step.text.orEmpty(), "$key.text", "$p.text") { v -> setText(step.copy(text = v.ifEmpty { null })) }
         }
+        is EventStep.Inscription -> {
+            TextInput(model, Texts.OPTIONAL_TEXT, step.text.orEmpty(), "$key.text", "$p.text") { v -> setText(step.copy(text = v.ifEmpty { null })) }
+            TextInput(model, Texts.ELVISH, step.elvish, "$key.elvish", "$p.elvish") { v -> setText(step.copy(elvish = v)) }
+            TextInput(model, Texts.TRANSLATION, step.translation, "$key.translation", "$p.translation") { v -> setText(step.copy(translation = v)) }
+            Text(io.github.aljadvb.worldbuilder.model.Tengwar.transliterate(step.elvish), fontFamily = TengwarFont, style = MaterialTheme.typography.headlineSmall)
+        }
         is EventStep.Recover -> {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
                 IntInput(model, Texts.DAMAGE, step.damage, "$key.damage", "$p") { v -> setText(step.copy(damage = v)) }
@@ -305,4 +313,9 @@ private fun FlagInput(model: EditorModel, flag: String, path: String, onSelect: 
             if (model.edit { c -> c.addFlag(label).also { id = it.id }.campaign }) id?.let(onSelect)
         }, onDismiss = { creating = false })
     }
+}
+
+/** Alcarin Tengwar (OFL), bundled with the editor for previews of inscriptions. */
+internal val TengwarFont: androidx.compose.ui.text.font.FontFamily by lazy {
+    androidx.compose.ui.text.font.FontFamily(androidx.compose.ui.text.platform.Font("fonts/alcarin_tengwar.ttf"))
 }

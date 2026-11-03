@@ -14,10 +14,11 @@ class MainActivity : ComponentActivity() {
         val container = (application as WorldbuilderApp).container
         setContent {
             // Own title font from the private catalog, if it brings one.
-            val titleFont = container.library.catalogImageDir?.let { dir ->
-                runCatching { container.library.catalog().titleFont }.getOrNull()?.let { java.io.File(dir, it) }
-            }
-            WorldbuilderTheme(titleFont = titleFont) {
+            val catalog = runCatching { container.library.catalog() }.getOrNull()
+            val dir = container.library.catalogImageDir
+            val titleFont = dir?.let { d -> catalog?.titleFont?.let { java.io.File(d, it) } }
+            val ornamentFont = dir?.let { d -> catalog?.ornamentFont?.let { java.io.File(d, it) } }
+            WorldbuilderTheme(titleFont = titleFont, ornamentFont = ornamentFont) {
                 AppNavigation(container)
             }
         }

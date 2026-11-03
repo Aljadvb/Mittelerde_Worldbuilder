@@ -432,6 +432,7 @@ class GameEngine(
                     // Effects from events never cause a counterattack (rules 45.3).
                     attack(Command.AttackEnemy(step.group, step.hits, step.pierce, step.smite, step.sunder, step.cleave, step.stun, step.lethal), counter = false)
                 }
+                is EventStep.Inscription -> prompts += Prompt.Inscription(step.elvish, step.translation, step.text)
                 is EventStep.Recover -> if (step.damage > 0 || step.fear > 0) prompts += Prompt.Recover(step.damage, step.fear, step.who, step.text)
                 is EventStep.GainItem -> {
                     val taken = ownedItemsAtStart + itemsFound

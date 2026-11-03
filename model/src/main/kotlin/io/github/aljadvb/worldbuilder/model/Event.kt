@@ -129,6 +129,18 @@ sealed interface EventStep {
         val text: String? = null,
     ) : EventStep
 
+    /** An inscription or saying in an Elven tongue: shown in Tengwar, always with transcription and translation. */
+    @Serializable
+    @SerialName("inscription")
+    data class Inscription(
+        /** Sindarin or Quenya in Latin letters, e.g. "Pedo mellon a minno". */
+        val elvish: String,
+        /** German translation, always shown. */
+        val translation: String,
+        /** Optional context, e.g. "In den Torbogen sind Zeichen geritzt." */
+        val text: String? = null,
+    ) : EventStep
+
     /** Reward: heroes discard damage and/or fear cards (the app does not count them). */
     @Serializable
     @SerialName("recover")

@@ -129,7 +129,11 @@ Hardware bzw. mit einer echten KI gelaufen**. Die wichtigsten Punkte stehen oben
 - [ ] Spielbildschirm: Titel, Runde und Bedrohung in einer Kopfzeile; Kopf, Zielzeile und untere Leiste durchscheinend, Karte darunter sichtbar; Ziel in einer Zeile, Antippen zeigt den ganzen Text (neu in 1.19.0)
 - [ ] Lager als Szene: Lagerbild als Hintergrund, Helden als Karten oben (antippen: EP, Fertigkeiten, Rolle), Kartensymbol oben links, Wissen und Inventar unten links, Weiter unten rechts (neu in 1.20.0)
 - [ ] Neues Spiel: Helden und Rollen aus dem Katalog per Auswahlliste (jeder Held nur einmal); Rollenwechsel im Lager ebenfalls per Liste (neu in 1.21.0)
-- [ ] Pergament-Design: Titel und Knöpfe in der eigenen Schrift aus dem Katalog (sonst Cinzel), Fließtext in EB Garamond; Lesbarkeit am Tisch prüfen (neu in 1.22.0)
+- [ ] Pergament-Design: Titel und Knöpfe in Uncial Antiqua (frei, OFL; eine eigene Titelschrift im Katalog geht weiter vor), Fließtext in EB Garamond; Lesbarkeit am Tisch prüfen (neu in 1.22.0, Uncial ab 1.23.0)
+- [ ] Elbische Inschrift (neu in 1.23.0): Test-Kampagne, Höhle → „Alte Inschrift“ zeigt Tengwar-Zeile, darunter die Umschrift kursiv und die Übersetzung
+- [ ] Editor: Event-Schritt „Elbische Inschrift“ mit Vorschau in Tengwar; Prüfung meldet leere Inschrift oder fehlende Übersetzung
+- [ ] KI-Generator: höchstens 0–2 Inschriften pro Szenario, nur an elbischen Orten, immer mit Übersetzung
+- [ ] Verzierungen aus der Katalogschrift `schrift/ornament.ttf`: Band unter der Einleitung, Ring bei „Schmuckstück gefunden“, gekreuzte Schwerter bei Sieg/Niederlage; ohne Katalogschrift fehlen sie einfach
 
 ## 1k. Proben, Stimmungs-Marker, Gegnermenü und Banner (neu in 1.12.0)
 

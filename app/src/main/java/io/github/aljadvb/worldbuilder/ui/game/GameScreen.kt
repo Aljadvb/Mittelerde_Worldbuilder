@@ -508,8 +508,12 @@ internal fun ResolutionContent(scenario: Scenario, game: GameState, onContinue: 
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
         resolution?.let {
-            Text(outcomeLabel(it.outcome), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(outcomeLabel(it.outcome), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+                io.github.aljadvb.worldbuilder.ui.theme.Ornament("swords", size = 28)
+            }
             Text(it.title, style = MaterialTheme.typography.headlineMedium)
+            io.github.aljadvb.worldbuilder.ui.theme.Ornament("band")
             Text(it.text, style = MaterialTheme.typography.bodyLarge)
         }
         Spacer(Modifier.height(8.dp))
@@ -580,6 +584,7 @@ private fun historyText(prompt: Prompt, scenario: Scenario): String = when (prom
     is Prompt.TestResult -> stringResource(if (prompt.passed) R.string.test_passed else R.string.test_failed)
     is Prompt.TestProgress -> stringResource(R.string.test_progress_title)
     is Prompt.Recover -> recoverText(prompt)
+    is Prompt.Inscription -> "„${prompt.elvish}“ – ${prompt.translation}"
     is Prompt.ItemFound -> stringResource(R.string.item_found_title) + ": " + (prompt.itemId ?: "–")
     is Prompt.Harm -> harmText(prompt)
     is Prompt.Lore -> stringResource(R.string.prompt_lore_text, prompt.amount)

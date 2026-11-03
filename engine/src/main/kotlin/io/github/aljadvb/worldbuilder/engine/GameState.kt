@@ -165,6 +165,9 @@ sealed interface Prompt {
     @Serializable @SerialName("recover")
     data class Recover(val damage: Int, val fear: Int, val who: io.github.aljadvb.worldbuilder.model.HeroTarget, val text: String? = null) : Notice
 
+    @Serializable @SerialName("inscription")
+    data class Inscription(val elvish: String, val translation: String, val text: String? = null) : Notice
+
     @Serializable @SerialName("darkness")
     data class Darkness(val fear: Int) : Notice
 

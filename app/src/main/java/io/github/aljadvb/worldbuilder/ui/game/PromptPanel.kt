@@ -117,6 +117,7 @@ private fun NoticeContent(prompt: Prompt.Notice, scenario: Scenario, catalog: Ma
     when (prompt) {
         Prompt.Intro -> {
             Title(scenario.title)
+            io.github.aljadvb.worldbuilder.ui.theme.Ornament("band")
             Body(scenario.intro)
         }
         is Prompt.Text -> Body(prompt.text)
@@ -290,6 +291,14 @@ private fun NoticeContent(prompt: Prompt.Notice, scenario: Scenario, catalog: Ma
             Body(if (prompt.step.hidden) stringResource(R.string.test_progress_hidden) else stringResource(R.string.test_progress_open, prompt.total, prompt.step.successes))
             Hint(stringResource(R.string.prompt_test_cumulative_hint))
         }
+        is Prompt.Inscription -> {
+            Title(stringResource(R.string.inscription_title))
+            prompt.text?.let { Body(it) }
+            Text(io.github.aljadvb.worldbuilder.model.Tengwar.transliterate(prompt.elvish), fontFamily = io.github.aljadvb.worldbuilder.ui.theme.TengwarFamily,
+                style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.primary)
+            Text(prompt.elvish, style = MaterialTheme.typography.bodyMedium, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(stringResource(R.string.inscription_translation, prompt.translation), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
+        }
         is Prompt.Recover -> {
             Title(stringResource(R.string.recover_title))
             prompt.text?.let { Body(it) }
@@ -297,7 +306,10 @@ private fun NoticeContent(prompt: Prompt.Notice, scenario: Scenario, catalog: Ma
             Hint(stringResource(R.string.prompt_harm_hint))
         }
         is Prompt.ItemFound -> {
-            Title(stringResource(R.string.item_found_title))
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                io.github.aljadvb.worldbuilder.ui.theme.Ornament("ring", size = 40)
+                Title(stringResource(R.string.item_found_title))
+            }
             prompt.text?.let { Body(it) }
             val item = prompt.itemId?.let { catalog.item(it) }
             if (prompt.itemId == null) {

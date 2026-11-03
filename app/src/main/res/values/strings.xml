@@ -289,4 +289,6 @@
     <string name="camp_inventory_button">Inventar (%1$d)</string>
     <string name="camp_xp_label">EP</string>
     <string name="camp_found_items">Gefunden: %1$s</string>
+    <string name="inscription_title">Elbische Inschrift</string>
+    <string name="inscription_translation">„%1$s“</string>
 </resources>

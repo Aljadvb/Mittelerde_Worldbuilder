@@ -28,6 +28,8 @@ data class MaterialCatalog(
     val roles: List<RoleDefinition> = emptyList(),
     /** Optional own font for titles and buttons (relative path, private catalog only). */
     val titleFont: String? = null,
+    /** Optional picture font for ornaments (rings, inscription bands, swords; private catalog only). */
+    val ornamentFont: String? = null,
 ) {
     fun hero(id: String): HeroDefinition? = heroes.firstOrNull { it.id == id }
     fun item(id: String): Item? = items.firstOrNull { it.id == id }

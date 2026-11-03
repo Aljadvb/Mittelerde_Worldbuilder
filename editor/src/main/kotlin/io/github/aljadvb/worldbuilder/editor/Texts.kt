@@ -178,6 +178,7 @@ object Texts {
         "gainItem" to "Schmuckstück finden",
         "recover" to "Erholung (Schaden/Furcht ablegen)",
         "affectEnemy" to "Gegner schwächen (Treffer, Betäuben …)",
+        "inscription" to "Elbische Inschrift (mit Übersetzung)",
         "gainLore" to "Wissen erhalten",
         "setDarkness" to "Dunkelheit festlegen",
         "setFlag" to "Kampagnen-Merker setzen",
@@ -244,6 +245,9 @@ object Texts {
     fun heroDefeated(hero: Int, second: Boolean) = "Held ${hero + 1} ist besiegt" + (if (second) " (Letztes Aufbäumen schon verbraucht)" else "") +
         ". Gewinnt ihr nicht vor der nächsten Schattenphase, ist das Abenteuer verloren."
     const val APPLY = "Anwenden"
+    const val ELVISH = "Elbisch (Sindarin/Quenya in lateinischen Buchstaben)"
+    const val TRANSLATION = "Übersetzung"
+    fun inscription(elvish: String, translation: String) = "Elbische Inschrift: „$elvish“ – „$translation“"
     const val CAMP = "Lager"
     const val SETUP_HEROES = "Stellt die Heldenfiguren auf das grün markierte Startfeld."
     const val MAP_HERO_START = "Startfeld der Helden"

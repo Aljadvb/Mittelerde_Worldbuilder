@@ -847,6 +847,36 @@
           }
         },
         {
+          "description": "Elbische Inschrift oder Spruch: die App zeigt ihn in Tengwar-Schrift, darunter immer die lateinische Umschrift und die deutsche Übersetzung.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "elvish",
+            "translation"
+          ],
+          "properties": {
+            "type": {
+              "const": "inscription"
+            },
+            "elvish": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Sindarin oder Quenya in lateinischen Buchstaben (lange Vokale mit Akzent), z. B. \"Pedo mellon a minno\"."
+            },
+            "translation": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Deutsche Übersetzung."
+            },
+            "text": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Optionaler Zusammenhang, z. B. wo die Inschrift steht."
+            }
+          }
+        },
+        {
           "description": "Belohnung: Helden legen Schaden- und/oder Furchtkarten ab (die App zählt nicht mit).",
           "type": "object",
           "additionalProperties": false,

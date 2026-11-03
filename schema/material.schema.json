@@ -95,6 +95,11 @@
       "type": "string",
       "minLength": 1,
       "description": "Optional: eigene Schriftdatei (TTF/OTF) für Titel und Knöpfe der App, relativ zum Katalog, z. B. schrift/titel.ttf. Nur im privaten Katalog."
+    },
+    "ornamentFont": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Optional: Bilderschrift für Verzierungen (Ringe a–r, Schriftbänder s–v, Schwerter w/x), relativ zum Katalog. Nur im privaten Katalog."
     }
   },
   "$defs": {

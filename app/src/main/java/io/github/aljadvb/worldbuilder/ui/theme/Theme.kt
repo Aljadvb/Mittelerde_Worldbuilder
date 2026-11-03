@@ -42,7 +42,14 @@ private val Garamond = FontFamily(
     Font(R.font.eb_garamond_italic, FontWeight.Normal, FontStyle.Italic),
 )
 
-private val Cinzel = FontFamily(Font(R.font.cinzel_bold, FontWeight.Normal), Font(R.font.cinzel_bold, FontWeight.Bold))
+/** Alcarin Tengwar (OFL) for Elven inscriptions. */
+val TengwarFamily = FontFamily(Font(R.font.alcarin_tengwar, FontWeight.Normal))
+
+/** Optional ornament picture font from the private catalog; null if the catalog brings none. */
+val LocalOrnamentFont = androidx.compose.runtime.staticCompositionLocalOf<FontFamily?> { null }
+
+/** Uncial Antiqua (OFL): uncial letters with full German character set, the default title font. */
+private val Uncial = FontFamily(Font(R.font.uncial_antiqua, FontWeight.Normal), Font(R.font.uncial_antiqua, FontWeight.Bold))
 
 /** Titles and buttons in [display], running text in EB Garamond. */
 private fun typography(display: FontFamily): Typography {
@@ -65,17 +72,34 @@ private val Corners = Shapes(
 
 /**
  * App theme. [titleFont] is an optional font file from the user's private catalog
- * (e.g. a Middle-earth style font); without it Cinzel is used for titles and buttons.
+ * (e.g. a Middle-earth style font); without it Uncial Antiqua is used for titles and buttons.
  */
 @Composable
 fun WorldbuilderTheme(
     @Suppress("UNUSED_PARAMETER") darkTheme: Boolean = false,
     titleFont: File? = null,
+    ornamentFont: File? = null,
     content: @Composable () -> Unit,
 ) {
+    val ornaments = remember(ornamentFont?.path, ornamentFont?.lastModified()) {
+        ornamentFont?.takeIf { it.isFile }?.let { f -> runCatching { FontFamily(Font(f)) }.getOrNull() }
+    }
     val display = remember(titleFont?.path, titleFont?.lastModified()) {
-        titleFont?.takeIf { it.isFile }?.let { f -> runCatching { FontFamily(Font(f)) }.getOrNull() } ?: Cinzel
+        titleFont?.takeIf { it.isFile }?.let { f -> runCatching { FontFamily(Font(f)) }.getOrNull() } ?: Uncial
     }
     val type = remember(display) { typography(display) }
-    MaterialTheme(colorScheme = Parchment, typography = type, shapes = Corners, content = content)
+    androidx.compose.runtime.CompositionLocalProvider(LocalOrnamentFont provides ornaments) {
+        MaterialTheme(colorScheme = Parchment, typography = type, shapes = Corners, content = content)
+    }
+}
+
+/**
+ * A picture from the ornament font: "band" (inscription band), "ring", "swords" (two swords
+ * pointing at each other). Draws nothing if the catalog brings no ornament font.
+ */
+@Composable
+fun Ornament(kind: String, modifier: androidx.compose.ui.Modifier = androidx.compose.ui.Modifier, size: Int = 34) {
+    val font = LocalOrnamentFont.current ?: return
+    val glyphs = when (kind) { "band" -> "u"; "ring" -> "a"; "swords" -> "w x"; else -> return }
+    androidx.compose.material3.Text(glyphs, modifier = modifier, fontFamily = font, fontSize = size.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }
