@@ -136,6 +136,7 @@ private fun Event.mapReferences(ep: String, ref: RefFn): Event = copy(
                 onAttempt = step.onAttempt?.let { ref(ObjectKind.EVENT, it, "$p.onAttempt", id) },
             )
             is EventStep.SpawnEnemies -> step.copy(group = ref(ObjectKind.ENEMY_GROUP, step.group, "$p.group", id))
+            is EventStep.AffectEnemy -> step.copy(group = ref(ObjectKind.ENEMY_GROUP, step.group, "$p.group", id))
             is EventStep.AddToken -> step.copy(token = ref(ObjectKind.TOKEN, step.token, "$p.token", id))
             is EventStep.RemoveToken -> step.copy(token = ref(ObjectKind.TOKEN, step.token, "$p.token", id))
             is EventStep.UnlockChapter -> step.copy(chapter = ref(ObjectKind.CHAPTER, step.chapter, "$p.chapter", id))

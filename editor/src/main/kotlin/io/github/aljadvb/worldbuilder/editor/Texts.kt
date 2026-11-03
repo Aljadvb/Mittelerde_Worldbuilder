@@ -177,6 +177,7 @@ object Texts {
         "sufferHarm" to "Schaden/Furcht erleiden",
         "gainItem" to "Schmuckstück finden",
         "recover" to "Erholung (Schaden/Furcht ablegen)",
+        "affectEnemy" to "Gegner schwächen (Treffer, Betäuben …)",
         "gainLore" to "Wissen erhalten",
         "setDarkness" to "Dunkelheit festlegen",
         "setFlag" to "Kampagnen-Merker setzen",
@@ -243,6 +244,12 @@ object Texts {
     fun heroDefeated(hero: Int, second: Boolean) = "Held ${hero + 1} ist besiegt" + (if (second) " (Letztes Aufbäumen schon verbraucht)" else "") +
         ". Gewinnt ihr nicht vor der nächsten Schattenphase, ist das Abenteuer verloren."
     const val APPLY = "Anwenden"
+    const val MOD_PIERCE = "Durchbohren"
+    const val MOD_SMITE = "Zerschlagen"
+    const val MOD_SUNDER = "Zerfallen"
+    const val MOD_CLEAVE = "Spalten"
+    const val MOD_STUN = "Betäuben"
+    const val MOD_LETHAL = "Tödlich"
     fun attackTitle(name: String) = "Angriff auf $name"
     val MODIFIERS = listOf("pierce" to "Durchbohren (ignoriert Rüstung)", "smite" to "Zerschlagen (ignoriert Schutzzauber)", "sunder" to "Zerfallen (Rüstung dauerhaft −1)",
         "cleave" to "Spalten (jeder Feind erleidet alle Treffer)", "stun" to "Betäuben (Gruppe erschöpft)", "lethal" to "Tödlich")

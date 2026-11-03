@@ -173,4 +173,19 @@ class ShadowPhaseTest {
         s = e.apply(s, Command.DefeatEnemyGroup("eg_zwei"))
         assertEquals(mapOf("eg_drei" to 2), s.enemyBanners)
     }
+
+    @Test
+    fun `affectEnemy hurts and stuns without a counterattack`() {
+        val sc = scenario.copy(events = scenario.events + Event("evt_fels", listOf(EventStep.AffectEnemy("eg_nebelwoelfe", hits = 4, pierce = true, stun = true, text = "Der Felsen rollt."))))
+        val e = GameEngine(sc, enemyTypes = mapOf("nebelwolf" to wolf))
+        var s = withWolves(3)
+        s = s.copy(agenda = listOf(Frame.EventFrame("evt_fels")), prompts = listOf(Prompt.Intro))
+        s = e.apply(s, Command.Acknowledge)
+        assertEquals("Der Felsen rollt.", (s.currentPrompt as Prompt.Text).text)
+        s = e.apply(s, Command.Acknowledge)
+        assertTrue(s.currentPrompt is Prompt.AttackResult)
+        assertEquals(listOf(0, 4), s.enemyHealth.getValue("eg_nebelwoelfe"))
+        assertTrue("eg_nebelwoelfe" in s.exhaustedGroups)
+        while (!s.isIdle) { assertTrue(s.currentPrompt !is Prompt.CounterQuestion); s = e.apply(s, Command.Acknowledge) }
+    }
 }

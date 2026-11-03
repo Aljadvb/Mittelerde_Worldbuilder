@@ -1,6 +1,6 @@
 # Testliste – was noch von Hand zu prüfen ist
 
-Stand: 2026-11-02 · Version 1.13.3 · Abhaken mit `[x]`. Rückmeldungen (Screenshots, Dateien) einfach im Chat schicken.
+Stand: 2026-11-02 · Version 1.14.0 · Abhaken mit `[x]`. Rückmeldungen (Screenshots, Dateien) einfach im Chat schicken.
 
 Alles hier ist automatisch getestet (Unit-Tests, simulierte Maus, gerenderte Screenshots), aber **noch nie auf echter
 Hardware bzw. mit einer echten KI gelaufen**. Die wichtigsten Punkte stehen oben.
@@ -94,6 +94,8 @@ Hardware bzw. mit einer echten KI gelaufen**. Die wichtigsten Punkte stehen oben
 - [ ] Gegnerangriffe zeigen „Abwehr: Probe auf …“ (jeder Erfolg verhindert 1 Schaden oder 1 Furcht); einzelne Angriffe sind nicht abwehrbar (neu in 1.10.0)
 - [ ] Katalog-Fenster → Gegner: pro Angriff „Abwehr“ einstellbar
 - [ ] Gegnergruppe besiegt → der handelnde Held erhält 1 Inspiration (neu in 1.13.2)
+- [ ] Event-Schritt „Gegner schwächen“: Treffer, Betäuben, Zerfallen usw. ohne Gegenangriff (neu in 1.14.0)
+- [ ] KI-Schlacht: 3–5 taktische Marker, mit denen man sich Vorteile verschafft
 - [ ] „Limit erreicht“ steckt jetzt im ⋮-Menü neben „Runde beenden“ (App) bzw. eingeklappt im Probespiel (Editor)
 - [ ] Editor-Probespiel: „Angreifen“ mit Treffern und Modifikatoren, Gesundheit und Banner der Gegner sichtbar
 

@@ -113,6 +113,7 @@ private fun stepLabel(step: EventStep): String {
         is EventStep.SufferHarm -> "sufferHarm"
         is EventStep.GainItem -> "gainItem"
         is EventStep.Recover -> "recover"
+        is EventStep.AffectEnemy -> "affectEnemy"
         is EventStep.GainLore -> "gainLore"
         is EventStep.SetDarkness -> "setDarkness"
         is EventStep.SetFlag -> "setFlag"
@@ -139,6 +140,7 @@ fun newStep(type: String, s: Scenario): EventStep = when (type) {
     "sufferHarm" -> EventStep.SufferHarm(damage = 1)
     "gainItem" -> EventStep.GainItem()
     "recover" -> EventStep.Recover(damage = 1)
+    "affectEnemy" -> EventStep.AffectEnemy(s.enemyGroups.firstOrNull()?.id.orEmpty(), hits = 2)
     "gainLore" -> EventStep.GainLore(1)
     "setDarkness" -> EventStep.SetDarkness(1)
     "setFlag" -> EventStep.SetFlag("")
@@ -241,6 +243,23 @@ private fun StepFields(
                     set(step.copy(who = io.github.aljadvb.worldbuilder.model.HeroTarget.valueOf(v!!)))
                 }
                 CheckInput(Texts.HIDDEN, step.hidden) { v -> set(step.copy(hidden = v)) }
+            }
+            TextInput(model, Texts.OPTIONAL_TEXT, step.text.orEmpty(), "$key.text", "$p.text") { v -> setText(step.copy(text = v.ifEmpty { null })) }
+        }
+        is EventStep.AffectEnemy -> {
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                ChoiceInput(model, Texts.ENEMY_GROUP, step.group, s.enemyGroups.map { Choice(it.id, it.id) }, "$p.group", modifier = Modifier.weight(1f)) { v -> set(step.copy(group = v.orEmpty())) }
+                IntInput(model, Texts.HITS, step.hits, "$key.hits", "$p.hits") { v -> setText(step.copy(hits = v)) }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                CheckInput(Texts.MOD_PIERCE, step.pierce) { v -> set(step.copy(pierce = v)) }
+                CheckInput(Texts.MOD_SMITE, step.smite) { v -> set(step.copy(smite = v)) }
+                CheckInput(Texts.MOD_SUNDER, step.sunder) { v -> set(step.copy(sunder = v)) }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                CheckInput(Texts.MOD_CLEAVE, step.cleave) { v -> set(step.copy(cleave = v)) }
+                CheckInput(Texts.MOD_STUN, step.stun) { v -> set(step.copy(stun = v)) }
+                CheckInput(Texts.MOD_LETHAL, step.lethal) { v -> set(step.copy(lethal = v)) }
             }
             TextInput(model, Texts.OPTIONAL_TEXT, step.text.orEmpty(), "$key.text", "$p.text") { v -> setText(step.copy(text = v.ifEmpty { null })) }
         }

@@ -407,6 +407,12 @@ private class CampaignChecks(
                     }
                     step.text?.let { blank(it, "$p.text", eventId, "$what: Text") }
                 }
+                is EventStep.AffectEnemy -> {
+                    ref(step.group, ObjectKind.ENEMY_GROUP, si, "$p.group", eventId, what)
+                    if (step.hits !in 0..20) c.error(IssueCode.INVALID_NUMBER, "$p.hits", eventId, "$what: Treffer müssen 0–20 betragen.")
+                    if (step.hits == 0 && !step.stun && !step.sunder) c.warn(IssueCode.INVALID_NUMBER, p, eventId, "$what: Ohne Treffer, Betäuben oder Zerfallen hat der Schritt keine Wirkung.")
+                    step.text?.let { blank(it, "$p.text", eventId, "$what: Text") }
+                }
                 is EventStep.Recover -> {
                     if (step.damage !in 0..5 || step.fear !in 0..5 || step.damage + step.fear == 0) {
                         c.error(IssueCode.INVALID_NUMBER, p, eventId, "$what: Schaden und Furcht je 0–5, zusammen mindestens 1.")
@@ -479,5 +485,6 @@ internal fun stepName(step: EventStep): String = when (step) {
     is EventStep.SufferHarm -> "sufferHarm"
     is EventStep.GainItem -> "gainItem"
     is EventStep.Recover -> "recover"
+    is EventStep.AffectEnemy -> "affectEnemy"
     is EventStep.EndScenario -> "endScenario"
 }

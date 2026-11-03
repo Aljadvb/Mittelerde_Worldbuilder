@@ -786,6 +786,63 @@
           }
         },
         {
+          "description": "Taktischer Vorteil: Eine Gegnergruppe erleidet Treffer und/oder Modifikatoren (z. B. ein Felsen rollt auf den Feind, ein Netz fällt). Kein Gegenangriff. Wirkt nur, wenn die Gruppe gerade im Spiel ist.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "type",
+            "group"
+          ],
+          "properties": {
+            "type": {
+              "const": "affectEnemy"
+            },
+            "group": {
+              "$ref": "#/$defs/id"
+            },
+            "hits": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 20,
+              "default": 0
+            },
+            "pierce": {
+              "type": "boolean",
+              "default": false,
+              "description": "Durchbohren: ignoriert Rüstung"
+            },
+            "smite": {
+              "type": "boolean",
+              "default": false,
+              "description": "Zerschlagen: ignoriert Schutzzauber"
+            },
+            "sunder": {
+              "type": "boolean",
+              "default": false,
+              "description": "Zerfallen: Rüstung dauerhaft −1"
+            },
+            "cleave": {
+              "type": "boolean",
+              "default": false,
+              "description": "Spalten: jeder Feind erleidet alle Treffer"
+            },
+            "stun": {
+              "type": "boolean",
+              "default": false,
+              "description": "Betäuben: Gruppe erschöpft"
+            },
+            "lethal": {
+              "type": "boolean",
+              "default": false,
+              "description": "Tödlich"
+            },
+            "text": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        {
           "description": "Belohnung: Helden legen Schaden- und/oder Furchtkarten ab (die App zählt nicht mit).",
           "type": "object",
           "additionalProperties": false,

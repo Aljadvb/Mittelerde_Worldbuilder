@@ -114,6 +114,21 @@ sealed interface EventStep {
         val text: String? = null,
     ) : EventStep
 
+    /** Tactical effect on an enemy group: hits and attack modifiers without a counterattack (e.g. a rolling boulder). */
+    @Serializable
+    @SerialName("affectEnemy")
+    data class AffectEnemy(
+        val group: String,
+        val hits: Int = 0,
+        val pierce: Boolean = false,
+        val smite: Boolean = false,
+        val sunder: Boolean = false,
+        val cleave: Boolean = false,
+        val stun: Boolean = false,
+        val lethal: Boolean = false,
+        val text: String? = null,
+    ) : EventStep
+
     /** Reward: heroes discard damage and/or fear cards (the app does not count them). */
     @Serializable
     @SerialName("recover")

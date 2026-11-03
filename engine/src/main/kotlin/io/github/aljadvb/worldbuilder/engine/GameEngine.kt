@@ -234,7 +234,7 @@ class GameEngine(
             fireMatching { it is TriggerCondition.TileExplored && it.placement == placementId }
         }
 
-        fun attack(c: Command.AttackEnemy) {
+        fun attack(c: Command.AttackEnemy, counter: Boolean = true) {
             val group = scenario.enemyGroup(c.groupId) ?: return
             val type = enemyTypes[group.enemyType]
             val health = (enemyHealth[c.groupId] ?: List(group.count[heroCount] ?: 1) { type?.health ?: 1 }).toMutableList()
@@ -267,7 +267,7 @@ class GameEngine(
             prompts += Prompt.AttackResult(c.groupId, before - remaining, remaining, c.stun && remaining > 0)
             if (remaining == 0) defeat(c.groupId)
             // Exhausted groups (e.g. stunned) cannot counterattack.
-            else if (c.groupId !in exhausted) prompts += Prompt.CounterQuestion(c.groupId)
+            else if (counter && c.groupId !in exhausted) prompts += Prompt.CounterQuestion(c.groupId)
         }
 
         /** One attack of [groupId], picked at random from its type. */
@@ -427,6 +427,11 @@ class GameEngine(
                     prompts += Prompt.Lore(step.amount, step.text)
                 }
                 is EventStep.GainInspiration -> prompts += Prompt.Inspiration(step.amount, step.who, step.text)
+                is EventStep.AffectEnemy -> if (step.group in activeGroups) {
+                    step.text?.let { prompts += Prompt.Text(it) }
+                    // Effects from events never cause a counterattack (rules 45.3).
+                    attack(Command.AttackEnemy(step.group, step.hits, step.pierce, step.smite, step.sunder, step.cleave, step.stun, step.lethal), counter = false)
+                }
                 is EventStep.Recover -> if (step.damage > 0 || step.fear > 0) prompts += Prompt.Recover(step.damage, step.fear, step.who, step.text)
                 is EventStep.GainItem -> {
                     val taken = ownedItemsAtStart + itemsFound
