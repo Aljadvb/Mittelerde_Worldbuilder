@@ -104,10 +104,10 @@ Hardware bzw. mit einer echten KI gelaufen**. Die wichtigsten Punkte stehen oben
 
 ## 1l. Schmuckstücke mit Stufen (neu in 1.13.0)
 
-- [ ] Katalog-Fenster → Schmuckstücke: 35 Karten mit Bild, Stufe, Linie, Wissenswert und Verbrauchsmarkern; Kartentexte stimmen
-- [ ] Erweiterung je Schmuckstück prüfen (Zahnkette/Zepter → Schurken aus Eriador, Proviant/Wasserschlauch → Schatten des Krieges, Kronen → Dunkle Pfade sind geraten)
+- [ ] Katalog-Fenster → Schmuckstücke: 49 Karten mit Bild, Stufe, Linie, Wissenswert und Verbrauchsmarkern; Kartentexte stimmen
+- [ ] Erweiterung je Schmuckstück prüfen (Zahnkette/Zepter → Schurken aus Eriador, Proviant/Wasserschlauch → Schatten des Krieges, Schattenkrone/Schmiedewerkzeug → Dunkle Pfade sind geraten)
 - [ ] Funde sind selten (höchstens 1 pro Szenario, oft keiner) und immer Stufe I
-- [ ] Lager: Inventar zeigt Stufe; „Aufwerten zu …“ erscheint erst ab dem Wissenswert der Karte
+- [ ] Lager: Inventar zeigt Stufe; „Aufwerten zu …“ erscheint erst ab dem Wissenswert der Karte; bei Extrarationen gibt es zwei Wege (Breeländische Rationen oder Hobbitrationen)
 
 ## 1k. Proben, Stimmungs-Marker, Gegnermenü und Banner (neu in 1.12.0)
 

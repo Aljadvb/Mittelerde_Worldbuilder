@@ -160,6 +160,7 @@ class ItemLevelTest {
         val up = Camp.upgradeItem(p.copy(lore = 20), "stiefel", items)
         assertEquals(listOf("gruen"), up.inventory)
         kotlin.test.assertFailsWith<EngineException> { Camp.upgradeItem(up.copy(lore = 99), "gruen", items) }
+        kotlin.test.assertFailsWith<EngineException> { Camp.upgradeItem(p.copy(lore = 20), "stiefel", items, "brosche") }
     }
 
     @Test

@@ -172,8 +172,8 @@ data class Item(
     /** Consumption markers placed when equipped (number in the circle). */
     val uses: Int? = null,
 ) {
-    /** The next level of the same line, if any. */
-    fun upgrade(items: List<Item>): Item? = line?.let { l -> items.firstOrNull { it.line == l && it.level == level + 1 } }
+    /** Cards of the next level of the same line (a line may branch, e.g. two kinds of rations). */
+    fun upgrades(items: List<Item>): List<Item> = line?.let { l -> items.filter { it.line == l && it.level == level + 1 } }.orEmpty()
 }
 
 @Serializable
