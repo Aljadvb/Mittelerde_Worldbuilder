@@ -261,9 +261,11 @@ enum class Condition(val isCurse: Boolean) {
     @SerialName("frightened") FRIGHTENED(true),
 }
 
-/** Markers that change a field: rough ground (moving in costs a card or ends the move) and fortified (holding the field). */
+/** Markers that change a field: rough ground (moving in costs a card or ends the move), fortified (holding the field) and darkness. */
 @Serializable
 enum class FieldMarker {
     @SerialName("rough") ROUGH,
     @SerialName("fortified") FORTIFIED,
+    /** The field is in darkness: heroes on it suffer fear in the shadow phase. */
+    @SerialName("darkness") DARKNESS,
 }

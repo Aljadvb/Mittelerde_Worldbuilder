@@ -78,6 +78,7 @@ object MapColors {
     val Elite = Color(0xFF6E0F0A)
     val Rough = Color(0xFF7A5230)
     val Fortified = Color(0xFF5F6670)
+    val Darkness = Color(0xFF2B2140)
     val HeroStart = Color(0xFF2E7D32)
     val Error = Color(0xFFD32F2F)
     val Grid = Color(0x22000000)
@@ -269,15 +270,23 @@ internal fun androidx.compose.ui.graphics.drawscope.DrawScope.drawEnemyMarker(c:
     if (elite) drawPath(diamond, Color.White, style = Stroke(r * 0.12f))
 }
 
-/** Field marker: brown square "U" for rough ground, grey square "B" for fortified, placed at [c] + [offset]. */
+/** Field marker: brown "U" for rough ground, grey "B" for fortified, dark violet "D" for darkness, placed at [c] + [offset]. */
 internal fun androidx.compose.ui.graphics.drawscope.DrawScope.drawFieldMarker(
     textMeasurer: androidx.compose.ui.text.TextMeasurer, marker: io.github.aljadvb.worldbuilder.model.FieldMarker, c: Offset, r: Float, offset: Offset,
 ) {
     val p = c + offset
-    val color = if (marker == io.github.aljadvb.worldbuilder.model.FieldMarker.ROUGH) MapColors.Rough else MapColors.Fortified
+    val color = when (marker) {
+        io.github.aljadvb.worldbuilder.model.FieldMarker.ROUGH -> MapColors.Rough
+        io.github.aljadvb.worldbuilder.model.FieldMarker.FORTIFIED -> MapColors.Fortified
+        io.github.aljadvb.worldbuilder.model.FieldMarker.DARKNESS -> MapColors.Darkness
+    }
     drawRect(color, topLeft = p - Offset(r, r * 0.6f), size = Size(r * 2, r * 1.2f))
     drawRect(Color.White, topLeft = p - Offset(r, r * 0.6f), size = Size(r * 2, r * 1.2f), style = Stroke(r * 0.12f))
-    val letter = if (marker == io.github.aljadvb.worldbuilder.model.FieldMarker.ROUGH) "U" else "B"
+    val letter = when (marker) {
+        io.github.aljadvb.worldbuilder.model.FieldMarker.ROUGH -> "U"
+        io.github.aljadvb.worldbuilder.model.FieldMarker.FORTIFIED -> "B"
+        io.github.aljadvb.worldbuilder.model.FieldMarker.DARKNESS -> "D"
+    }
     val m = textMeasurer.measure(letter, TextStyle(fontSize = (r * 0.9f).toSp(), color = Color.White, fontWeight = FontWeight.Bold))
     drawText(m, topLeft = Offset(p.x - m.size.width / 2f, p.y - m.size.height / 2f))
 }

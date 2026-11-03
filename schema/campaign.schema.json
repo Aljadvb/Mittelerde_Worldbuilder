@@ -951,13 +951,13 @@
           }
         },
         {
-          "description": "Legt einen Marker auf ein Feld: rough = unwegsamer Untergrund, fortified = befestigt.",
+          "description": "Legt einen Marker auf ein Feld: rough = unwegsamer Untergrund, fortified = befestigt, darkness = Dunkelheit (Furcht in der Schattenphase; ohne setDarkness 1 Furcht).",
           "type": "object",
           "additionalProperties": false,
           "required": ["type", "marker", "location"],
           "properties": {
             "type": { "const": "placeMarker" },
-            "marker": { "enum": ["rough", "fortified"] },
+            "marker": { "enum": ["rough", "fortified", "darkness"] },
             "location": { "$ref": "#/$defs/location" },
             "text": { "type": "string", "minLength": 1 }
           }
@@ -969,7 +969,7 @@
           "required": ["type", "marker", "location"],
           "properties": {
             "type": { "const": "removeMarker" },
-            "marker": { "enum": ["rough", "fortified"] },
+            "marker": { "enum": ["rough", "fortified", "darkness"] },
             "location": { "$ref": "#/$defs/location" }
           }
         },

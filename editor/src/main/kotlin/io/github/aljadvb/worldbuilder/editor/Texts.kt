@@ -180,7 +180,7 @@ object Texts {
         "gainCondition" to "Zustand erhalten (Gunst oder Fluch)",
         "loseCorruption" to "Verderbnis verlieren",
         "checkCorruption" to "Verdorben? (Verzweigung)",
-        "placeMarker" to "Gelände-Marker legen (unwegsam/befestigt)",
+        "placeMarker" to "Gelände-Marker legen (unwegsam/befestigt/Dunkelheit)",
         "removeMarker" to "Gelände-Marker entfernen",
         "affectEnemy" to "Gegner schwächen (Treffer, Betäuben …)",
         "inscription" to "Elbische Inschrift (mit Übersetzung, optional als Rätsel)",
@@ -297,7 +297,7 @@ object Texts {
     const val CORRUPTION_IF = "Wenn verdorben"
     const val CORRUPTION_IF_NOT = "Wenn unverdorben"
     const val MARKER = "Marker"
-    val MARKERS = listOf("ROUGH" to "Unwegsamer Untergrund", "FORTIFIED" to "Befestigt")
+    val MARKERS = listOf("ROUGH" to "Unwegsamer Untergrund", "FORTIFIED" to "Befestigt", "DARKNESS" to "Dunkelheit")
     const val MARKER_TILE = "Kachel"
     fun markerName(m: io.github.aljadvb.worldbuilder.model.FieldMarker) = MARKERS.first { it.first == m.name }.second
     fun corruption(hero: Int, delta: Int, total: Int) =

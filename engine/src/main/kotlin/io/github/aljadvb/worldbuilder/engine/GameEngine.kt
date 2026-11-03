@@ -399,7 +399,9 @@ class GameEngine(
                 prompts += Prompt.EnemyActivation(groupId, living[random(living.size)], type?.movement ?: 2, attack?.damage ?: 1, attack?.fear ?: 0, attack?.text.orEmpty(), type?.ranged == true, attack?.negate, attack?.condition)
             }
             // Shadow phase 2: darkness.
-            if (darknessFear > 0) prompts += Prompt.Darkness(darknessFear)
+            // Darkness markers on fields count even without a scenario-wide darkness value (then 1 fear).
+            val fear = darknessFear.takeIf { it > 0 } ?: if (fieldMarkers.any { it.marker == io.github.aljadvb.worldbuilder.model.FieldMarker.DARKNESS }) 1 else 0
+            if (fear > 0) prompts += Prompt.Darkness(fear)
             // Shadow event ("something happens"), runs after the notices.
             scenario.shadowEvents.takeIf { it.isNotEmpty() }?.let { events -> agenda += Frame.EventFrame(events[random(events.size)]) }
             // Shadow phase 3: threat.

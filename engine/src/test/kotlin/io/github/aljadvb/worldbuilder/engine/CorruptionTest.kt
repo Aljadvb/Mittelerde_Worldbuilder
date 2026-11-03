@@ -97,6 +97,17 @@ class CorruptionTest {
     }
 
     @Test
+    fun `darkness markers cause fear in the shadow phase`() {
+        val e = engine(EventStep.PlaceMarker(FieldMarker.DARKNESS, spot))
+        var s = e.start(2)
+        while (!s.isIdle) s = e.apply(s, Command.Acknowledge)
+        assertTrue(e.apply(s, Command.EndRound).prompts.none { it is Prompt.Darkness })
+        s = e.apply(s, Command.InteractToken("tok_brunnen"))
+        while (!s.isIdle) s = e.apply(s, Command.Acknowledge)
+        assertTrue(Prompt.Darkness(1) in e.apply(s, Command.EndRound).prompts)
+    }
+
+    @Test
     fun `campaign keeps corruption between scenarios`() {
         val runner = CampaignRunner(Examples.campaign)
         val (p, _) = runner.start(2, listOf(Hero("Eleanor", "", corruption = 2), Hero("Beravor", "")))

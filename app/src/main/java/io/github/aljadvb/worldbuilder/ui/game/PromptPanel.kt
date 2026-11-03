@@ -521,10 +521,12 @@ internal fun corruptionText(prompt: Prompt.Corruption, heroNames: List<String>):
 internal fun markerName(m: io.github.aljadvb.worldbuilder.model.FieldMarker): String = stringResource(when (m) {
     io.github.aljadvb.worldbuilder.model.FieldMarker.ROUGH -> R.string.marker_rough
     io.github.aljadvb.worldbuilder.model.FieldMarker.FORTIFIED -> R.string.marker_fortified
+    io.github.aljadvb.worldbuilder.model.FieldMarker.DARKNESS -> R.string.marker_darkness
 })
 
 @Composable
 internal fun markerRule(m: io.github.aljadvb.worldbuilder.model.FieldMarker): String = stringResource(when (m) {
     io.github.aljadvb.worldbuilder.model.FieldMarker.ROUGH -> R.string.marker_rough_rule
     io.github.aljadvb.worldbuilder.model.FieldMarker.FORTIFIED -> R.string.marker_fortified_rule
+    io.github.aljadvb.worldbuilder.model.FieldMarker.DARKNESS -> R.string.marker_darkness_rule
 })

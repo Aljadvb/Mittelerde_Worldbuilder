@@ -251,6 +251,8 @@
     <string name="corruption_setup_line">%1$s: %2$d Verderbnismarker</string>
     <string name="marker_rough">Unwegsamer Untergrund</string>
     <string name="marker_fortified">Befestigt</string>
+    <string name="marker_darkness">Dunkelheit</string>
+    <string name="marker_darkness_rule">Wer in der Schattenphase auf diesem Feld steht, ist in Dunkelheit und erleidet Furcht.</string>
     <string name="marker_place_title">Marker legen: %1$s</string>
     <string name="marker_remove_title">Marker entfernen: %1$s</string>
     <string name="marker_where_tile">Kachel %1$s, das markierte Feld.</string>

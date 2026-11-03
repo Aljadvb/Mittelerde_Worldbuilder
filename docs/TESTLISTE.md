@@ -131,6 +131,7 @@ Hardware bzw. mit einer echten KI gelaufen**. Die wichtigsten Punkte stehen oben
 - [ ] Pergament-Design: Titel und Knöpfe in Uncial Antiqua (frei, OFL; eine eigene Titelschrift im Katalog geht weiter vor), Fließtext in EB Garamond; Lesbarkeit am Tisch prüfen (neu in 1.22.0, Uncial ab 1.23.0)
 - [ ] Elbische Inschrift (neu in 1.23.0): Test-Kampagne, Höhle → „Alte Inschrift“ zeigt Tengwar-Zeile, darunter die Umschrift kursiv und die Übersetzung
 - [ ] Editor: Event-Schritt „Elbische Inschrift“ mit Vorschau in Tengwar; Prüfung meldet leere Inschrift oder fehlende Übersetzung
+- [ ] Dunkelheit als Marker (neu in 1.28.0): Test-Kampagne, Bedrohung 8 – Hügelkuppe bekommt ein violettes „D“; danach meldet jede Schattenphase „Dunkelheit: 1 Furcht“ für Helden auf solchen Feldern
 - [ ] Verderbnis (neu in 1.27.0): Test-Kampagne, Höhle nach dem Rätsel – Knopf „Den Ring an euch nehmen · +1 Verderbnis“; App fragt, welcher Held, und meldet den neuen Stand
 - [ ] Verderbnis bleibt: Lager zeigt „Verderbnis 1“ unter dem Helden; nächstes Szenario beginnt mit „Verderbnis auslegen“
 - [ ] Bruchwald: Dorfbrunnen – jeder verliert 1 Verderbnis; Kräuterfrau – App fragt, welcher Held spricht, verdorbene Helden bekommen einen anderen Text
