@@ -341,6 +341,7 @@ private fun ItemDetail(model: CatalogEditorModel, id: String) {
             Triple(Texts.ITEM_LEVEL, item.level) { v: Int -> model.edit("$id.level") { it.updateItem(id) { x -> x.copy(level = v.coerceIn(1, 3)) } } },
             Triple(Texts.ITEM_LORE, item.lore ?: 0) { v: Int -> model.edit("$id.lore") { it.updateItem(id) { x -> x.copy(lore = v) } } },
             Triple(Texts.ITEM_USES, item.uses ?: 0) { v: Int -> model.edit("$id.uses") { it.updateItem(id) { x -> x.copy(uses = v) } } },
+            Triple(Texts.ITEM_COUNT, item.count) { v: Int -> model.edit("$id.count") { it.updateItem(id) { x -> x.copy(count = v.coerceAtLeast(1)) } } },
         ).forEach { (label, value, set) ->
             OutlinedTextField(value.toString(), { v -> v.filter(Char::isDigit).take(3).toIntOrNull()?.let(set) }, label = { Text(label) }, singleLine = true, modifier = Modifier.width(120.dp))
         }

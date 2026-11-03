@@ -49,7 +49,7 @@ class ItemTest {
 
     @Test
     fun `random trinket skips owned and found ones, nothing left gives null`() {
-        val e = GameEngine(scenarioWith(EventStep.GainItem(), EventStep.GainItem()), items = items, ownedItems = setOf("feder"))
+        val e = GameEngine(scenarioWith(EventStep.GainItem(), EventStep.GainItem()), items = items, ownedItems = listOf("feder"))
         val s = touchWell(e)
         val found = seen.filterIsInstance<Prompt.ItemFound>()
         assertEquals("beutel", found[0].itemId)
@@ -59,7 +59,7 @@ class ItemTest {
 
     @Test
     fun `owned fixed item is replaced by a random one`() {
-        val e = GameEngine(scenarioWith(EventStep.GainItem("feder")), items = items, ownedItems = setOf("feder"))
+        val e = GameEngine(scenarioWith(EventStep.GainItem("feder")), items = items, ownedItems = listOf("feder"))
         assertEquals(listOf("beutel"), touchWell(e).itemsFound)
     }
 
@@ -167,11 +167,41 @@ class ItemLevelTest {
     fun `random finds skip owned lines and higher levels`() {
         val s0 = Examples.scenario
         val sc = s0.copy(events = s0.events.map { e -> if (e.id == "evt_brunnen") e.copy(steps = listOf(EventStep.GainItem()) + e.steps) else e })
-        val e = GameEngine(sc, items = items, ownedItems = setOf("gruen"))
+        val e = GameEngine(sc, items = items, ownedItems = listOf("gruen"))
         var s = e.start(2)
         while (!s.isIdle) s = e.apply(s, Command.Acknowledge)
         s = e.apply(s, Command.InteractToken("tok_brunnen"))
         while (s.itemsFound.isEmpty() && !s.isIdle) s = if (s.currentPrompt is Prompt.Test) e.apply(s, Command.ReportTest(0)) else e.apply(s, Command.Acknowledge)
         assertEquals(listOf("brosche"), s.itemsFound)
+    }
+}
+
+class ItemCopiesTest {
+    private val items = listOf(
+        Item("extra", "Extrarationen", "b", line = "rationen", level = 1, lore = 24, count = 2),
+        Item("bree", "Breeländische Rationen", "b", line = "rationen", level = 2, lore = 48),
+        Item("hobbit", "Hobbitrationen", "b", line = "rationen", level = 2, lore = 48),
+    )
+
+    private fun find(owned: List<String>): List<String> {
+        val s0 = Examples.scenario
+        val sc = s0.copy(events = s0.events.map { e -> if (e.id == "evt_brunnen") e.copy(steps = listOf(EventStep.GainItem()) + e.steps) else e })
+        val e = GameEngine(sc, items = items, ownedItems = owned)
+        var s = e.start(2)
+        while (!s.isIdle) s = e.apply(s, Command.Acknowledge)
+        s = e.apply(s, Command.InteractToken("tok_brunnen"))
+        while (s.itemsFound.isEmpty() && !s.isIdle) s = if (s.currentPrompt is Prompt.Test) e.apply(s, Command.ReportTest(0)) else e.apply(s, Command.Acknowledge)
+        return s.itemsFound
+    }
+
+    @Test
+    fun `a card with two copies can be found twice and upgraded separately`() {
+        assertEquals(listOf("extra"), find(emptyList()))
+        assertEquals(listOf("extra"), find(listOf("bree")))
+        assertEquals(emptyList(), find(listOf("bree", "extra")))
+        val p = CampaignProgress(heroCount = 2, currentScenario = null, inventory = listOf("extra", "extra"), lore = 30)
+        val one = Camp.upgradeItem(p, "extra", items, "hobbit")
+        assertEquals(listOf("hobbit", "extra"), one.inventory)
+        assertEquals(listOf("hobbit", "bree"), Camp.upgradeItem(one, "extra", items, "bree").inventory)
     }
 }

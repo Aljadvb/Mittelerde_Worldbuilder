@@ -171,6 +171,8 @@ data class Item(
     val lore: Int? = null,
     /** Consumption markers placed when equipped (number in the circle). */
     val uses: Int? = null,
+    /** Copies of this card in the game (e.g. two "Extrarationen" that start two upgrade paths). */
+    val count: Int = 1,
 ) {
     /** Cards of the next level of the same line (a line may branch, e.g. two kinds of rations). */
     fun upgrades(items: List<Item>): List<Item> = line?.let { l -> items.filter { it.line == l && it.level == level + 1 } }.orEmpty()

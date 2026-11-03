@@ -45,7 +45,7 @@ data class GameState(
     /** Heroes that already had their one last stand in this scenario. */
     val lastStandUsed: Set<Int> = emptySet(),
     /** Items the group owned when the scenario started (from the campaign inventory). */
-    val ownedItems: Set<String> = emptySet(),
+    val ownedItems: List<String> = emptyList(),
     /** Items found in this scenario, in order (added to the campaign inventory at the end). */
     val itemsFound: List<String> = emptyList(),
     /** Numbered enemy banners of active groups (a group gets one when another group of its type is on the map). */

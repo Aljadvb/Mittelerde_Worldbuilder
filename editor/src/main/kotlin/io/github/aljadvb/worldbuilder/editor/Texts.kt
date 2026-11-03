@@ -327,6 +327,7 @@ object Texts {
     const val ITEM_LEVEL = "Stufe (1–3)"
     const val ITEM_LORE = "Wissenswert"
     const val ITEM_USES = "Verbrauchsmarker"
+    const val ITEM_COUNT = "Anzahl Karten"
     const val ITEM_EFFECT = "Wirkung (eigene Worte, für Editor und KI)"
     const val ITEM_CARD_TEXT = "Kartentext (nur privater Katalog)"
     const val CATALOG_NEW_EXPANSION = "Neue Erweiterung"

@@ -24,7 +24,7 @@ class GameEngine(
     /** Items of the material catalog. */
     private val items: List<io.github.aljadvb.worldbuilder.model.Item> = emptyList(),
     /** Items the group already owns (campaign inventory). */
-    private val ownedItems: Set<String> = emptySet(),
+    private val ownedItems: List<String> = emptyList(),
 ) {
 
     fun start(heroCount: Int): GameState {
@@ -428,11 +428,18 @@ class GameEngine(
                 is EventStep.Recover -> if (step.damage > 0 || step.fear > 0) prompts += Prompt.Recover(step.damage, step.fear, step.who, step.text)
                 is EventStep.GainItem -> {
                     val taken = ownedItemsAtStart + itemsFound
-                    val wanted = step.item?.takeIf { it !in taken && items.any { i -> i.id == it } }
+                    val byId = items.associateBy { it.id }
+                    // A card is free while fewer copies are owned than exist.
+                    fun free(i: io.github.aljadvb.worldbuilder.model.Item) = taken.count { it == i.id } < i.count
+                    // A line is free while the group owns fewer cards of it than the line has starting copies.
+                    fun lineFree(line: String): Boolean {
+                        val starts = items.filter { it.line == line }.let { l -> l.filter { it.level == l.minOf { x -> x.level } } }.sumOf { it.count }
+                        return taken.count { byId[it]?.line == line } < starts
+                    }
+                    val wanted = step.item?.takeIf { id -> byId[id]?.let(::free) == true }
                     // A fixed item already owned (e.g. a replayed scenario) is replaced by a random trinket.
-                    // Random finds are the lowest level of a line the group does not own in any level.
-                    val ownedLines = items.filter { it.id in taken }.mapNotNull { it.line }.toSet()
-                    val pool = items.filter { it.kind == io.github.aljadvb.worldbuilder.model.ItemKind.TRINKET && it.id !in taken && (it.line == null || it.line !in ownedLines) }
+                    // Random finds are the lowest level of a line that still has a free copy.
+                    val pool = items.filter { it.kind == io.github.aljadvb.worldbuilder.model.ItemKind.TRINKET && free(it) && (it.line?.let(::lineFree) ?: true) }
                         .groupBy { it.line ?: it.id }.values.map { line -> line.minBy { it.level } }
                     val found = wanted ?: pool.takeIf { it.isNotEmpty() }?.let { it[random(it.size)].id }
                     found?.let { itemsFound += it }

@@ -55,7 +55,7 @@ class CampaignRunner(val campaign: Campaign, catalog: io.github.aljadvb.worldbui
     private val items = catalog?.items.orEmpty()
 
 
-    fun engineFor(scenarioId: String, flags: Set<String> = emptySet(), owned: Set<String> = emptySet()): GameEngine =
+    fun engineFor(scenarioId: String, flags: Set<String> = emptySet(), owned: List<String> = emptyList()): GameEngine =
         GameEngine(campaign.scenario(scenarioId) ?: throw EngineException("Szenario '$scenarioId' fehlt in der Kampagne."), flags, enemyTypes, items, owned)
 
     fun start(heroCount: Int, heroes: List<Hero> = emptyList()): Pair<CampaignProgress, GameState> {
@@ -79,13 +79,13 @@ class CampaignRunner(val campaign: Campaign, catalog: io.github.aljadvb.worldbui
         val updated = progress.copy(
             currentScenario = next,
             completed = progress.completed + CompletedScenario(finished.scenarioId, resolutionId, lore, xp, finished.itemsFound),
-            inventory = (progress.inventory + finished.itemsFound).distinct(),
+            inventory = progress.inventory + finished.itemsFound,
             heroes = heroes,
             lore = progress.lore + lore,
             flags = flags,
             inCamp = true,
         )
-        return updated to next?.let { engineFor(it, flags, updated.inventory.toSet()).start(progress.heroCount) }
+        return updated to next?.let { engineFor(it, flags, updated.inventory).start(progress.heroCount) }
     }
 }
 
@@ -120,7 +120,9 @@ object Camp {
             ?: throw EngineException("„${item.name}“ hat keine passende höhere Stufe.")
         val needed = item.lore ?: 0
         if (p.lore < needed) throw EngineException("Dafür braucht die Gruppe $needed Wissen (vorhanden: ${p.lore}).")
-        return p.copy(inventory = p.inventory.map { if (it == itemId) next.id else it })
+        // Only one copy is upgraded (the group may own two of the same card).
+        val i = p.inventory.indexOf(itemId)
+        return p.copy(inventory = p.inventory.toMutableList().also { it[i] = next.id })
     }
 
     /** Trinkets of the inventory that can be upgraded now. */
