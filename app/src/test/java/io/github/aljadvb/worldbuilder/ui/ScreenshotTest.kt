@@ -102,7 +102,12 @@ class ScreenshotTest {
         show(idle) { sent += it }
         snapshot("03_idle_dorf")
         compose.onNodeWithText("Alter Brunnen").performClick()
-        assertEquals(listOf<Command>(Command.InteractToken("tok_brunnen")), sent)
+        // First the description; nothing happens until the players decide.
+        assertEquals(emptyList<Command>(), sent)
+        compose.onNodeWithText("Interagieren").assertExists()
+        snapshot("20_token_dialog")
+        compose.onNodeWithText("Interagieren").performClick()
+        assertEquals(listOf<Command>(Command.InteractToken("tok_brunnen", showText = false)), sent)
     }
 
     /** Plays to the moment the mill chapter is being set up. */

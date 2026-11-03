@@ -170,6 +170,7 @@ internal fun PlayContent(
     var confirmDefeat by remember { mutableStateOf<String?>(null) }
     var showLimit by remember { mutableStateOf(false) }
     var enemyMenu by remember { mutableStateOf<String?>(null) }
+    var tokenInfo by remember { mutableStateOf<String?>(null) }
     var terrainInfo by remember { mutableStateOf<io.github.aljadvb.worldbuilder.hexmap.TerrainInfo?>(null) }
     val prompt = game.currentPrompt
     val tokenLetters = scenario.tokens.associate { it.id to tokenTypeLabel(it).take(1).uppercase() }
@@ -188,7 +189,7 @@ internal fun PlayContent(
                 highlight = highlightFor(prompt, scenario),
                 tokenLetters = tokenLetters,
                 tapEnabled = game.isIdle,
-                onTokenTap = { onCommand(Command.InteractToken(it)) },
+                onTokenTap = { tokenInfo = it },
                 onPieceTap = { terrainInfo = scenario.terrainInfo(it, catalog) },
                 modifier = Modifier.weight(1f).fillMaxWidth(),
                 images = images,
@@ -202,7 +203,7 @@ internal fun PlayContent(
                 highlight = highlightFor(prompt, scenario),
                 tokenLetters = tokenLetters,
                 tapEnabled = game.isIdle,
-                onTokenTap = { onCommand(Command.InteractToken(it)) },
+                onTokenTap = { tokenInfo = it },
                 modifier = Modifier.weight(1f).fillMaxWidth(),
                 images = images,
                 onExploreTap = { onCommand(Command.ExploreTile(it)) },
@@ -216,7 +217,7 @@ internal fun PlayContent(
                 scenario = scenario,
                 catalog = catalog,
                 game = game,
-                onToken = { onCommand(Command.InteractToken(it)) },
+                onToken = { tokenInfo = it },
                 onDefeat = { confirmDefeat = it },
                 onEndRound = { confirmEndRound = true },
                 battle = scenario.showsBattle(game),
@@ -228,6 +229,9 @@ internal fun PlayContent(
         }
     }
 
+    tokenInfo?.takeIf { it in game.activeTokens && game.isIdle }?.let { id ->
+        TokenDialog(scenario, id, onDismiss = { tokenInfo = null }) { tokenInfo = null; onCommand(Command.InteractToken(id, showText = false)) }
+    }
     enemyMenu?.takeIf { it in game.activeEnemyGroups }?.let { gid ->
         EnemyMenu(scenario, catalog, game, gid, onDismiss = { enemyMenu = null },
             onAttack = { enemyMenu = null; attackGroup = gid },
@@ -364,6 +368,25 @@ private fun ActionPanel(
             }
         }
     }
+}
+
+/** Token description first; the players decide whether to interact (e.g. take the test). */
+@Composable
+private fun TokenDialog(scenario: Scenario, tokenId: String, onDismiss: () -> Unit, onInteract: () -> Unit) {
+    val t = scenario.token(tokenId) ?: return
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(t.label) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(tokenTypeLabel(t), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+                Text(t.inspectText?.takeIf { it.isNotBlank() } ?: stringResource(R.string.token_no_text), style = MaterialTheme.typography.bodyLarge)
+                Text(stringResource(R.string.token_interact_hint), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        },
+        confirmButton = { Button(onClick = onInteract) { Text(stringResource(R.string.token_interact)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.back)) } },
+    )
 }
 
 /** Enemy name with its banner number, e.g. "Ork-Jäger · Banner 2". */

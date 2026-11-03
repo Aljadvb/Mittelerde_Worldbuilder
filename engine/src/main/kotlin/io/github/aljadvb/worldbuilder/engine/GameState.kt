@@ -230,7 +230,8 @@ sealed interface Command {
     /** Report the number of successes for the current [Prompt.Test] or [Prompt.LastStandTest]. */
     data class ReportTest(val successes: Int) : Command
 
-    data class InteractToken(val tokenId: String) : Command
+    /** [showText] = false if the players already read the token's text before deciding to interact. */
+    data class InteractToken(val tokenId: String, val showText: Boolean = true) : Command
     /** A hero attacks an enemy group with [hits] and modifiers. */
     data class AttackEnemy(
         val groupId: String,

@@ -120,7 +120,7 @@ class GameEngine(
             is Command.InteractToken -> {
                 requireIdle(state)
                 if (command.tokenId !in state.activeTokens) throw EngineException("Token '${command.tokenId}' liegt nicht aus.")
-                run.interact(command.tokenId)
+                run.interact(command.tokenId, command.showText)
             }
             is Command.AttackEnemy -> {
                 requireIdle(state)
@@ -214,11 +214,11 @@ class GameEngine(
 
         // ---- player actions ----------------------------------------------------------
 
-        fun interact(tokenId: String) {
+        fun interact(tokenId: String, showText: Boolean = true) {
             val token = scenario.token(tokenId) ?: return
             interactedTokens += tokenId
             if (token.removeAfterInteract) activeTokens -= tokenId
-            if (token.inspectText != null) prompts += Prompt.Inspect(tokenId)
+            if (token.inspectText != null && showText) prompts += Prompt.Inspect(tokenId)
             token.onInteract?.let { agenda += Frame.EventFrame(it) }
             fireMatching { it is TriggerCondition.TokenInteracted && it.token == tokenId }
         }
