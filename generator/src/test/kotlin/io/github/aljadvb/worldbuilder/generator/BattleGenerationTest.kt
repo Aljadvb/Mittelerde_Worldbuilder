@@ -30,7 +30,7 @@ class BattleGenerationTest {
         val system = auto.stableSystem()
         assertTrue("Plan-ID `sx1`" in system && "Teil-ID `bach_wall`, 4 Stück" in system, system)
         assertTrue("auf Feldgrenze" in system && "Rule".isNotEmpty())
-        assertTrue("entscheide pro Kapitel" in auto.storyMessage())
+        assertTrue("entscheide für das GANZE Szenario" in auto.storyMessage())
         assertTrue("alle Kapitel sind Schlacht-Kapitel" in PromptBuilder(Examples.catalog, GenerationInput("x", map = GenerationInput.MapChoice.BATTLE)).storyMessage())
         // The map choice must not change the cached block.
         assertEquals(system, PromptBuilder(Examples.catalog, GenerationInput("x", map = GenerationInput.MapChoice.TRAVEL)).stableSystem())

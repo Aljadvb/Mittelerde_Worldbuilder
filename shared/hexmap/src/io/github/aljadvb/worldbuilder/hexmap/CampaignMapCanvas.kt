@@ -228,6 +228,8 @@ fun campaignMapScene(
     current: String?,
     selected: String? = null,
     background: ImageBitmap? = null,
+    /** Possible next adventures (either-or choice in camp). */
+    options: List<String> = emptyList(),
 ): CampaignMapScene {
     val stateByPlace = mutableMapOf<String, PlaceState>()
     for ((scenarioId, resolutionId) in completed) {
@@ -243,7 +245,8 @@ fun campaignMapScene(
     val route = (completed.map { it.first } + listOfNotNull(current)).mapNotNull { campaign.scenario(it)?.place }
         .fold(emptyList<String>()) { acc, p -> if (acc.lastOrNull() == p) acc else acc + p }
     return CampaignMapScene(
-        places = campaign.places.map { MapPlace(it.id, it.name, it.x.toFloat(), it.y.toFloat(), stateByPlace[it.id] ?: PlaceState.OPEN, it.id == selected) },
+        // Only places the group has reached, its current adventure and the possible next ones are shown.
+        places = campaign.places.filter { it.id in stateByPlace || it.id in options.mapNotNull { o -> campaign.scenario(o)?.place } }.map { MapPlace(it.id, it.name, it.x.toFloat(), it.y.toFloat(), stateByPlace[it.id] ?: PlaceState.OPEN, it.id == selected) },
         route = route,
         background = background,
     )

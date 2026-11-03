@@ -19,6 +19,9 @@ internal class BattleChecks(
 ) {
     fun run() {
         if (s.chapters.none { it.isBattle }) return
+        if (s.chapters.any { !it.isBattle }) {
+            c.error(IssueCode.MIXED_SCENARIO_MAP, "$sp.chapters", s.id, "Szenario '${s.id}' mischt Reise- und Schlacht-Kapitel – ein Szenario spielt entweder auf Kacheln oder auf Schlachtplänen.")
+        }
         s.chapters.filter { it.tiles.isNotEmpty() && it.isBattle }.forEach { ch ->
             c.error(IssueCode.MIXED_MAP, "${chapterPath(s.chapters.indexOf(ch))}.tiles", ch.id, "Kapitel '${ch.id}' hat Kacheln und einen Schlachtplan – ein Kapitel ist entweder Reise oder Schlacht.")
         }

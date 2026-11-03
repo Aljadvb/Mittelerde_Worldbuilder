@@ -100,7 +100,10 @@ class GameViewModel(
     fun camp(action: (io.github.aljadvb.worldbuilder.engine.CampaignProgress) -> io.github.aljadvb.worldbuilder.engine.CampaignProgress) {
         val ui = (state.value as? GameLoad.Ready)?.ui ?: return
         try {
-            update(ui, ui.save.copy(progress = action(ui.save.progress)))
+            val p = action(ui.save.progress)
+            // Another next adventure was chosen: start that scenario instead.
+            val game = if (p.currentScenario != null && p.currentScenario != ui.save.game?.scenarioId) runner?.startCurrent(p) ?: ui.save.game else ui.save.game
+            update(ui, ui.save.copy(progress = p, game = game))
         } catch (e: EngineException) {
             _state.value = GameLoad.Ready(ui.copy(error = e.message))
         }

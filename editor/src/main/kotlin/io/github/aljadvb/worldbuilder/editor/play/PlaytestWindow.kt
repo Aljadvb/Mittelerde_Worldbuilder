@@ -109,6 +109,14 @@ fun PlaytestView(game: PlaytestModel, catalog: MaterialCatalog, images: TileImag
     val state = game.state
     val scenario = game.scenario
     Surface(Modifier.fillMaxSize()) {
+        if (game.progress.inCamp) {
+            Column(Modifier.padding(32.dp).width(640.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                CampCard(game)
+                game.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                Controls(game, onRestart)
+            }
+            return@Surface
+        }
         if (state == null || scenario == null) {
             Column(Modifier.padding(32.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(Texts.PLAYTEST_CAMPAIGN_OVER, style = MaterialTheme.typography.headlineSmall)
@@ -370,6 +378,40 @@ private fun ResolutionCard(game: PlaytestModel, scenario: Scenario, state: GameS
             Button(onClick = game::continueCampaign) { Text(Texts.CONTINUE) }
         }
     }
+}
+
+/** Simple camp between two scenarios: rewards, lore, inventory with upgrades, next adventure. */
+@Composable
+private fun CampCard(game: PlaytestModel) {
+    val p = game.progress
+    val items = game.catalog?.items.orEmpty()
+    Text(Texts.CAMP, style = MaterialTheme.typography.headlineSmall)
+    p.completed.lastOrNull()?.let { c ->
+        val s = game.campaign.scenario(c.scenarioId)
+        Text("${s?.title}: ${s?.resolution(c.resolutionId)?.title}", fontWeight = FontWeight.Bold)
+        Text(Texts.campRewards(c.lore, c.xp, p.lore))
+    }
+    Text(Texts.CAMP_INVENTORY, fontWeight = FontWeight.Bold)
+    if (p.inventory.isEmpty()) Text("–")
+    p.inventory.forEach { id ->
+        val item = items.firstOrNull { it.id == id }
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text("• ${item?.name ?: id} (${listOf("I", "II", "III").getOrElse((item?.level ?: 1) - 1) { "" }})", Modifier.weight(1f))
+            item?.upgrades(items)?.forEach { next ->
+                TextButton(enabled = p.lore >= (item.lore ?: 0), onClick = { game.camp { io.github.aljadvb.worldbuilder.engine.Camp.upgradeItem(it, id, items, next.id) } }) {
+                    Text(Texts.campUpgrade(next.name, item.lore ?: 0))
+                }
+            }
+        }
+    }
+    if (p.nextOptions.size > 1) {
+        Text(Texts.CAMP_CHOOSE_NEXT, fontWeight = FontWeight.Bold)
+        p.nextOptions.forEach { id ->
+            FilterChip(id == p.currentScenario, { game.camp { io.github.aljadvb.worldbuilder.engine.Camp.chooseNext(it, id) } }, label = { Text(game.campaign.scenario(id)?.title ?: id) })
+        }
+    }
+    val next = p.currentScenario?.let { game.campaign.scenario(it) }
+    Button(onClick = { game.camp { io.github.aljadvb.worldbuilder.engine.Camp.leave(it) } }) { Text(if (next != null) Texts.campContinue(next.title) else Texts.CONTINUE) }
 }
 
 /** One-line description of a prompt for the panel and the log. */

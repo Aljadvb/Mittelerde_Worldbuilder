@@ -15,7 +15,7 @@ import io.github.aljadvb.worldbuilder.model.Scenario
  * A test run of the campaign in the editor, using the same engine as the app.
  * Keeps every previous state so the tester can step back.
  */
-class PlaytestModel(val campaign: Campaign, startScenario: String, val heroCount: Int, catalog: io.github.aljadvb.worldbuilder.model.MaterialCatalog? = null) {
+class PlaytestModel(val campaign: Campaign, startScenario: String, val heroCount: Int, val catalog: io.github.aljadvb.worldbuilder.model.MaterialCatalog? = null) {
     private val runner = CampaignRunner(campaign, catalog)
 
     var progress by mutableStateOf(CampaignProgress(heroCount, startScenario))
@@ -47,6 +47,19 @@ class PlaytestModel(val campaign: Campaign, startScenario: String, val heroCount
         past = past + (progress to s)
         progress = p
         state = next
+    }
+
+    /** Camp action between two scenarios (upgrade, choose the next adventure, leave). */
+    fun camp(action: (CampaignProgress) -> CampaignProgress) {
+        try {
+            val p = action(progress)
+            past = past + (progress to state)
+            if (p.currentScenario != null && p.currentScenario != state?.scenarioId) state = runner.startCurrent(p)
+            progress = p
+            error = null
+        } catch (e: EngineException) {
+            error = e.message
+        }
     }
 
     fun stepBack() {

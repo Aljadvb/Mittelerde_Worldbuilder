@@ -244,6 +244,13 @@ object Texts {
     fun heroDefeated(hero: Int, second: Boolean) = "Held ${hero + 1} ist besiegt" + (if (second) " (Letztes Aufbäumen schon verbraucht)" else "") +
         ". Gewinnt ihr nicht vor der nächsten Schattenphase, ist das Abenteuer verloren."
     const val APPLY = "Anwenden"
+    const val CAMP = "Lager"
+    const val CAMP_INVENTORY = "Gruppeninventar"
+    const val CAMP_CHOOSE_NEXT = "Wohin zieht ihr weiter?"
+    fun campRewards(lore: Int, xp: Int, total: Int) = "Belohnung: +$lore Wissen, +$xp EP für jeden Helden · Gesamtwissen: $total"
+    fun campUpgrade(name: String, lore: Int) = "Aufwerten zu „$name“ (ab $lore Wissen)"
+    fun campContinue(title: String) = "Weiter: $title"
+    const val AI_MAP_KIND_SCENARIO = "Kartenart des ganzen Szenarios:"
     const val MOD_PIERCE = "Durchbohren"
     const val MOD_SMITE = "Zerschlagen"
     const val MOD_SUNDER = "Zerfallen"

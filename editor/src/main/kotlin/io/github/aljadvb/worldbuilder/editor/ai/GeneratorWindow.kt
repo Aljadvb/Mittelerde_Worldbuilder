@@ -219,6 +219,13 @@ fun DraftEditor(draft: StoryDraft, catalog: MaterialCatalog, onChange: (StoryDra
     OutlinedTextField(draft.intro, { onChange(draft.copy(intro = it)) }, Modifier.fillMaxWidth(), label = { Text(Texts.AI_DRAFT_INTRO) }, minLines = 3)
     if (draft.mapReason.isNotBlank()) Text("${Texts.AI_MAP_REASON}: ${draft.mapReason}", style = MaterialTheme.typography.bodyMedium)
 
+    // One map kind for the whole scenario: no switch between travel tiles and battle boards.
+    val battle = draft.chapters.firstOrNull()?.battle == true
+    Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+        Text(Texts.AI_MAP_KIND_SCENARIO)
+        FilterChip(!battle, { onChange(draft.copy(chapters = draft.chapters.map { it.copy(battle = false) })) }, label = { Text(Texts.MAP_KIND_TRAVEL) })
+        FilterChip(battle, { onChange(draft.copy(chapters = draft.chapters.map { it.copy(battle = true) })) }, label = { Text(Texts.MAP_KIND_BATTLE) })
+    }
     Heading(Texts.AI_DRAFT_CHAPTERS)
     draft.chapters.forEachIndexed { i, ch ->
         fun set(c: DraftChapter) = onChange(draft.copy(chapters = draft.chapters.mapIndexed { j, x -> if (j == i) c else x }))
@@ -226,10 +233,6 @@ fun DraftEditor(draft: StoryDraft, catalog: MaterialCatalog, onChange: (StoryDra
             Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 OutlinedTextField(ch.title, { set(ch.copy(title = it)) }, Modifier.fillMaxWidth(), label = { Text("${i + 1}. ${Texts.AI_DRAFT_TITLE}") })
                 OutlinedTextField(ch.summary, { set(ch.copy(summary = it)) }, Modifier.fillMaxWidth(), label = { Text(Texts.AI_DRAFT_SUMMARY) }, minLines = 2)
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    FilterChip(!ch.battle, { set(ch.copy(battle = false)) }, label = { Text(Texts.MAP_KIND_TRAVEL) })
-                    FilterChip(ch.battle, { set(ch.copy(battle = true)) }, label = { Text(Texts.MAP_KIND_BATTLE) })
-                }
                 OutlinedTextField(ch.locations.joinToString(", "), { v -> set(ch.copy(locations = v.split(",").map { it.trim() }.filter { it.isNotEmpty() })) }, Modifier.fillMaxWidth(), label = { Text(Texts.AI_DRAFT_LOCATIONS) })
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Terrain.TAGS.forEach { tag ->

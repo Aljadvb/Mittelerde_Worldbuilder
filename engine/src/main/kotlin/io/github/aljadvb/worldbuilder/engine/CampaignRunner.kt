@@ -15,6 +15,8 @@ data class CampaignProgress(
     val flags: Set<String> = emptySet(),
     /** Items of the group (trinkets) in the order they were found; they belong to the whole group. */
     val inventory: List<String> = emptyList(),
+    /** Either-or choice for the next adventure (empty or one entry: no choice). */
+    val nextOptions: List<String> = emptyList(),
     /** True between two scenarios until the group leaves the camp. */
     val inCamp: Boolean = false,
 ) {
@@ -55,6 +57,9 @@ class CampaignRunner(val campaign: Campaign, catalog: io.github.aljadvb.worldbui
     private val items = catalog?.items.orEmpty()
 
 
+    /** A fresh game for the progress' current scenario (after the group chose another next adventure). */
+    fun startCurrent(p: CampaignProgress): GameState? = p.currentScenario?.let { engineFor(it, p.flags, p.inventory).start(p.heroCount) }
+
     fun engineFor(scenarioId: String, flags: Set<String> = emptySet(), owned: List<String> = emptyList()): GameEngine =
         GameEngine(campaign.scenario(scenarioId) ?: throw EngineException("Szenario '$scenarioId' fehlt in der Kampagne."), flags, enemyTypes, items, owned)
 
@@ -75,7 +80,8 @@ class CampaignRunner(val campaign: Campaign, catalog: io.github.aljadvb.worldbui
         val lore = finished.loreGained + (resolution?.lore ?: 0)
         val flags = progress.flags + finished.flags + resolution?.setFlags.orEmpty()
         val heroes = progress.party.map { h -> h.copy(xp = h.xp + (h.role to h.xpFor(h.role).let { it.copy(earned = it.earned + xp) })) }
-        val next = campaign.nextScenario(finished.scenarioId, resolutionId, flags)
+        val options = campaign.nextScenarios(finished.scenarioId, resolutionId, flags)
+        val next = options.firstOrNull()
         val updated = progress.copy(
             currentScenario = next,
             completed = progress.completed + CompletedScenario(finished.scenarioId, resolutionId, lore, xp, finished.itemsFound),
@@ -83,6 +89,7 @@ class CampaignRunner(val campaign: Campaign, catalog: io.github.aljadvb.worldbui
             heroes = heroes,
             lore = progress.lore + lore,
             flags = flags,
+            nextOptions = options,
             inCamp = true,
         )
         return updated to next?.let { engineFor(it, flags, updated.inventory).start(progress.heroCount) }
@@ -109,7 +116,13 @@ object Camp {
 
     fun rename(p: CampaignProgress, hero: Int, name: String): CampaignProgress = updateHero(p, hero) { it.copy(name = name.trim().ifEmpty { it.name }) }
 
-    fun leave(p: CampaignProgress): CampaignProgress = p.copy(inCamp = false)
+    fun leave(p: CampaignProgress): CampaignProgress = p.copy(inCamp = false, nextOptions = emptyList())
+
+    /** Either-or decision: the group picks the next adventure among [CampaignProgress.nextOptions]. */
+    fun chooseNext(p: CampaignProgress, scenarioId: String): CampaignProgress {
+        if (scenarioId !in p.nextOptions) throw EngineException("Dieses Abenteuer steht nicht zur Wahl.")
+        return p.copy(currentScenario = scenarioId)
+    }
 
     /** Replaces trinket [itemId] by [targetId] (a card of the next level), if the group's lore reaches the card's lore value. */
     fun upgradeItem(p: CampaignProgress, itemId: String, items: List<io.github.aljadvb.worldbuilder.model.Item>, targetId: String? = null): CampaignProgress {

@@ -32,10 +32,17 @@ data class Campaign(
      * Next scenario after [scenarioId] ended with [resolutionId], or null if the campaign ends.
      * Transitions that require a set flag win over unconditional ones.
      */
-    fun nextScenario(scenarioId: String, resolutionId: String, setFlags: Set<String> = emptySet()): String? {
+    fun nextScenario(scenarioId: String, resolutionId: String, setFlags: Set<String> = emptySet()): String? =
+        nextScenarios(scenarioId, resolutionId, setFlags).firstOrNull()
+
+    /**
+     * Scenarios the group may play next. Transitions whose flag is set take precedence over those
+     * without a flag; several remaining transitions are an either-or choice for the players.
+     */
+    fun nextScenarios(scenarioId: String, resolutionId: String, setFlags: Set<String> = emptySet()): List<String> {
         val candidates = transitions.filter { it.from == scenarioId && it.resolution == resolutionId }
-        return (candidates.firstOrNull { it.requiresFlag != null && it.requiresFlag in setFlags }
-            ?: candidates.firstOrNull { it.requiresFlag == null })?.to
+        val flagged = candidates.filter { it.requiresFlag != null && it.requiresFlag in setFlags }
+        return (flagged.ifEmpty { candidates.filter { it.requiresFlag == null } }).map { it.to }.distinct()
     }
 }
 

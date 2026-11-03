@@ -205,3 +205,32 @@ class ItemCopiesTest {
         assertEquals(listOf("hobbit", "bree"), Camp.upgradeItem(one, "extra", items, "bree").inventory)
     }
 }
+
+class NextChoiceTest {
+    @Test
+    fun `several transitions are an either-or choice in camp`() {
+        val s = Examples.scenario
+        val a = s.copy(id = "scn_a"); val b = s.copy(id = "scn_b")
+        val campaign = Examples.campaign.copy(
+            scenarios = listOf(s, a, b),
+            transitions = s.resolutions.flatMap { r -> listOf(io.github.aljadvb.worldbuilder.model.ScenarioTransition(s.id, r.id, "scn_a"), io.github.aljadvb.worldbuilder.model.ScenarioTransition(s.id, r.id, "scn_b")) },
+        )
+        val runner = CampaignRunner(campaign)
+        val (p0, g0) = runner.start(2)
+        val e = runner.engineFor(s.id)
+        var st = g0
+        while (!st.isOver) st = when {
+            st.isIdle -> e.apply(st, Command.EndRound)
+            st.currentPrompt is Prompt.Test -> e.apply(st, Command.ReportTest(0))
+            st.currentPrompt is Prompt.CounterQuestion -> e.apply(st, Command.CounterAttack(false))
+            else -> e.apply(st, Command.Acknowledge)
+        }
+        val (p1, g1) = runner.advance(p0, st)
+        assertEquals(listOf("scn_a", "scn_b"), p1.nextOptions)
+        assertEquals("scn_a", g1!!.scenarioId)
+        val chosen = Camp.chooseNext(p1, "scn_b")
+        assertEquals("scn_b", runner.startCurrent(chosen)!!.scenarioId)
+        kotlin.test.assertFailsWith<EngineException> { Camp.chooseNext(p1, "scn_x") }
+        assertTrue(Camp.leave(chosen).nextOptions.isEmpty())
+    }
+}

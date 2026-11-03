@@ -134,15 +134,15 @@ class PromptBuilder(private val catalog: MaterialCatalog, private val input: Gen
         appendLine("Setze diesen freigegebenen Entwurf als vollständiges Szenario im beschriebenen Format um.")
         appendLine()
         appendLine("Vorgaben:")
-        appendLine("- Genau ${draft.chapters.size} Kapitel in der Reihenfolge des Entwurfs; pro Reise-Kapitel 1–3 Kacheln, deren Landschaft zum Kapitel passt.")
+        appendLine("- Genau ${draft.chapters.size} Kapitel in der Reihenfolge des Entwurfs; pro Reise-Kapitel 2–4 Kacheln, deren Landschaft zum Kapitel passt. Alle Kapitel haben dieselbe Kartenart (kein Wechsel zwischen Reise und Schlacht).")
         val battles = draft.chapters.mapIndexedNotNull { i, c -> (i + 1).takeIf { c.battle } }
         if (battles.isNotEmpty()) {
             appendLine("- Schlacht-Kapitel (Nr. ${battles.joinToString(", ")}): statt Kacheln ein battlefield mit 1–2 Schlachtplänen und passenden Geländeteilen (siehe Regeln 10–14); Token und Gegner dort mit {\"square\": …}.")
             appendLine("- Kämpfe sind mehr als Angreifen: Lege in jeder Schlacht 3–5 taktische Marker an, mit denen sich die Helden einen Vorteil verschaffen – oft mit einer Probe, manche als Sammelprobe. Beispiele: einen Felsen auf den Feind rollen (affectEnemy mit Treffern), ein Netz oder Seil kappen (affectEnemy mit stun), eine Rüstung lockern oder einen Schild zerbrechen (affectEnemy mit sunder), Öl ins Feuer kippen (Treffer mit cleave gegen eine Gruppe), ein Signalhorn blasen (Verstärkung bleibt aus oder Inspiration für alle), Verwundete versorgen (recover), eine Anhöhe besetzen oder Fackeln entzünden (setDarkness 0). Ein Anführer sollte nicht nur durch Angriffe besiegt werden müssen: gib den Helden Möglichkeiten, ihn zu schwächen, abzulenken oder seine Helfer aufzuhalten.")
         }
         appendLine("- Jede Kachel höchstens einmal im ganzen Szenario.")
-        appendLine("- Am Ende liegen alle Kapitel gleichzeitig auf einem Tisch von ${input.table}: alle Kacheln zusammen höchstens etwa ${input.table.cellCapacity(catalog.hexSizeMm)} Felder (Felder je Kachel siehe Material).")
-        appendLine("- Pro Kapitel 2–5 Token mit eigenen Texten, die die Geschichte voranbringen; Proben und Auswahlen sorgen für Abwechslung.")
+        appendLine("- Am Ende liegen alle Kapitel gleichzeitig auf einem Tisch von ${input.table}: alle Kacheln zusammen höchstens etwa ${input.table.cellCapacity(catalog.hexSizeMm)} Felder (Felder je Kachel siehe Material). Nutze den Tisch gut aus: am Ende sollen etwa 70–100 % davon belegt sein – eine große, abwechslungsreiche Karte mit vielen Kacheln.")
+        appendLine("- Es gibt immer etwas zu tun: Auf JEDER Kachel liegen 1–3 Token oder Gegner, pro Kapitel insgesamt 5–9 Token. Nur ein Teil davon bringt die Hauptgeschichte voran; die übrigen sind optionale Nebenaktionen (Hinweise, kleine Gefahren, Personen mit eigenen Anliegen, Fundstellen, Belohnungen). Gib mehrere Wege zum Ziel (z. B. zwei Hinweise, von denen einer reicht, oder ein Umweg mit Risiko und Belohnung), damit die Gruppe nicht nur einem Hauptpfad folgt. Proben und Auswahlen sorgen für Abwechslung.")
         appendLine("- Zusätzlich pro Kapitel 2–3 optionale Stimmungs-Marker, die für die Geschichte nicht nötig sind (Lagerfeuer, Aussichtspunkt, alter Schrein, Quelle, Inschrift, ein Wanderer zum Plaudern). Jeder hat einen stimmungsvollen inspectText und ein kurzes onInteract-Event, oft mit einer leichten Probe oder Auswahl, und eine kleine Belohnung: gainInspiration, gainLore, recover (Schaden oder Furcht ablegen), selten ein Schmuckstück oder ein Hinweis auf spätere Gefahren. Sie erfüllen keine Ziele und lösen keine Kapitel aus.")
         appendLine("- Proben: Die Zahl der Erfolge richtet sich nach der Schwierigkeit der einzelnen Probe – 1 = leicht (einen Zaun übersteigen), 2 = normal (eine Spur im Regen lesen), 3 oder mehr = schwer (einen reißenden Fluss durchqueren). Jedes Szenario mischt alle drei.")
         appendLine("- 1–2 verdeckte Proben (\"hidden\": true) für Unbekanntes, Rätsel oder Gespür: die App nennt die nötigen Erfolge nicht.")
@@ -190,7 +190,7 @@ class PromptBuilder(private val catalog: MaterialCatalog, private val input: Gen
     private fun mapInstruction(): String = when (input.map) {
         GenerationInput.MapChoice.TRAVEL -> "alle Kapitel sind Reise-Kapitel (battle = false)."
         GenerationInput.MapChoice.BATTLE -> "alle Kapitel sind Schlacht-Kapitel (battle = true)."
-        GenerationInput.MapChoice.AUTO -> "entscheide pro Kapitel. Spielt es an EINEM Ort (Verteidigung, Überfall, Kampf in einer Halle oder auf einer Lichtung) → Schlacht (battle = true). Geht es um Erkundung, Reise, Flucht, Suche über mehrere Orte → Reise (battle = false). Begründe kurz in mapReason." +
+        GenerationInput.MapChoice.AUTO -> "entscheide für das GANZE Szenario – alle Kapitel haben dieselbe Kartenart, nie ein Wechsel zwischen Reise und Schlacht. Spielt die Geschichte an EINEM Ort (Verteidigung, Überfall, Kampf in einer Halle oder auf einer Lichtung) → Schlacht (battle = true für alle Kapitel). Geht es um Erkundung, Reise, Flucht, Suche über mehrere Orte → Reise (battle = false für alle). Begründe kurz in mapReason." +
             if (boards.isEmpty()) " Es gibt keine Schlachtpläne, also nur Reise." else ""
     }
 

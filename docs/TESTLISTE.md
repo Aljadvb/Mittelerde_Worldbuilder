@@ -1,6 +1,6 @@
 # Testliste – was noch von Hand zu prüfen ist
 
-Stand: 2026-11-02 · Version 1.14.0 · Abhaken mit `[x]`. Rückmeldungen (Screenshots, Dateien) einfach im Chat schicken.
+Stand: 2026-11-02 · Version 1.15.0 · Abhaken mit `[x]`. Rückmeldungen (Screenshots, Dateien) einfach im Chat schicken.
 
 Alles hier ist automatisch getestet (Unit-Tests, simulierte Maus, gerenderte Screenshots), aber **noch nie auf echter
 Hardware bzw. mit einer echten KI gelaufen**. Die wichtigsten Punkte stehen oben.
@@ -113,6 +113,15 @@ Hardware bzw. mit einer echten KI gelaufen**. Die wichtigsten Punkte stehen oben
 - [ ] Erweiterung je Schmuckstück prüfen (Zahnkette/Zepter → Schurken aus Eriador, Proviant/Wasserschlauch → Schatten des Krieges, Schattenkrone/Schmiedewerkzeug → Dunkle Pfade sind geraten)
 - [ ] Funde sind selten (höchstens 1 pro Szenario, oft keiner) und immer Stufe I
 - [ ] Lager: Inventar zeigt Stufe; „Aufwerten zu …“ erscheint erst ab dem Wissenswert der Karte; bei Extrarationen gibt es zwei Wege (Breeländische Rationen oder Hobbitrationen)
+
+## 1m. Kampagnenablauf und Karten (neu in 1.15.0)
+
+- [ ] Kampagnenkarte zeigt am Anfang nur das erste Abenteuer, später nur erreichte Orte und das nächste Ziel
+- [ ] Entweder-oder: Führen mehrere Wege weiter, wählt ihr im Lager das nächste Abenteuer (Test-Kampagne: Szenario 1 verlieren)
+- [ ] Ein Szenario ist entweder Reise oder Schlacht (Prüfung meldet Mischung als Fehler; KI-Entwurf wählt die Kartenart für das ganze Szenario)
+- [ ] KI-Reiseszenario: deutlich mehr Kacheln (Tisch gut gefüllt) und auf jeder Kachel etwas zu tun, mit optionalen Nebenaktionen
+- [ ] Prüfung warnt bei Kacheln ohne Token oder Gegner
+- [ ] Editor-Probespiel: nach einem Szenario erscheint ein einfaches Lager
 
 ## 1k. Proben, Stimmungs-Marker, Gegnermenü und Banner (neu in 1.12.0)
 

@@ -48,6 +48,8 @@ enum class IssueCode {
 
     // Battle map
     MIXED_MAP,
+    MIXED_SCENARIO_MAP,
+    EMPTY_TILE,
     LOCATION_WRONG_MAP,
     BOARDS_OVERLAP,
     BOARD_SIZE_MISMATCH,

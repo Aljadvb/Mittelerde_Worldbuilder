@@ -1,5 +1,6 @@
 package io.github.aljadvb.worldbuilder.validation
 
+import io.github.aljadvb.worldbuilder.model.placementId
 import io.github.aljadvb.worldbuilder.model.CURRENT_FORMAT_VERSION
 import io.github.aljadvb.worldbuilder.model.Campaign
 import io.github.aljadvb.worldbuilder.model.EventStep
@@ -112,7 +113,7 @@ private class CampaignChecks(
     // ---- Campaign --------------------------------------------------------------------
 
     private fun checkTransitions() {
-        val seen = mutableSetOf<Triple<String, String, String?>>()
+        val seen = mutableSetOf<List<String?>>()
         campaign.transitions.forEachIndexed { i, t ->
             val path = "transitions[$i]"
             val fromOk = ref(t.from, ObjectKind.SCENARIO, null, "$path.from", null, "Übergang (von)")
@@ -122,9 +123,10 @@ private class CampaignChecks(
                 ref(t.resolution, ObjectKind.RESOLUTION, fromIndex, "$path.resolution", null, "Übergang (Auflösung von '${t.from}')")
             }
             t.requiresFlag?.let { ref(it, ObjectKind.FLAG, null, "$path.requiresFlag", null, "Übergang (Bedingung)") }
-            if (!seen.add(Triple(t.from, t.resolution, t.requiresFlag))) {
+            // Several transitions to different scenarios are an either-or choice; the same one twice is a mistake.
+            if (!seen.add(listOf(t.from, t.resolution, t.requiresFlag, t.to))) {
                 c.error(IssueCode.DUPLICATE_TRANSITION, path, null,
-                    "Für '${t.from}' mit Auflösung '${t.resolution}'" + (t.requiresFlag?.let { " und Merker '$it'" } ?: "") + " gibt es mehrere Übergänge.")
+                    "Der Übergang von '${t.from}' (Auflösung '${t.resolution}') nach '${t.to}'" + (t.requiresFlag?.let { " mit Merker '$it'" } ?: "") + " ist doppelt.")
             }
         }
         // Scenarios that can never be played
@@ -225,6 +227,14 @@ private class CampaignChecks(
         }
         BattleChecks(s, sp, catalog, c, ::checkExpansionOwned).run()
         checkPassages(s, sp)
+        // Something to do on every travel tile: a token or an enemy group stands on it.
+        val used = (s.tokens.map { it.location } + s.enemyGroups.map { it.location }).mapNotNull { it.placementId }.toSet()
+        s.chapters.forEachIndexed { ci, ch ->
+            ch.tiles.forEachIndexed { pi, p ->
+                if (p.id !in used) c.warn(IssueCode.EMPTY_TILE, "$sp.chapters[$ci].tiles[$pi]", p.id,
+                    "Auf Kachel '${p.id}' liegt kein Token und steht kein Gegner – dort gibt es nichts zu tun.")
+            }
+        }
         val occupied = mutableMapOf<HexCoord, String>()
         val tileUse = mutableMapOf<String, String>()
         s.chapters.forEachIndexed { ci, ch ->

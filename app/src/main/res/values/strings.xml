@@ -276,4 +276,5 @@
     <string name="camp_upgrade">Aufwerten zu „%1$s“</string>
     <string name="camp_upgrade_later">Aufwertung zu „%1$s“ ab %2$d Wissen.</string>
     <string name="limit_reached_menu">Held hat Schaden- oder Furchtlimit erreicht …</string>
+    <string name="camp_choose_next">Wohin zieht ihr weiter? Wählt euer nächstes Abenteuer.</string>
 </resources>
