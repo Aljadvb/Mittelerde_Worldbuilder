@@ -10,6 +10,7 @@ import androidx.compose.ui.unit.dp
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.platform.app.InstrumentationRegistry
@@ -342,7 +343,8 @@ class ScreenshotTest {
         var sent: Command? = null
         val shown = androidx.compose.runtime.mutableStateOf(s)
         showMutable(shown) { sent = it }
-        compose.onNodeWithText("Limit erreicht").performClick()
+        compose.onNodeWithContentDescription("Mehr").performClick()
+        compose.onNodeWithText("Held hat Schaden- oder Furchtlimit erreicht …").performClick()
         compose.onNodeWithText("Held 2").performClick()
         compose.onNodeWithText("Furcht").performClick()
         assertEquals(Command.LimitReached(1, io.github.aljadvb.worldbuilder.engine.LimitKind.FEAR), sent)

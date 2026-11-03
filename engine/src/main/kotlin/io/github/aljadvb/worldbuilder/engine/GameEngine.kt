@@ -303,6 +303,8 @@ class GameEngine(
         fun defeat(groupId: String) {
             enemyHealth -= groupId
             enemyBanners -= groupId
+            // Reward: the hero who defeated the group takes 1 inspiration.
+            if (groupId in activeGroups) prompts += Prompt.Inspiration(1, io.github.aljadvb.worldbuilder.model.HeroTarget.ACTIVE, DEFEAT_TEXT)
             exhausted -= groupId
             activeGroups -= groupId
             defeatedGroups += groupId
@@ -505,5 +507,6 @@ class GameEngine(
 
     companion object {
         const val MAX_STEPS_PER_COMMAND = 10_000
+        const val DEFEAT_TEXT = "Die Gegnergruppe ist besiegt!"
     }
 }

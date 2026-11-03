@@ -242,6 +242,12 @@ object Texts {
     fun heroSurvives(hero: Int, damage: Boolean) = "Held ${hero + 1} hält stand und legt alle " + (if (damage) "Schadenkarten" else "Furchtkarten") + " ab. Beim nächsten Limit ist er besiegt."
     fun heroDefeated(hero: Int, second: Boolean) = "Held ${hero + 1} ist besiegt" + (if (second) " (Letztes Aufbäumen schon verbraucht)" else "") +
         ". Gewinnt ihr nicht vor der nächsten Schattenphase, ist das Abenteuer verloren."
+    const val APPLY = "Anwenden"
+    fun attackTitle(name: String) = "Angriff auf $name"
+    val MODIFIERS = listOf("pierce" to "Durchbohren (ignoriert Rüstung)", "smite" to "Zerschlagen (ignoriert Schutzzauber)", "sunder" to "Zerfallen (Rüstung dauerhaft −1)",
+        "cleave" to "Spalten (jeder Feind erleidet alle Treffer)", "stun" to "Betäuben (Gruppe erschöpft)", "lethal" to "Tödlich")
+    fun enemyHealth(health: String, armor: Int, sorcery: Int, exhausted: Boolean) =
+        "Gesundheit $health · Rüstung $armor · Schutzzauber $sorcery" + if (exhausted) " · erschöpft" else ""
     const val NEGATE = "Abwehr"
     const val NEGATE_NONE = "–"
     fun negate(attribute: String?) = attribute?.let { "\nAbwehr: Probe auf $it – jeder Erfolg verhindert 1 Schaden oder 1 Furcht." }.orEmpty()
@@ -254,6 +260,7 @@ object Texts {
     const val FAILED = "Nicht bestanden"
     const val PROVOKE = "Provozieren"
     const val LIMIT_REACHED = "Limit erreicht:"
+    const val LIMIT_MENU = "Held hat Schaden- oder Furchtlimit erreicht …"
     const val LIMIT_DAMAGE = "Schaden"
     const val LIMIT_FEAR = "Furcht"
     fun recovers(name: String) = "$name ist erschöpft und erholt sich (keine Aktivierung)."

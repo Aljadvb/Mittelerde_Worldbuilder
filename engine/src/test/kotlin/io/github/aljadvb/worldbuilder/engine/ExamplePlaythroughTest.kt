@@ -57,7 +57,7 @@ class ExamplePlaythroughTest {
         assertEquals(listOf("ch_dorf", "ch_muehle"), play.state.unlockedChapters)
         assertEquals(listOf("obj_mueller_befreien"), play.state.activeObjectives)
 
-        play.send(Command.DefeatEnemyGroup("eg_nebelwoelfe")).text("Heulen").idle()
+        play.send(Command.DefeatEnemyGroup("eg_nebelwoelfe")).ack<Prompt.Inspiration> { assertEquals(1, it.amount) }.text("Heulen").idle()
 
         // Gate: first attempt fails and raises threat; token stays.
         play.send(Command.InteractToken("tok_muehlentor"))

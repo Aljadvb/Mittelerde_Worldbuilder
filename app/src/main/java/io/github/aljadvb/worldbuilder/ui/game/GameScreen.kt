@@ -352,9 +352,16 @@ private fun ActionPanel(
         Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             tokens.forEach { t -> AssistChip(onClick = { onToken(t.id) }, label = { Text(t.label) }) }
         }
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedButton(onClick = onLimit) { Text(stringResource(R.string.limit_reached)) }
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Button(onClick = onEndRound, modifier = Modifier.weight(1f)) { Text(stringResource(R.string.game_end_round)) }
+            // Rarely needed actions in a small menu.
+            var more by remember { mutableStateOf(false) }
+            Box {
+                IconButton(onClick = { more = true }) { Icon(Icons.Default.MoreVert, stringResource(R.string.more)) }
+                DropdownMenu(expanded = more, onDismissRequest = { more = false }) {
+                    DropdownMenuItem(text = { Text(stringResource(R.string.limit_reached_menu)) }, onClick = { more = false; onLimit() })
+                }
+            }
         }
     }
 }

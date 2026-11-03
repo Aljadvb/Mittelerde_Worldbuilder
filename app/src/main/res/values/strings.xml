@@ -275,4 +275,5 @@
     <string name="enemy_menu_health">Feind %1$d: %2$d / %3$d Gesundheit</string>
     <string name="camp_upgrade">Aufwerten zu „%1$s“</string>
     <string name="camp_upgrade_later">Aufwertung zu „%1$s“ ab %2$d Wissen.</string>
+    <string name="limit_reached_menu">Held hat Schaden- oder Furchtlimit erreicht …</string>
 </resources>

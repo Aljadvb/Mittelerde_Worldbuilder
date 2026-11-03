@@ -234,14 +234,29 @@ private fun BattlePlayMap(
 
 @Composable
 private fun IdleActions(game: PlaytestModel, scenario: Scenario, catalog: MaterialCatalog, state: GameState) {
+    var attacking by remember { mutableStateOf<String?>(null) }
+    attacking?.let { gid -> AttackDialog(catalog.enemyType(scenario.enemyGroup(gid)?.enemyType.orEmpty())?.name ?: gid, onDismiss = { attacking = null }) { hits, mods ->
+        attacking = null
+        game.send(Command.AttackEnemy(gid, hits, pierce = "pierce" in mods, smite = "smite" in mods, sunder = "sunder" in mods, cleave = "cleave" in mods, stun = "stun" in mods, lethal = "lethal" in mods))
+    } }
     state.activeEnemyGroups.mapNotNull { scenario.enemyGroup(it) }.forEach { g ->
+        val type = catalog.enemyType(g.enemyType)
+        val health = state.enemyHealth[g.id]?.filter { it > 0 }
+        val banner = state.enemyBanners[g.id]?.let { " · Banner $it" }.orEmpty()
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text("${g.count[state.heroCount] ?: 0}× ${catalog.enemyType(g.enemyType)?.name ?: g.enemyType}", Modifier.weight(1f))
+            Column(Modifier.weight(1f)) {
+                Text("${health?.size ?: (g.count[state.heroCount] ?: 0)}× ${type?.name ?: g.enemyType}$banner", fontWeight = FontWeight.Bold)
+                if (health != null && type != null) Text(Texts.enemyHealth(health.joinToString(" · ") { "$it/${type.health}" }, (type.armor - (state.armorLoss[g.id] ?: 0)).coerceAtLeast(0), type.sorcery, g.id in state.exhaustedGroups),
+                    style = MaterialTheme.typography.bodySmall)
+            }
+            Button(onClick = { attacking = g.id }) { Text(Texts.ATTACK) }
             TextButton(enabled = g.id !in state.exhaustedGroups, onClick = { game.send(Command.ProvokeEnemy(g.id)) }) { Text(Texts.PROVOKE) }
             OutlinedButton(onClick = { game.send(Command.DefeatEnemyGroup(g.id)) }) { Text(Texts.PLAYTEST_DEFEATED) }
         }
     }
-    (0 until state.heroCount).filter { it !in state.defeatedHeroes }.forEach { h ->
+    var limits by remember { mutableStateOf(false) }
+    TextButton(onClick = { limits = !limits }) { Text((if (limits) "▾ " else "▸ ") + Texts.LIMIT_MENU) }
+    if (limits) (0 until state.heroCount).filter { it !in state.defeatedHeroes }.forEach { h ->
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             Text("${Texts.LIMIT_REACHED} Held ${h + 1}", Modifier.weight(1f))
             TextButton(onClick = { game.send(Command.LimitReached(h, LimitKind.DAMAGE)) }) { Text(Texts.LIMIT_DAMAGE) }
@@ -255,6 +270,35 @@ private fun IdleActions(game: PlaytestModel, scenario: Scenario, catalog: Materi
     Button(onClick = { game.send(Command.EndRound) }, modifier = Modifier.fillMaxWidth()) {
         Text("${Texts.PLAYTEST_END_ROUND} (+${scenario.threat.perRound.amountFor(state.heroCount)})")
     }
+}
+
+/** Hits and modifiers of an attack on an enemy group. */
+@Composable
+private fun AttackDialog(name: String, onDismiss: () -> Unit, onAttack: (Int, Set<String>) -> Unit) {
+    var hits by remember { mutableIntStateOf(0) }
+    var mods by remember { mutableStateOf(setOf<String>()) }
+    androidx.compose.material3.AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(Texts.attackTitle(name)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(Texts.HITS)
+                    OutlinedButton(onClick = { if (hits > 0) hits-- }) { Text("−") }
+                    Text("$hits", style = MaterialTheme.typography.titleLarge)
+                    OutlinedButton(onClick = { hits++ }) { Text("+") }
+                }
+                Texts.MODIFIERS.forEach { (key, label) ->
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        androidx.compose.material3.Checkbox(key in mods, { mods = if (it) mods + key else mods - key })
+                        Text(label)
+                    }
+                }
+            }
+        },
+        confirmButton = { Button(onClick = { onAttack(hits, mods) }) { Text(Texts.APPLY) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(Texts.CANCEL) } },
+    )
 }
 
 @Composable
