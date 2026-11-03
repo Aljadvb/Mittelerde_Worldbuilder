@@ -4,6 +4,8 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.width
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -80,20 +82,26 @@ fun GameScreen(viewModel: GameViewModel, onBack: () -> Unit) {
     val tileImages = rememberTileImages(ui?.catalogImageDir)
     val mapBackground = ui?.catalog?.campaignMap?.let { tileImages.bitmap(it.file) }
 
+    val playing = ui != null && game != null && scenario != null && !game.isOver && !ui.save.progress.inCamp
     Scaffold(
         topBar = {
             TopAppBar(
+                colors = if (playing) androidx.compose.material3.TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.72f))
+                    else androidx.compose.material3.TopAppBarDefaults.topAppBarColors(),
                 navigationIcon = {
                     IconButton(onClick = onBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 },
                 title = {
-                    Column {
-                        Text(scenario?.title ?: ui?.campaign?.title.orEmpty(), maxLines = 1)
-                        if (game != null && !game.isOver) {
-                            Text(stringResource(R.string.game_round, game.round), style = MaterialTheme.typography.labelMedium)
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Column(Modifier.weight(1f)) {
+                            Text(scenario?.title ?: ui?.campaign?.title.orEmpty(), maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, style = MaterialTheme.typography.titleMedium)
+                            if (game != null && !game.isOver) {
+                                Text(stringResource(R.string.game_round, game.round), style = MaterialTheme.typography.labelMedium)
+                            }
                         }
+                        if (playing && scenario != null && game != null) ThreatBar(scenario, game.threat, Modifier.width(150.dp))
                     }
                 },
                 actions = {
@@ -109,7 +117,8 @@ fun GameScreen(viewModel: GameViewModel, onBack: () -> Unit) {
             )
         },
     ) { padding ->
-        Box(Modifier.fillMaxSize().padding(padding)) {
+        // While playing, the map lies under the translucent top bar.
+        Box(Modifier.fillMaxSize().then(if (playing) Modifier.padding(bottom = padding.calculateBottomPadding()) else Modifier.padding(padding))) {
             when (val l = load) {
                 GameLoad.Loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
                 GameLoad.SaveMissing -> Message(stringResource(R.string.game_load_failed))
@@ -119,7 +128,7 @@ fun GameScreen(viewModel: GameViewModel, onBack: () -> Unit) {
                     l.ui.save.progress.inCamp -> CampContent(l.ui.campaign, l.ui.save.progress, mapBackground, l.ui.catalog, viewModel::camp)
                     scenario == null -> Message(stringResource(R.string.game_load_failed))
                     game.isOver -> ResolutionContent(scenario, game, onContinue = viewModel::continueCampaign)
-                    else -> PlayContent(scenario, l.ui.catalog, game, l.ui.campaignChanged, viewModel::send, tileImages, l.ui.save.progress.party.map { it.name })
+                    else -> PlayContent(scenario, l.ui.catalog, game, l.ui.campaignChanged, viewModel::send, tileImages, l.ui.save.progress.party.map { it.name }, topInset = padding.calculateTopPadding())
                 }
             }
         }
@@ -164,6 +173,7 @@ internal fun PlayContent(
     onCommand: (Command) -> Unit,
     images: io.github.aljadvb.worldbuilder.hexmap.TileImageCache? = null,
     heroNames: List<String> = emptyList(),
+    topInset: androidx.compose.ui.unit.Dp = 0.dp,
 ) {
     var attackGroup by remember { mutableStateOf<String?>(null) }
     var confirmEndRound by remember { mutableStateOf(false) }
@@ -175,12 +185,12 @@ internal fun PlayContent(
     val prompt = game.currentPrompt
     val tokenLetters = scenario.tokens.associate { it.id to tokenTypeLabel(it).take(1).uppercase() }
 
-    Column(Modifier.fillMaxSize().padding(horizontal = 12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        if (campaignChanged) {
-            Text(stringResource(R.string.game_campaign_changed), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-        }
-        ThreatBar(scenario, game.threat)
-        Objectives(scenario, game)
+    // The map fills the screen; objective line and bottom panel lie on top of it, translucent.
+    // The map is fitted into the visible space between them (measured), and can be zoomed and moved under them.
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    var topHeight by remember { mutableStateOf(0.dp) }
+    var bottomHeight by remember { mutableStateOf(0.dp) }
+    Box(Modifier.fillMaxSize()) {
         if (scenario.showsBattle(game)) {
             BattleMapView(
                 scenario = scenario,
@@ -191,7 +201,7 @@ internal fun PlayContent(
                 tapEnabled = game.isIdle,
                 onTokenTap = { tokenInfo = it },
                 onPieceTap = { terrainInfo = scenario.terrainInfo(it, catalog) },
-                modifier = Modifier.weight(1f).fillMaxWidth(),
+                modifier = Modifier.fillMaxSize().padding(top = topInset + topHeight, bottom = bottomHeight),
                 images = images,
                 onEnemyTap = { enemyMenu = it },
             )
@@ -204,15 +214,28 @@ internal fun PlayContent(
                 tokenLetters = tokenLetters,
                 tapEnabled = game.isIdle,
                 onTokenTap = { tokenInfo = it },
-                modifier = Modifier.weight(1f).fillMaxWidth(),
+                modifier = Modifier.fillMaxSize().padding(top = topInset + topHeight, bottom = bottomHeight),
                 images = images,
                 onExploreTap = { onCommand(Command.ExploreTile(it)) },
                 onEnemyTap = { enemyMenu = it },
             )
         }
+        Column(Modifier.fillMaxSize()) {
+        Spacer(Modifier.height(topInset))
+        Column(Modifier.padding(horizontal = 12.dp, vertical = 4.dp).onSizeChanged { topHeight = with(density) { it.height.toDp() } + 8.dp }, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            if (topInset == 0.dp) ThreatBar(scenario, game.threat, Modifier.fillMaxWidth())
+            Objectives(scenario, game)
+            if (campaignChanged) {
+                Text(stringResource(R.string.game_campaign_changed), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+            }
+        }
+        Spacer(Modifier.weight(1f))
+        Box(Modifier.onSizeChanged { bottomHeight = with(density) { it.height.toDp() } }) {
         if (prompt != null) {
-            PromptPanel(prompt, scenario, catalog, game.heroCount, onCommand, Modifier.padding(bottom = 12.dp), heroNames, images)
+            PromptPanel(prompt, scenario, catalog, game.heroCount, onCommand, Modifier.padding(start = 12.dp, end = 12.dp, bottom = 12.dp), heroNames, images)
         } else {
+            androidx.compose.material3.Surface(color = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f), modifier = Modifier.fillMaxWidth()) {
+            Column(Modifier.padding(horizontal = 12.dp, vertical = 6.dp)) {
             ActionPanel(
                 scenario = scenario,
                 catalog = catalog,
@@ -226,6 +249,10 @@ internal fun PlayContent(
                 onEnemyMenu = { enemyMenu = it },
                 onLimit = { showLimit = true },
             )
+            }
+            }
+        }
+        }
         }
     }
 
@@ -262,19 +289,19 @@ internal fun PlayContent(
 }
 
 @Composable
-private fun ThreatBar(scenario: Scenario, threat: Int) {
+private fun ThreatBar(scenario: Scenario, threat: Int, modifier: Modifier = Modifier) {
     val max = scenario.threat.max
     val thresholds = scenario.triggers.mapNotNull { (it.on as? TriggerCondition.ThreatReached)?.value }.filter { it in 1 until max }
     val markerColor = MaterialTheme.colorScheme.onSurface
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Text(stringResource(R.string.game_threat, threat, max), style = MaterialTheme.typography.labelLarge)
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Text(stringResource(R.string.game_threat, threat, max), style = MaterialTheme.typography.labelMedium)
         Box {
             LinearProgressIndicator(
                 progress = { threat.toFloat() / max },
-                modifier = Modifier.fillMaxWidth().height(10.dp),
+                modifier = Modifier.fillMaxWidth().height(8.dp),
                 color = MaterialTheme.colorScheme.error,
             )
-            Canvas(Modifier.fillMaxWidth().height(10.dp)) {
+            Canvas(Modifier.fillMaxWidth().height(8.dp)) {
                 thresholds.forEach { v ->
                     val x = size.width * v / max
                     drawLine(markerColor, Offset(x, 0f), Offset(x, size.height), strokeWidth = 2.dp.toPx())
@@ -288,15 +315,32 @@ private fun ThreatBar(scenario: Scenario, threat: Int) {
 private fun Objectives(scenario: Scenario, game: GameState) {
     val objectives = game.activeObjectives.mapNotNull { scenario.objective(it) }
     if (objectives.isEmpty()) return
-    Card(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(stringResource(R.string.game_objectives), style = MaterialTheme.typography.labelMedium)
-            objectives.forEach { o ->
-                Text(o.title, fontWeight = FontWeight.Bold)
-                Text(o.reminder, style = MaterialTheme.typography.bodySmall)
-            }
-        }
+    var open by remember { mutableStateOf(false) }
+    androidx.compose.material3.Surface(
+        onClick = { open = true },
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.72f),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Text(
+            stringResource(R.string.game_objective_line, objectives.joinToString(" · ") { it.title }),
+            maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+        )
     }
+    if (open) AlertDialog(
+        onDismissRequest = { open = false },
+        confirmButton = { TextButton(onClick = { open = false }) { Text(stringResource(R.string.close)) } },
+        title = { Text(stringResource(R.string.game_objectives)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                objectives.forEach { o ->
+                    Text(o.title, fontWeight = FontWeight.Bold)
+                    Text(o.reminder, style = MaterialTheme.typography.bodyMedium)
+                }
+            }
+        },
+    )
 }
 
 @Composable
@@ -313,7 +357,7 @@ private fun ActionPanel(
     onLimit: () -> Unit = {},
     onEnemyMenu: (String) -> Unit = {},
 ) {
-    Column(Modifier.padding(bottom = 12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+    Column(Modifier.padding(bottom = 6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         val groups = game.activeEnemyGroups.mapNotNull { scenario.enemyGroup(it) }
         if (groups.isNotEmpty()) {
             Text(stringResource(R.string.game_enemies), style = MaterialTheme.typography.labelMedium)

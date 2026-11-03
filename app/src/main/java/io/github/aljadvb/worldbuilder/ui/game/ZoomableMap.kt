@@ -14,7 +14,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
@@ -32,7 +31,7 @@ fun ZoomableMap(modifier: Modifier = Modifier, content: @Composable (Modifier) -
     var scale by remember { mutableFloatStateOf(1f) }
     var offset by remember { mutableStateOf(Offset.Zero) }
     Box(
-        modifier.clipToBounds().pointerInput(Unit) {
+        modifier.pointerInput(Unit) {
             detectTransformGestures { centroid, pan, zoom, _ ->
                 val newScale = (scale * zoom).coerceIn(MIN_SCALE, MAX_SCALE)
                 // Keep the point under the fingers in place while zooming, then follow the pan.

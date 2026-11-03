@@ -283,4 +283,5 @@
     <string name="token_no_text">Keine Beschreibung.</string>
     <string name="attack_defense">Rüstung %1$d · Schutzzauber %2$d (ziehen je Angriff Treffer ab)</string>
     <string name="map_fit">Einpassen</string>
+    <string name="game_objective_line">Ziel: %1$s</string>
 </resources>

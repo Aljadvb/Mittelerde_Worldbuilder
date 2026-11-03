@@ -1,6 +1,6 @@
 # Testliste – was noch von Hand zu prüfen ist
 
-Stand: 2026-11-02 · Version 1.18.0 · Abhaken mit `[x]`. Rückmeldungen (Screenshots, Dateien) einfach im Chat schicken.
+Stand: 2026-11-02 · Version 1.19.0 · Abhaken mit `[x]`. Rückmeldungen (Screenshots, Dateien) einfach im Chat schicken.
 
 Alles hier ist automatisch getestet (Unit-Tests, simulierte Maus, gerenderte Screenshots), aber **noch nie auf echter
 Hardware bzw. mit einer echten KI gelaufen**. Die wichtigsten Punkte stehen oben.
@@ -126,6 +126,7 @@ Hardware bzw. mit einer echten KI gelaufen**. Die wichtigsten Punkte stehen oben
 - [ ] Token antippen (Karte oder Liste) → Fenster mit Name, Art und Beschreibung; erst „Interagieren“ löst die Aktion/Probe aus, „Zurück“ schließt nur (neu in 1.17.0)
 - [ ] Angriffsfenster zeigt Gesundheit jedes Feindes sowie Rüstung (nach Zerfallen) und Schutzzauber (neu in 1.17.1)
 - [ ] Karte mit zwei Fingern zoomen und mit einem Finger verschieben (Reise und Schlacht); Antippen trifft danach weiter die richtigen Marker; „Einpassen“ setzt zurück (neu in 1.18.0)
+- [ ] Spielbildschirm: Titel, Runde und Bedrohung in einer Kopfzeile; Kopf, Zielzeile und untere Leiste durchscheinend, Karte darunter sichtbar; Ziel in einer Zeile, Antippen zeigt den ganzen Text (neu in 1.19.0)
 
 ## 1k. Proben, Stimmungs-Marker, Gegnermenü und Banner (neu in 1.12.0)
 

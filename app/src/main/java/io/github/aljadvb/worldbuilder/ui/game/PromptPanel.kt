@@ -47,7 +47,7 @@ fun PromptPanel(
     heroNames: List<String> = emptyList(),
     images: io.github.aljadvb.worldbuilder.hexmap.TileImageCache? = null,
 ) {
-    ElevatedCard(modifier.fillMaxWidth()) {
+    ElevatedCard(modifier.fillMaxWidth(), colors = androidx.compose.material3.CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0.9f))) {
         Column(
             Modifier.heightIn(max = 420.dp).verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
