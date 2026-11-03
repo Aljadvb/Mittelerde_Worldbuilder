@@ -80,8 +80,9 @@ class GameEngine(
                             }
                         } else {
                             val success = command.successes >= step.successes
+                            if (success) prompt.reveal?.let { run.prompts.add(0, it) }
                             if (step.hidden) run.prompts.add(0, Prompt.TestResult(success))
-                            run.replaceCurrent(if (success) step.onSuccess else step.onFailure)
+                            run.replaceCurrent((if (success) step.onSuccess else step.onFailure)?.ifEmpty { null })
                         }
                     }
                     is Prompt.LastStandTest -> {
@@ -432,7 +433,15 @@ class GameEngine(
                     // Effects from events never cause a counterattack (rules 45.3).
                     attack(Command.AttackEnemy(step.group, step.hits, step.pierce, step.smite, step.sunder, step.cleave, step.stun, step.lethal), counter = false)
                 }
-                is EventStep.Inscription -> prompts += Prompt.Inscription(step.elvish, step.translation, step.text)
+                is EventStep.Inscription -> when (val attribute = step.test) {
+                    null -> prompts += Prompt.Inscription(step.elvish, step.translation, step.text)
+                    else -> {
+                        // Riddle: the translation only shows after a passed test.
+                        prompts += Prompt.Inscription(step.elvish, step.translation, step.text, translationHidden = true)
+                        val test = EventStep.Test(attribute = attribute, successes = step.successes, onSuccess = step.onSuccess.orEmpty(), onFailure = step.onFailure)
+                        prompts += Prompt.Test(eventId, test, reveal = Prompt.Inscription(step.elvish, step.translation))
+                    }
+                }
                 is EventStep.Recover -> if (step.damage > 0 || step.fear > 0) prompts += Prompt.Recover(step.damage, step.fear, step.who, step.text)
                 is EventStep.GainItem -> {
                     val taken = ownedItemsAtStart + itemsFound

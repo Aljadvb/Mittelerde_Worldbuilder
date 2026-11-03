@@ -873,6 +873,24 @@
               "type": "string",
               "minLength": 1,
               "description": "Optionaler Zusammenhang, z. B. wo die Inschrift steht."
+            },
+            "test": {
+              "enum": ["might", "agility", "wisdom", "spirit", "wit"],
+              "description": "Rätsel: Probe auf diesen Wert; die Übersetzung erscheint erst bei bestandener Probe. Dann muss der Schritt der letzte im Event sein."
+            },
+            "successes": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 2,
+              "description": "Rätsel: benötigte Erfolge."
+            },
+            "onSuccess": {
+              "$ref": "#/$defs/id",
+              "description": "Rätsel: optionales Event nach bestandener Probe."
+            },
+            "onFailure": {
+              "$ref": "#/$defs/id",
+              "description": "Rätsel: optionales Event nach misslungener Probe."
             }
           }
         },

@@ -270,6 +270,23 @@ private fun StepFields(
             TextInput(model, Texts.ELVISH, step.elvish, "$key.elvish", "$p.elvish") { v -> setText(step.copy(elvish = v)) }
             TextInput(model, Texts.TRANSLATION, step.translation, "$key.translation", "$p.translation") { v -> setText(step.copy(translation = v)) }
             Text(io.github.aljadvb.worldbuilder.model.Tengwar.transliterate(step.elvish), fontFamily = TengwarFont, style = MaterialTheme.typography.headlineSmall)
+            CheckInput(Texts.RIDDLE, step.test != null) { v ->
+                set(if (v) step.copy(test = Attribute.WISDOM) else step.copy(test = null, onSuccess = null, onFailure = null))
+            }
+            step.test?.let { attr ->
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    ChoiceInput(model, Texts.ATTRIBUTE, attr.name, Texts.ATTRIBUTES.map { Choice(it.first, it.second) }, null, modifier = Modifier.weight(1f)) { v ->
+                        set(step.copy(test = Attribute.valueOf(v!!)))
+                    }
+                    IntInput(model, Texts.SUCCESSES, step.successes, "$key.successes", "$p.successes") { v -> setText(step.copy(successes = v)) }
+                }
+                ChoiceInput(model, Texts.ON_SUCCESS, step.onSuccess, events, "$p.onSuccess", allowNone = true, onCreate = { newEvent { id -> set(step.copy(onSuccess = id)) } }) { v ->
+                    set(step.copy(onSuccess = v))
+                }
+                ChoiceInput(model, Texts.ON_FAILURE, step.onFailure, events, "$p.onFailure", allowNone = true, onCreate = { newEvent { id -> set(step.copy(onFailure = id)) } }) { v ->
+                    set(step.copy(onFailure = v))
+                }
+            }
         }
         is EventStep.Recover -> {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {

@@ -297,7 +297,8 @@ private fun NoticeContent(prompt: Prompt.Notice, scenario: Scenario, catalog: Ma
             Text(io.github.aljadvb.worldbuilder.model.Tengwar.transliterate(prompt.elvish), fontFamily = io.github.aljadvb.worldbuilder.ui.theme.TengwarFamily,
                 style = MaterialTheme.typography.headlineMedium, color = MaterialTheme.colorScheme.primary)
             Text(prompt.elvish, style = MaterialTheme.typography.bodyMedium, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(stringResource(R.string.inscription_translation, prompt.translation), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
+            if (prompt.translationHidden) Hint(stringResource(R.string.inscription_riddle))
+            else Text(stringResource(R.string.inscription_translation, prompt.translation), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
         }
         is Prompt.Recover -> {
             Title(stringResource(R.string.recover_title))

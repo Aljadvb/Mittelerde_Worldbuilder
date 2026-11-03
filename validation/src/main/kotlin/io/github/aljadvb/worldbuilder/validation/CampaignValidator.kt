@@ -428,6 +428,9 @@ private class CampaignChecks(
                     blank(step.elvish, "$p.elvish", eventId, "$what: elbischer Text")
                     blank(step.translation, "$p.translation", eventId, "$what: Übersetzung")
                     step.text?.let { blank(it, "$p.text", eventId, "$what: Text") }
+                    if (step.test != null && step.successes < 1) c.error(IssueCode.INVALID_NUMBER, "$p.successes", eventId, "$what: Benötigte Erfolge müssen ≥ 1 sein.")
+                    step.onSuccess?.let { ref(it, ObjectKind.EVENT, si, "$p.onSuccess", eventId, "$what (onSuccess)") }
+                    step.onFailure?.let { ref(it, ObjectKind.EVENT, si, "$p.onFailure", eventId, "$what (onFailure)") }
                 }
                 is EventStep.AffectEnemy -> {
                     ref(step.group, ObjectKind.ENEMY_GROUP, si, "$p.group", eventId, what)

@@ -291,4 +291,5 @@
     <string name="camp_found_items">Gefunden: %1$s</string>
     <string name="inscription_title">Elbische Inschrift</string>
     <string name="inscription_translation">„%1$s“</string>
+    <string name="inscription_riddle">Was bedeuten die Worte? Legt die folgende Probe ab – gelingt sie, versteht ihr die Inschrift.</string>
 </resources>

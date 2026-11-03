@@ -129,17 +129,31 @@ sealed interface EventStep {
         val text: String? = null,
     ) : EventStep
 
-    /** An inscription or saying in an Elven tongue: shown in Tengwar, always with transcription and translation. */
+    /**
+     * An inscription or saying in an Elven tongue: shown in Tengwar with transcription and translation.
+     * As a riddle ([test] set) the translation is only shown after the test succeeds.
+     */
     @Serializable
     @SerialName("inscription")
     data class Inscription(
         /** Sindarin or Quenya in Latin letters, e.g. "Pedo mellon a minno". */
         val elvish: String,
-        /** German translation, always shown. */
+        /** German translation; shown at once, or for a riddle only after a passed test. */
         val translation: String,
         /** Optional context, e.g. "In den Torbogen sind Zeichen geritzt." */
         val text: String? = null,
-    ) : EventStep
+        /** Riddle: attribute of the test that reveals the translation. */
+        val test: Attribute? = null,
+        /** Riddle: successes needed. */
+        val successes: Int = 2,
+        /** Riddle: event after a passed test (optional). */
+        val onSuccess: String? = null,
+        /** Riddle: event after a failed test (optional). */
+        val onFailure: String? = null,
+    ) : EventStep {
+        /** A riddle branches like a test, so it must be the last step. */
+        override val isTerminal get() = test != null
+    }
 
     /** Reward: heroes discard damage and/or fear cards (the app does not count them). */
     @Serializable

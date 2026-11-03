@@ -116,6 +116,42 @@ class TestKindsTest {
     }
 
     @Test
+    fun `riddle inscription reveals the translation only after a passed test`() {
+        val riddle = EventStep.Inscription("Pedo mellon a minno", "Sprich, Freund, und tritt ein", test = io.github.aljadvb.worldbuilder.model.Attribute.WIT, successes = 2, onSuccess = "evt_ok", onFailure = "evt_nein")
+        val sc = base.copy(
+            events = base.events.map { e -> if (e.id == "evt_brunnen") e.copy(steps = listOf(riddle)) else e } +
+                listOf(Event("evt_ok", listOf(EventStep.Text("Geschafft!"))), Event("evt_nein", listOf(EventStep.Text("Leider nicht."))))
+        )
+        val e = GameEngine(sc)
+        var s = e.start(2)
+        while (!s.isIdle) s = e.apply(s, Command.Acknowledge)
+        s = e.apply(s, Command.InteractToken("tok_brunnen"))
+        while (s.currentPrompt !is Prompt.Inscription) s = e.apply(s, Command.Acknowledge)
+        assertTrue((s.currentPrompt as Prompt.Inscription).translationHidden)
+        s = e.apply(s, Command.Acknowledge)
+        val test = s.currentPrompt as Prompt.Test
+        assertEquals(2, test.step.successes)
+        val failed = e.apply(s, Command.ReportTest(1))
+        assertEquals("Leider nicht.", (failed.currentPrompt as Prompt.Text).text)
+        val passed = e.apply(s, Command.ReportTest(2))
+        val shown = passed.currentPrompt as Prompt.Inscription
+        assertEquals(false, shown.translationHidden)
+        assertEquals("Sprich, Freund, und tritt ein", shown.translation)
+        assertEquals("Geschafft!", (e.apply(passed, Command.Acknowledge).currentPrompt as Prompt.Text).text)
+    }
+
+    @Test
+    fun `riddle without follow-up events just ends`() {
+        val riddle = EventStep.Inscription("Mae govannen", "Willkommen", test = io.github.aljadvb.worldbuilder.model.Attribute.WISDOM)
+        val e = GameEngine(base.copy(events = base.events.map { ev -> if (ev.id == "evt_brunnen") ev.copy(steps = listOf(riddle)) else ev }))
+        var s = untilTest(e, e.start(2))
+        s = e.apply(s, Command.ReportTest(2))
+        assertEquals("Willkommen", (s.currentPrompt as Prompt.Inscription).translation)
+        s = e.apply(s, Command.Acknowledge)
+        assertTrue(s.isIdle)
+    }
+
+    @Test
     fun `hidden test reports only the result`() {
         val e = GameEngine(scenarioWith(EventStep.Test(attribute = io.github.aljadvb.worldbuilder.model.Attribute.WISDOM, successes = 3, onSuccess = "evt_ok", onFailure = "evt_nein", hidden = true)))
         val s = untilTest(e, e.start(2))

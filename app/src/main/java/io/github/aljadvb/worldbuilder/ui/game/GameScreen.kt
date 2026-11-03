@@ -584,7 +584,7 @@ private fun historyText(prompt: Prompt, scenario: Scenario): String = when (prom
     is Prompt.TestResult -> stringResource(if (prompt.passed) R.string.test_passed else R.string.test_failed)
     is Prompt.TestProgress -> stringResource(R.string.test_progress_title)
     is Prompt.Recover -> recoverText(prompt)
-    is Prompt.Inscription -> "„${prompt.elvish}“ – ${prompt.translation}"
+    is Prompt.Inscription -> if (prompt.translationHidden) "„${prompt.elvish}“" else "„${prompt.elvish}“ – ${prompt.translation}"
     is Prompt.ItemFound -> stringResource(R.string.item_found_title) + ": " + (prompt.itemId ?: "–")
     is Prompt.Harm -> harmText(prompt)
     is Prompt.Lore -> stringResource(R.string.prompt_lore_text, prompt.amount)

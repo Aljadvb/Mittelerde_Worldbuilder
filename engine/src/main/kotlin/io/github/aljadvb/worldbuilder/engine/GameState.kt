@@ -166,7 +166,13 @@ sealed interface Prompt {
     data class Recover(val damage: Int, val fear: Int, val who: io.github.aljadvb.worldbuilder.model.HeroTarget, val text: String? = null) : Notice
 
     @Serializable @SerialName("inscription")
-    data class Inscription(val elvish: String, val translation: String, val text: String? = null) : Notice
+    data class Inscription(
+        val elvish: String,
+        val translation: String,
+        val text: String? = null,
+        /** Riddle not solved yet: the translation must not be shown. */
+        val translationHidden: Boolean = false,
+    ) : Notice
 
     @Serializable @SerialName("darkness")
     data class Darkness(val fear: Int) : Notice
@@ -190,7 +196,14 @@ sealed interface Prompt {
 
     /** Answer with [Command.ReportTest]. */
     @Serializable @SerialName("test")
-    data class Test(val eventId: String?, val step: EventStep.Test, val key: String? = null, val progress: Int = 0) : Prompt
+    data class Test(
+        val eventId: String?,
+        val step: EventStep.Test,
+        val key: String? = null,
+        val progress: Int = 0,
+        /** Riddle: inscription shown with its translation when the test succeeds. */
+        val reveal: Inscription? = null,
+    ) : Prompt
 
     /** Result of a hidden test (the players do not know the required successes). */
     @Serializable @SerialName("testResult")

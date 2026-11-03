@@ -178,7 +178,7 @@ object Texts {
         "gainItem" to "Schmuckstück finden",
         "recover" to "Erholung (Schaden/Furcht ablegen)",
         "affectEnemy" to "Gegner schwächen (Treffer, Betäuben …)",
-        "inscription" to "Elbische Inschrift (mit Übersetzung)",
+        "inscription" to "Elbische Inschrift (mit Übersetzung, optional als Rätsel)",
         "gainLore" to "Wissen erhalten",
         "setDarkness" to "Dunkelheit festlegen",
         "setFlag" to "Kampagnen-Merker setzen",
@@ -247,6 +247,7 @@ object Texts {
     const val APPLY = "Anwenden"
     const val ELVISH = "Elbisch (Sindarin/Quenya in lateinischen Buchstaben)"
     const val TRANSLATION = "Übersetzung"
+    const val RIDDLE = "Rätsel: Übersetzung erst nach bestandener Probe"
     fun inscription(elvish: String, translation: String) = "Elbische Inschrift: „$elvish“ – „$translation“"
     const val CAMP = "Lager"
     const val SETUP_HEROES = "Stellt die Heldenfiguren auf das grün markierte Startfeld."
