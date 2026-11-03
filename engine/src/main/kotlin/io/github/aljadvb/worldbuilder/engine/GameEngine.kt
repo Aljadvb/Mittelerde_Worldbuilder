@@ -166,6 +166,7 @@ class GameEngine(
         val completedObjectives = s.completedObjectives.toMutableSet()
         val firedTriggers = s.firedTriggers.toMutableSet()
         val explored = s.exploredPlacements.toMutableSet()
+        val pendingTokens = s.pendingTokens.toMutableSet()
         val flags = s.flags.toMutableSet()
         var loreGained = s.loreGained
         val enemyHealth = s.enemyHealth.toMutableMap()
@@ -195,7 +196,7 @@ class GameEngine(
             unlockedChapters = unlockedChapters.toList(), activeTokens = activeTokens.toSet(),
             interactedTokens = interactedTokens.toSet(), activeEnemyGroups = activeGroups.toSet(),
             defeatedEnemyGroups = defeatedGroups.toSet(), activeObjectives = activeObjectives.toList(),
-            completedObjectives = completedObjectives.toSet(), firedTriggers = firedTriggers.toSet(), exploredPlacements = explored.toSet(), flags = flags.toSet(), loreGained = loreGained,
+            completedObjectives = completedObjectives.toSet(), firedTriggers = firedTriggers.toSet(), exploredPlacements = explored.toSet(), pendingTokens = pendingTokens.toSet(), flags = flags.toSet(), loreGained = loreGained,
             enemyHealth = enemyHealth.toMap(), armorLoss = armorLoss.toMap(), exhaustedGroups = exhausted.toSet(),
             darknessFear = darknessFear, rng = rng,
             defeatedHeroes = defeatedHeroes.toSet(), lastStandUsed = lastStandUsed.toSet(),
@@ -228,8 +229,9 @@ class GameEngine(
             val placement = scenario.placement(placementId) ?: return
             explored += placementId
             val revealed = scenario.chapters.filter { it.id in unlockedChapters }.flatMap { it.tokens }
-                .filter { it.initiallyActive && it.id !in interactedTokens && it.location.placementId == placementId }
+                .filter { (it.initiallyActive || it.id in pendingTokens) && it.id !in interactedTokens && it.location.placementId == placementId }
                 .map { it.id }.filter { activeTokens.add(it) }
+            pendingTokens -= revealed.toSet()
             prompts += Prompt.Explored(placementId, revealed)
             placement.onExplore?.let { agenda += Frame.EventFrame(it) }
             fireMatching { it is TriggerCondition.TileExplored && it.placement == placementId }
@@ -403,9 +405,16 @@ class GameEngine(
                     if (threat != before) prompts += Prompt.ThreatChanged(threat - before, threat)
                 }
                 is EventStep.AddToken -> {
-                    if (scenario.token(step.token) != null && activeTokens.add(step.token)) prompts += Prompt.PlaceToken(step.token)
+                    val token = scenario.token(step.token)
+                    val placement = token?.location?.placementId
+                    val hidden = placement != null && placement !in explored &&
+                        scenario.chapters.any { ch -> ch.tiles.any { it.id == placement && it.unexplored } }
+                    // A token on a tile that is not explored yet waits until the tile is explored.
+                    if (token != null && hidden) { if (step.token !in activeTokens) pendingTokens += step.token }
+                    else if (token != null && activeTokens.add(step.token)) prompts += Prompt.PlaceToken(step.token)
                 }
                 is EventStep.RemoveToken -> {
+                    pendingTokens -= step.token
                     if (activeTokens.remove(step.token)) prompts += Prompt.RemoveToken(step.token)
                 }
                 is EventStep.UnlockChapter -> unlockChapter(step.chapter)

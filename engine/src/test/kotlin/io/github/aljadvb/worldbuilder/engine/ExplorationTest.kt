@@ -51,6 +51,31 @@ class ExplorationTest {
     }
 
     @Test
+    fun `tokens added onto an unexplored tile wait until it is explored`() {
+        val moved = scenario.copy(
+            chapters = scenario.chapters.map { ch ->
+                ch.copy(tokens = ch.tokens.map { if (it.id == "tok_spuren") it.copy(location = io.github.aljadvb.worldbuilder.model.TileLocation("pl_dorfplatz", io.github.aljadvb.worldbuilder.model.HexCoord(2, 0))) else it })
+            },
+            events = scenario.events + Event("evt_add", listOf(EventStep.AddToken("tok_spuren"))),
+            triggers = scenario.triggers + Trigger("trg_add", TriggerCondition.RoundEnded(1), events = listOf("evt_add")),
+        )
+        val e = GameEngine(moved)
+        var s = e.start(2)
+        while (!s.isIdle) s = e.apply(s, Command.Acknowledge)
+        s = e.apply(s, Command.EndRound)
+        while (!s.isIdle) {
+            assertFalse(s.currentPrompt is Prompt.PlaceToken)
+            s = if (s.currentPrompt is Prompt.CounterQuestion) e.apply(s, Command.CounterAttack(false)) else e.apply(s, Command.Acknowledge)
+        }
+        assertFalse("tok_spuren" in s.activeTokens)
+        assertTrue("tok_spuren" in s.pendingTokens)
+        s = e.apply(s, Command.ExploreTile("pl_dorfplatz"))
+        assertTrue("tok_spuren" in (s.currentPrompt as Prompt.Explored).tokenIds)
+        assertTrue("tok_spuren" in s.activeTokens)
+        assertTrue(s.pendingTokens.isEmpty())
+    }
+
+    @Test
     fun `exploring needs an idle game and an unexplored tile`() {
         assertFailsWith<EngineException> { engine.apply(idle(), Command.ExploreTile("pl_dorfweg")) }
         assertFailsWith<EngineException> { engine.apply(engine.start(2), Command.ExploreTile("pl_dorfplatz")) }

@@ -40,6 +40,8 @@ data class GameState(
     val rng: Long = 0,
     /** Unexplored tiles that have been explored. */
     val exploredPlacements: Set<String> = emptySet(),
+    /** Tokens added by an event onto a tile that is not explored yet; they appear when it is explored. */
+    val pendingTokens: Set<String> = emptySet(),
     /** Heroes (0-based) defeated in this scenario; the scenario is lost at the start of the next shadow phase. */
     val defeatedHeroes: Set<Int> = emptySet(),
     /** Heroes that already had their one last stand in this scenario. */

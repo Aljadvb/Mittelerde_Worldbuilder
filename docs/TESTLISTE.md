@@ -131,6 +131,7 @@ Hardware bzw. mit einer echten KI gelaufen**. Die wichtigsten Punkte stehen oben
 - [ ] Pergament-Design: Titel und Knöpfe in Uncial Antiqua (frei, OFL; eine eigene Titelschrift im Katalog geht weiter vor), Fließtext in EB Garamond; Lesbarkeit am Tisch prüfen (neu in 1.22.0, Uncial ab 1.23.0)
 - [ ] Elbische Inschrift (neu in 1.23.0): Test-Kampagne, Höhle → „Alte Inschrift“ zeigt Tengwar-Zeile, darunter die Umschrift kursiv und die Übersetzung
 - [ ] Editor: Event-Schritt „Elbische Inschrift“ mit Vorschau in Tengwar; Prüfung meldet leere Inschrift oder fehlende Übersetzung
+- [ ] Token, die ein Event auf eine noch nicht erkundete Kachel legt, erscheinen erst beim Erkunden dieser Kachel (Test-Kampagne: „Frische Spuren“) (neu in 1.24.1)
 - [ ] Elbisches Rätsel (neu in 1.24.0): Test-Kampagne, „Alte Inschrift“ zeigt zuerst nur Tengwar und Umschrift; Probe Scharfsinn 3 → erst bei Erfolg erscheint die Übersetzung, bei Misserfolg bleibt sie verborgen
 - [ ] Editor: bei „Elbische Inschrift“ Haken „Rätsel“ setzen, Wert, Erfolge sowie Bei Erfolg/Misserfolg wählen; die Inschrift muss dann der letzte Schritt im Event sein
 - [ ] KI-Generator: höchstens 0–2 Inschriften pro Szenario, nur an elbischen Orten, immer mit Übersetzung
