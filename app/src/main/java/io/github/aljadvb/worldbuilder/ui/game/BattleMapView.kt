@@ -54,10 +54,10 @@ fun BattleMapView(
 ) {
     val scene = battlePlayScene(scenario, catalog, state, highlight, tokenLetters, images)
     val projection = remember { arrayOfNulls<BattleProjection>(1) }
-    BattleCanvas(
+    ZoomableMap(modifier) { zoom -> BattleCanvas(
         scene = scene,
         highlight = MaterialTheme.colorScheme.primary,
-        modifier = modifier.pointerInput(tapEnabled, scene) {
+        modifier = zoom.pointerInput(tapEnabled, scene) {
             detectTapGestures { pos ->
                 val proj = projection[0] ?: return@detectTapGestures
                 val token = if (tapEnabled) squareTokenAt(proj, scene.tokens, pos) else null
@@ -70,7 +70,7 @@ fun BattleMapView(
             }
         },
         onProjection = { projection[0] = it },
-    )
+    ) }
 }
 
 /** Name, picture, scenario rule and card text of a terrain piece. */

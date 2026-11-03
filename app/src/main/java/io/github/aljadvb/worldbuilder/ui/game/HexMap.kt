@@ -34,10 +34,10 @@ fun HexMap(
 ) {
     val scene = playScene(scenario, catalog, state, highlight, tokenLetters, images)
     val projection = remember { arrayOfNulls<HexProjection>(1) }
-    HexCanvas(
+    ZoomableMap(modifier) { zoom -> HexCanvas(
         scene = scene,
         highlight = MaterialTheme.colorScheme.primary,
-        modifier = modifier.pointerInput(tapEnabled, scene.tokens) {
+        modifier = zoom.pointerInput(tapEnabled, scene.tokens) {
             if (!tapEnabled) return@pointerInput
             detectTapGestures { pos ->
                 val proj = projection[0] ?: return@detectTapGestures
@@ -49,7 +49,7 @@ fun HexMap(
             }
         },
         onProjection = { projection[0] = it },
-    )
+    ) }
 }
 
 /** Tile pictures from the imported catalog folder, decoded with Android's BitmapFactory. */

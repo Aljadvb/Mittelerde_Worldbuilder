@@ -13,6 +13,10 @@ import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTouchInput
+import androidx.compose.ui.test.pinch
+import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.geometry.Offset
 import androidx.test.platform.app.InstrumentationRegistry
 import io.github.aljadvb.worldbuilder.data.CampaignLibrary
 import io.github.aljadvb.worldbuilder.editing.addPlacement
@@ -392,5 +396,17 @@ class ScreenshotTest {
         compose.onAllNodesWithText("Angreifen")[0].performClick()
         compose.onNodeWithText("Feind 1:", substring = true).assertExists()
         compose.onNodeWithText("(ziehen je Angriff Treffer ab)", substring = true).assertExists()
+    }
+
+    @Test
+    fun pinchZoomAndFit() {
+        show(engine.start(2).ackUntil { it.isIdle })
+        compose.onRoot().performTouchInput {
+            pinch(center - Offset(40f, 0f), center - Offset(200f, 0f), center + Offset(40f, 0f), center + Offset(200f, 0f))
+        }
+        compose.onNodeWithText("Einpassen").assertExists()
+        snapshot("21_zoomed")
+        compose.onNodeWithText("Einpassen").performClick()
+        compose.onNodeWithText("Einpassen").assertDoesNotExist()
     }
 }
