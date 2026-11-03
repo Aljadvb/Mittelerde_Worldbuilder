@@ -131,6 +131,12 @@ Hardware bzw. mit einer echten KI gelaufen**. Die wichtigsten Punkte stehen oben
 - [ ] Pergament-Design: Titel und Knöpfe in Uncial Antiqua (frei, OFL; eine eigene Titelschrift im Katalog geht weiter vor), Fließtext in EB Garamond; Lesbarkeit am Tisch prüfen (neu in 1.22.0, Uncial ab 1.23.0)
 - [ ] Elbische Inschrift (neu in 1.23.0): Test-Kampagne, Höhle → „Alte Inschrift“ zeigt Tengwar-Zeile, darunter die Umschrift kursiv und die Übersetzung
 - [ ] Editor: Event-Schritt „Elbische Inschrift“ mit Vorschau in Tengwar; Prüfung meldet leere Inschrift oder fehlende Übersetzung
+- [ ] Verderbnis (neu in 1.27.0): Test-Kampagne, Höhle nach dem Rätsel – Knopf „Den Ring an euch nehmen · +1 Verderbnis“; App fragt, welcher Held, und meldet den neuen Stand
+- [ ] Verderbnis bleibt: Lager zeigt „Verderbnis 1“ unter dem Helden; nächstes Szenario beginnt mit „Verderbnis auslegen“
+- [ ] Bruchwald: Dorfbrunnen – jeder verliert 1 Verderbnis; Kräuterfrau – App fragt, welcher Held spricht, verdorbene Helden bekommen einen anderen Text
+- [ ] Altar (Steinkreis): „Das Opfergold einstecken · +1 Verderbnis“; ein Held mit schon 3 Verderbnis muss stattdessen ein Letztes Aufbäumen auf Wille ablegen (zählt nicht als das Aufbäumen gegen Schaden/Furcht)
+- [ ] Gelände-Marker: Regen in Runde 2 legt „Unwegsamer Untergrund“ (braunes U auf der Karte, Regel in der Meldung); Welle im Steinkreis macht ein Feld „Befestigt“ (graues B)
+- [ ] Editor: Auswahl-Option mit Feld „Verderbnis“; Schritte „Verderbnis verlieren“, „Verdorben?“, „Gelände-Marker legen/entfernen“ (Kachel + Feld q/r bzw. Spalte/Zeile); Probespiel fragt nach dem Helden
 - [ ] Elite-Gegner (neu in 1.26.0): Test-Kampagne, Steinkreis – Hügeltroll erscheint mit „Elite-Gegner! Stellt Elite-Banner 1 dazu“, Erklärung und Boni; auf der Karte rote gezackte Raute mit rotem Banner
 - [ ] Elite-Werte: Gegnermenü und Angriffsfenster zeigen die erhöhte Rüstung (Gepanzert); Gegenangriff des Trolls hat +1 Schaden (Wütend)
 - [ ] Erschöpfung: Nach einem Gegenangriff ist eine normale Gruppe erschöpft (kein weiterer Gegenangriff, kein Provozieren, keine Aktivierung in dieser Schattenphase); eine Elite-Gruppe greift trotzdem zurück an, außer sie wurde betäubt

@@ -385,6 +385,7 @@ private class CampaignChecks(
                     step.options.forEachIndexed { oi, o ->
                         blank(o.label, "$p.options[$oi].label", eventId, "$what: Beschriftung von Option ${oi + 1}")
                         ref(o.event, ObjectKind.EVENT, si, "$p.options[$oi].event", eventId, "$what, Option ${oi + 1}")
+                        if (o.corruption !in 0..2) c.error(IssueCode.INVALID_NUMBER, "$p.options[$oi].corruption", eventId, "$what, Option ${oi + 1}: Verderbnis 0–2.")
                     }
                 }
                 is EventStep.Test -> {
@@ -432,6 +433,19 @@ private class CampaignChecks(
                     step.text?.let { blank(it, "$p.text", eventId, "$what: Text") }
                 }
                 is EventStep.GainCondition -> step.text?.let { blank(it, "$p.text", eventId, "$what: Text") }
+                is EventStep.LoseCorruption -> {
+                    if (step.amount !in 1..3) c.error(IssueCode.INVALID_NUMBER, "$p.amount", eventId, "$what: Verderbnis 1–3.")
+                    step.text?.let { blank(it, "$p.text", eventId, "$what: Text") }
+                }
+                is EventStep.CheckCorruption -> {
+                    ref(step.ifCorrupted, ObjectKind.EVENT, si, "$p.ifCorrupted", eventId, "$what (verdorben)")
+                    step.ifNotCorrupted?.let { ref(it, ObjectKind.EVENT, si, "$p.ifNotCorrupted", eventId, "$what (unverdorben)") }
+                }
+                is EventStep.PlaceMarker -> {
+                    checkLocation(s, si, step.location, "$p.location", eventId, ownerChapter = null)
+                    step.text?.let { blank(it, "$p.text", eventId, "$what: Text") }
+                }
+                is EventStep.RemoveMarker -> checkLocation(s, si, step.location, "$p.location", eventId, ownerChapter = null)
                 is EventStep.Inscription -> {
                     blank(step.elvish, "$p.elvish", eventId, "$what: elbischer Text")
                     blank(step.translation, "$p.translation", eventId, "$what: Übersetzung")
@@ -521,5 +535,9 @@ internal fun stepName(step: EventStep): String = when (step) {
     is EventStep.AffectEnemy -> "affectEnemy"
     is EventStep.Inscription -> "inscription"
     is EventStep.GainCondition -> "gainCondition"
+    is EventStep.LoseCorruption -> "loseCorruption"
+    is EventStep.CheckCorruption -> "checkCorruption"
+    is EventStep.PlaceMarker -> "placeMarker"
+    is EventStep.RemoveMarker -> "removeMarker"
     is EventStep.EndScenario -> "endScenario"
 }

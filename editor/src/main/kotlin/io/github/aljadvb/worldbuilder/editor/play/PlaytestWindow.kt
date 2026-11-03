@@ -354,7 +354,15 @@ private fun PromptCard(game: PlaytestModel, scenario: Scenario, catalog: Materia
                 is Prompt.Choice -> {
                     Text(prompt.step.text, style = MaterialTheme.typography.bodyLarge)
                     prompt.step.options.forEachIndexed { i, o ->
-                        FilledTonalButton(onClick = { game.send(Command.Choose(i)) }, modifier = Modifier.fillMaxWidth()) { Text(o.label) }
+                        FilledTonalButton(onClick = { game.send(Command.Choose(i)) }, modifier = Modifier.fillMaxWidth()) {
+                            Text(o.label + if (o.corruption > 0) " · +${o.corruption} Verderbnis" else "")
+                        }
+                    }
+                }
+                is Prompt.ChooseHero -> {
+                    Text(describe(prompt, scenario, catalog), style = MaterialTheme.typography.bodyLarge)
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        (0 until game.heroCount).forEach { h -> FilledTonalButton(onClick = { game.send(Command.ChooseHero(h)) }) { Text("Held ${h + 1} (${game.state?.corruption?.getOrElse(h) { 0 } ?: 0})") } }
                     }
                 }
                 is Prompt.Test -> {
@@ -399,6 +407,9 @@ private fun CampCard(game: PlaytestModel) {
         val s = game.campaign.scenario(c.scenarioId)
         Text("${s?.title}: ${s?.resolution(c.resolutionId)?.title}", fontWeight = FontWeight.Bold)
         Text(Texts.campRewards(c.lore, c.xp, p.lore))
+    }
+    p.party.withIndex().filter { it.value.corruption > 0 }.takeIf { it.isNotEmpty() }?.let { list ->
+        Text("Verderbnis: " + list.joinToString(", ") { "Held ${it.index + 1}: ${it.value.corruption}" })
     }
     Text(Texts.CAMP_INVENTORY, fontWeight = FontWeight.Bold)
     if (p.inventory.isEmpty()) Text("–")
@@ -467,8 +478,15 @@ fun describe(prompt: Prompt, scenario: Scenario, catalog: MaterialCatalog): Stri
         is Prompt.ItemFound -> listOfNotNull(prompt.text, Texts.itemFound(prompt.itemId?.let { catalog.item(it)?.name ?: it },
             if (prompt.who == io.github.aljadvb.worldbuilder.model.HeroTarget.CHOSEN) "Ein Held eurer Wahl" else "Der handelnde Held")).joinToString("\n")
         is Prompt.CounterQuestion -> Texts.counterQuestion(enemy(prompt.groupId))
-        is Prompt.LastStandTest -> Texts.lastStand(prompt.hero, prompt.kind == LimitKind.DAMAGE)
-        is Prompt.HeroSurvives -> Texts.heroSurvives(prompt.hero, prompt.kind == LimitKind.DAMAGE)
+        is Prompt.LastStandTest -> Texts.lastStand(prompt.hero, prompt.kind)
+        is Prompt.HeroSurvives -> Texts.heroSurvives(prompt.hero, prompt.kind)
+        is Prompt.ChooseHero -> listOfNotNull(prompt.text, Texts.chooseHero(prompt.question)).joinToString("\n")
+        is Prompt.Corruption -> listOfNotNull(prompt.text, Texts.corruption(prompt.hero, prompt.delta, prompt.total)).joinToString("\n")
+        is Prompt.CorruptionSetup -> Texts.corruptionSetup(prompt.values)
+        is Prompt.FieldMarker -> listOfNotNull(prompt.text, Texts.fieldMarker(prompt.marker, when (val l = prompt.location) {
+            is io.github.aljadvb.worldbuilder.model.TileLocation -> "Kachel ${tile(l.placement)}, Feld ${l.cell.q}/${l.cell.r}"
+            is io.github.aljadvb.worldbuilder.model.SquareLocation -> "Feld ${l.square.x}/${l.square.y}"
+        }, prompt.placed)).joinToString("\n")
         is Prompt.HeroDefeated -> Texts.heroDefeated(prompt.hero, prompt.secondTime)
     }
 }

@@ -89,6 +89,8 @@ data class BattleScene(
     val showGrid: Boolean = false,
     /** Start square of the heroes' figures. */
     val heroStart: GridCoord? = null,
+    /** Rough-ground and fortified markers laid by events. */
+    val markers: List<Pair<GridCoord, io.github.aljadvb.worldbuilder.model.FieldMarker>> = emptyList(),
 ) {
     val squares: Set<GridCoord> get() = boards.flatMap { it.fields.flatten() }.toSet()
 }
@@ -237,6 +239,11 @@ fun BattleCanvas(
                 rotate(if (vertical) 90f else 0f, c) { drawText(m, topLeft = c - Offset(m.size.width / 2f, m.size.height / 2f)) }
             }
             if (piece.special) drawSpecialMarker(c + Offset(minOf(s.width, proj.cell * 0.5f) / 2, -minOf(s.height, proj.cell * 0.5f) / 2), proj.cell * 0.07f)
+        }
+
+        for ((sq, marker) in scene.markers) {
+            val r = proj.rect(sq)
+            drawFieldMarker(textMeasurer, marker, r.center, proj.cell * 0.09f, Offset(-proj.cell * 0.3f, proj.cell * 0.32f))
         }
 
         scene.heroStart?.let { sq ->

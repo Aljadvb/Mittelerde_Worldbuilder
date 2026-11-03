@@ -46,6 +46,7 @@ fun PromptPanel(
     modifier: Modifier = Modifier,
     heroNames: List<String> = emptyList(),
     images: io.github.aljadvb.worldbuilder.hexmap.TileImageCache? = null,
+    corruption: List<Int> = emptyList(),
 ) {
     ElevatedCard(modifier.fillMaxWidth(), colors = androidx.compose.material3.CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0.9f))) {
         Column(
@@ -78,8 +79,12 @@ fun PromptPanel(
                 }
                 is Prompt.LastStandTest -> {
                     Title(stringResource(R.string.last_stand_title, heroName(heroNames, prompt.hero)))
-                    Body(stringResource(if (prompt.kind == io.github.aljadvb.worldbuilder.engine.LimitKind.DAMAGE) R.string.last_stand_damage else R.string.last_stand_fear, attributeLabel(prompt.attribute)))
-                    Hint(stringResource(R.string.last_stand_hint))
+                    Body(stringResource(when (prompt.kind) {
+                        io.github.aljadvb.worldbuilder.engine.LimitKind.DAMAGE -> R.string.last_stand_damage
+                        io.github.aljadvb.worldbuilder.engine.LimitKind.FEAR -> R.string.last_stand_fear
+                        io.github.aljadvb.worldbuilder.engine.LimitKind.CORRUPTION -> R.string.last_stand_corruption
+                    }, attributeLabel(prompt.attribute)))
+                    Hint(stringResource(if (prompt.kind == io.github.aljadvb.worldbuilder.engine.LimitKind.CORRUPTION) R.string.last_stand_corruption_hint else R.string.last_stand_hint))
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)) {
                         OutlinedButton(onClick = { onCommand(Command.ReportTest(0)) }) { Text(stringResource(R.string.last_stand_failed)) }
                         Button(onClick = { onCommand(Command.ReportTest(1)) }) { Text(stringResource(R.string.last_stand_passed)) }
@@ -89,7 +94,22 @@ fun PromptPanel(
                     Body(prompt.step.text)
                     prompt.step.options.forEachIndexed { i, option ->
                         FilledTonalButton(onClick = { onCommand(Command.Choose(i)) }, modifier = Modifier.fillMaxWidth()) {
-                            Text(option.label)
+                            // Corruption is always shown before the players decide.
+                            Text(option.label + if (option.corruption > 0) " · " + stringResource(R.string.corruption_badge, option.corruption) else "")
+                        }
+                    }
+                    if (prompt.step.options.any { it.corruption > 0 }) Hint(stringResource(R.string.corruption_option_hint))
+                }
+                is Prompt.ChooseHero -> {
+                    prompt.text?.let { Body(it) }
+                    Title(when (val q = prompt.question) {
+                        is io.github.aljadvb.worldbuilder.engine.HeroQuestion.GainCorruption -> stringResource(R.string.choose_hero_gain, q.amount)
+                        is io.github.aljadvb.worldbuilder.engine.HeroQuestion.LoseCorruption -> stringResource(R.string.choose_hero_lose, q.amount)
+                        is io.github.aljadvb.worldbuilder.engine.HeroQuestion.CheckCorruption -> stringResource(R.string.choose_hero_check)
+                    })
+                    (0 until heroCount).forEach { h ->
+                        FilledTonalButton(onClick = { onCommand(Command.ChooseHero(h)) }, modifier = Modifier.fillMaxWidth()) {
+                            Text(stringResource(R.string.hero_with_corruption, heroName(heroNames, h), corruption.getOrElse(h) { 0 }))
                         }
                     }
                 }
@@ -252,8 +272,12 @@ private fun NoticeContent(prompt: Prompt.Notice, scenario: Scenario, catalog: Ma
         }
         is Prompt.HeroSurvives -> {
             Title(stringResource(R.string.hero_survives_title, heroName(heroNames, prompt.hero)))
-            Body(stringResource(if (prompt.kind == io.github.aljadvb.worldbuilder.engine.LimitKind.DAMAGE) R.string.hero_survives_damage else R.string.hero_survives_fear))
-            Hint(stringResource(R.string.hero_survives_hint))
+            Body(stringResource(when (prompt.kind) {
+                io.github.aljadvb.worldbuilder.engine.LimitKind.DAMAGE -> R.string.hero_survives_damage
+                io.github.aljadvb.worldbuilder.engine.LimitKind.FEAR -> R.string.hero_survives_fear
+                io.github.aljadvb.worldbuilder.engine.LimitKind.CORRUPTION -> R.string.hero_survives_corruption
+            }))
+            if (prompt.kind != io.github.aljadvb.worldbuilder.engine.LimitKind.CORRUPTION) Hint(stringResource(R.string.hero_survives_hint))
         }
         is Prompt.HeroDefeated -> {
             Title(stringResource(R.string.hero_defeated_title, heroName(heroNames, prompt.hero)))
@@ -303,6 +327,25 @@ private fun NoticeContent(prompt: Prompt.Notice, scenario: Scenario, catalog: Ma
             Text(prompt.elvish, style = MaterialTheme.typography.bodyMedium, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic, color = MaterialTheme.colorScheme.onSurfaceVariant)
             if (prompt.translationHidden) Hint(stringResource(R.string.inscription_riddle))
             else Text(stringResource(R.string.inscription_translation, prompt.translation), style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
+        }
+        is Prompt.Corruption -> {
+            Title(stringResource(R.string.corruption_title))
+            prompt.text?.let { Body(it) }
+            Body(corruptionText(prompt, heroNames))
+        }
+        is Prompt.CorruptionSetup -> {
+            Title(stringResource(R.string.corruption_setup_title))
+            prompt.values.withIndex().filter { it.value > 0 }.forEach { (h, v) -> Body(stringResource(R.string.corruption_setup_line, heroName(heroNames, h), v)) }
+        }
+        is Prompt.FieldMarker -> {
+            val name = markerName(prompt.marker)
+            Title(stringResource(if (prompt.placed) R.string.marker_place_title else R.string.marker_remove_title, name))
+            prompt.text?.let { Body(it) }
+            Body(when (val l = prompt.location) {
+                is io.github.aljadvb.worldbuilder.model.TileLocation -> stringResource(R.string.marker_where_tile, tileLabel(l.placement))
+                is io.github.aljadvb.worldbuilder.model.SquareLocation -> stringResource(R.string.marker_where_square)
+            })
+            if (prompt.placed) Hint(markerRule(prompt.marker))
         }
         is Prompt.Condition -> {
             val name = conditionName(prompt.condition)
@@ -468,3 +511,20 @@ private fun eliteBonusText(b: io.github.aljadvb.worldbuilder.model.EliteBonus): 
     io.github.aljadvb.worldbuilder.model.EliteBonus.STEADFAST -> R.string.elite_steadfast
     io.github.aljadvb.worldbuilder.model.EliteBonus.FURIOUS -> R.string.elite_furious
 }
+
+@Composable
+internal fun corruptionText(prompt: Prompt.Corruption, heroNames: List<String>): String =
+    if (prompt.delta > 0) stringResource(R.string.corruption_gain, heroName(heroNames, prompt.hero), prompt.delta, prompt.total)
+    else stringResource(R.string.corruption_lose, heroName(heroNames, prompt.hero), -prompt.delta, prompt.total)
+
+@Composable
+internal fun markerName(m: io.github.aljadvb.worldbuilder.model.FieldMarker): String = stringResource(when (m) {
+    io.github.aljadvb.worldbuilder.model.FieldMarker.ROUGH -> R.string.marker_rough
+    io.github.aljadvb.worldbuilder.model.FieldMarker.FORTIFIED -> R.string.marker_fortified
+})
+
+@Composable
+internal fun markerRule(m: io.github.aljadvb.worldbuilder.model.FieldMarker): String = stringResource(when (m) {
+    io.github.aljadvb.worldbuilder.model.FieldMarker.ROUGH -> R.string.marker_rough_rule
+    io.github.aljadvb.worldbuilder.model.FieldMarker.FORTIFIED -> R.string.marker_fortified_rule
+})

@@ -178,6 +178,10 @@ object Texts {
         "gainItem" to "Schmuckstück finden",
         "recover" to "Erholung (Schaden/Furcht ablegen)",
         "gainCondition" to "Zustand erhalten (Gunst oder Fluch)",
+        "loseCorruption" to "Verderbnis verlieren",
+        "checkCorruption" to "Verdorben? (Verzweigung)",
+        "placeMarker" to "Gelände-Marker legen (unwegsam/befestigt)",
+        "removeMarker" to "Gelände-Marker entfernen",
         "affectEnemy" to "Gegner schwächen (Treffer, Betäuben …)",
         "inscription" to "Elbische Inschrift (mit Übersetzung, optional als Rätsel)",
         "gainLore" to "Wissen erhalten",
@@ -280,8 +284,33 @@ object Texts {
     fun enemyAttack(name: String, counter: Boolean, damage: Int, fear: Int) =
         (if (counter) "Gegenangriff: $name greift den angreifenden Helden an" else "$name wird provoziert und greift den Helden an") + ": $damage Schaden, $fear Furcht."
     fun counterQuestion(name: String) = "$name: Kann der Feind angreifen? (Ja, wenn die Gruppe in Reichweite des Angreifers ist.)"
-    fun lastStand(hero: Int, damage: Boolean) = "Letztes Aufbäumen: Held ${hero + 1}, " + (if (damage) "Schadensprobe auf Körperkraft" else "Furchtprobe auf Willen") + ". 1 Erfolg genügt."
-    fun heroSurvives(hero: Int, damage: Boolean) = "Held ${hero + 1} hält stand und legt alle " + (if (damage) "Schadenkarten" else "Furchtkarten") + " ab. Beim nächsten Limit ist er besiegt."
+    fun lastStand(hero: Int, kind: io.github.aljadvb.worldbuilder.engine.LimitKind) = "Letztes Aufbäumen: Held ${hero + 1}, " + when (kind) {
+        io.github.aljadvb.worldbuilder.engine.LimitKind.DAMAGE -> "Schadensprobe auf Körperkraft"
+        io.github.aljadvb.worldbuilder.engine.LimitKind.FEAR -> "Furchtprobe auf Willen"
+        io.github.aljadvb.worldbuilder.engine.LimitKind.CORRUPTION -> "er hat schon 3 Verderbnis – Probe auf Willen"
+    } + ". 1 Erfolg genügt."
+    fun heroSurvives(hero: Int, kind: io.github.aljadvb.worldbuilder.engine.LimitKind) = when (kind) {
+        io.github.aljadvb.worldbuilder.engine.LimitKind.CORRUPTION -> "Held ${hero + 1} widersteht und erhält keine vierte Verderbnis."
+        else -> "Held ${hero + 1} hält stand und legt alle " + (if (kind == io.github.aljadvb.worldbuilder.engine.LimitKind.DAMAGE) "Schadenkarten" else "Furchtkarten") + " ab. Beim nächsten Limit ist er besiegt."
+    }
+    const val OPTION_CORRUPTION = "Verderbnis"
+    const val CORRUPTION_IF = "Wenn verdorben"
+    const val CORRUPTION_IF_NOT = "Wenn unverdorben"
+    const val MARKER = "Marker"
+    val MARKERS = listOf("ROUGH" to "Unwegsamer Untergrund", "FORTIFIED" to "Befestigt")
+    const val MARKER_TILE = "Kachel"
+    fun markerName(m: io.github.aljadvb.worldbuilder.model.FieldMarker) = MARKERS.first { it.first == m.name }.second
+    fun corruption(hero: Int, delta: Int, total: Int) =
+        if (delta > 0) "Held ${hero + 1} erhält $delta Verderbnis (jetzt $total). Legt einen Verderbnismarker dazu."
+        else "Held ${hero + 1} verliert ${-delta} Verderbnis (jetzt $total)."
+    fun corruptionSetup(values: List<Int>) = "Legt Verderbnismarker aus: " + values.withIndex().filter { it.value > 0 }.joinToString(", ") { "Held ${it.index + 1}: ${it.value}" }
+    fun chooseHero(q: io.github.aljadvb.worldbuilder.engine.HeroQuestion) = when (q) {
+        is io.github.aljadvb.worldbuilder.engine.HeroQuestion.GainCorruption -> "Welcher Held erhält ${q.amount} Verderbnis?"
+        is io.github.aljadvb.worldbuilder.engine.HeroQuestion.LoseCorruption -> "Welcher Held verliert ${q.amount} Verderbnis?"
+        is io.github.aljadvb.worldbuilder.engine.HeroQuestion.CheckCorruption -> "Welcher Held handelt?"
+    }
+    fun fieldMarker(m: io.github.aljadvb.worldbuilder.model.FieldMarker, where: String, placed: Boolean) =
+        if (placed) "Legt einen Marker „${markerName(m)}“ auf $where." else "Entfernt den Marker „${markerName(m)}“ von $where."
     fun heroDefeated(hero: Int, second: Boolean) = "Held ${hero + 1} ist besiegt" + (if (second) " (Letztes Aufbäumen schon verbraucht)" else "") +
         ". Gewinnt ihr nicht vor der nächsten Schattenphase, ist das Abenteuer verloren."
     const val APPLY = "Anwenden"

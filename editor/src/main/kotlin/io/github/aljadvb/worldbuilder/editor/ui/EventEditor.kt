@@ -114,6 +114,10 @@ private fun stepLabel(step: EventStep): String {
         is EventStep.GainItem -> "gainItem"
         is EventStep.Recover -> "recover"
         is EventStep.GainCondition -> "gainCondition"
+        is EventStep.LoseCorruption -> "loseCorruption"
+        is EventStep.CheckCorruption -> "checkCorruption"
+        is EventStep.PlaceMarker -> "placeMarker"
+        is EventStep.RemoveMarker -> "removeMarker"
         is EventStep.Inscription -> "inscription"
         is EventStep.AffectEnemy -> "affectEnemy"
         is EventStep.GainLore -> "gainLore"
@@ -124,6 +128,11 @@ private fun stepLabel(step: EventStep): String {
     }
     return Texts.STEP_TYPES.first { it.first == type }.second
 }
+
+/** First field of the scenario: a square on battle maps, else the anchor of the first tile. */
+private fun defaultLocation(s: Scenario): io.github.aljadvb.worldbuilder.model.Location =
+    if (s.chapters.any { it.isBattle }) io.github.aljadvb.worldbuilder.model.SquareLocation(io.github.aljadvb.worldbuilder.model.GridCoord(0, 0))
+    else io.github.aljadvb.worldbuilder.model.TileLocation(s.placements.firstOrNull()?.id.orEmpty(), io.github.aljadvb.worldbuilder.model.HexCoord.ORIGIN)
 
 /** A new step of [type], pre-filled with the first sensible reference. */
 fun newStep(type: String, s: Scenario): EventStep = when (type) {
@@ -143,6 +152,10 @@ fun newStep(type: String, s: Scenario): EventStep = when (type) {
     "gainItem" -> EventStep.GainItem()
     "recover" -> EventStep.Recover(damage = 1)
     "gainCondition" -> EventStep.GainCondition(io.github.aljadvb.worldbuilder.model.Condition.HIDDEN)
+    "loseCorruption" -> EventStep.LoseCorruption()
+    "checkCorruption" -> EventStep.CheckCorruption("")
+    "placeMarker" -> EventStep.PlaceMarker(io.github.aljadvb.worldbuilder.model.FieldMarker.ROUGH, defaultLocation(s))
+    "removeMarker" -> EventStep.RemoveMarker(io.github.aljadvb.worldbuilder.model.FieldMarker.ROUGH, defaultLocation(s))
     "inscription" -> EventStep.Inscription("Mae govannen", "Willkommen")
     "affectEnemy" -> EventStep.AffectEnemy(s.enemyGroups.firstOrNull()?.id.orEmpty(), hits = 2)
     "gainLore" -> EventStep.GainLore(1)
@@ -179,6 +192,9 @@ private fun StepFields(
                         model, Texts.OPTION_EVENT, o.event, events, "$p.options[$oi].event", modifier = Modifier.weight(1f),
                         onCreate = { newEvent { id -> set(withOption { it.copy(event = id) }) } },
                     ) { v -> set(withOption { it.copy(event = v.orEmpty()) }) }
+                    IntInput(model, Texts.OPTION_CORRUPTION, o.corruption, "$key.options[$oi].corruption", "$p.options[$oi].corruption", width = 110.dp) { v ->
+                        setText(withOption { it.copy(corruption = v.coerceIn(0, 2)) })
+                    }
                     IconButton(onClick = { set(step.copy(options = step.options.filterIndexed { j, _ -> j != oi })) }) { Icon(Icons.Default.Close, Texts.DELETE) }
                 }
             }
@@ -290,6 +306,37 @@ private fun StepFields(
                 }
             }
         }
+        is EventStep.LoseCorruption -> {
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                IntInput(model, Texts.AMOUNT, step.amount, "$key.amount", "$p.amount") { v -> setText(step.copy(amount = v)) }
+                ChoiceInput(model, Texts.HARM_WHO, step.who.name, Texts.INSPIRATION_TARGETS.map { Choice(it.first, it.second) }, null, modifier = Modifier.weight(1f)) { v ->
+                    set(step.copy(who = io.github.aljadvb.worldbuilder.model.HeroTarget.valueOf(v!!)))
+                }
+            }
+            TextInput(model, Texts.OPTIONAL_TEXT, step.text.orEmpty(), "$key.text", "$p.text") { v -> setText(step.copy(text = v.ifEmpty { null })) }
+        }
+        is EventStep.CheckCorruption -> {
+            TextInput(model, Texts.OPTIONAL_TEXT, step.text.orEmpty(), "$key.text", "$p.text") { v -> setText(step.copy(text = v.ifEmpty { null })) }
+            ChoiceInput(model, Texts.CORRUPTION_IF, step.ifCorrupted, events, "$p.ifCorrupted", onCreate = { newEvent { id -> set(step.copy(ifCorrupted = id)) } }) { v ->
+                set(step.copy(ifCorrupted = v.orEmpty()))
+            }
+            ChoiceInput(model, Texts.CORRUPTION_IF_NOT, step.ifNotCorrupted, events, "$p.ifNotCorrupted", allowNone = true, onCreate = { newEvent { id -> set(step.copy(ifNotCorrupted = id)) } }) { v ->
+                set(step.copy(ifNotCorrupted = v))
+            }
+        }
+        is EventStep.PlaceMarker -> {
+            ChoiceInput(model, Texts.MARKER, step.marker.name, Texts.MARKERS.map { Choice(it.first, it.second) }, null) { v ->
+                set(step.copy(marker = io.github.aljadvb.worldbuilder.model.FieldMarker.valueOf(v!!)))
+            }
+            MarkerLocationInput(model, s, step.location, key, "$p.location", { set(step.copy(location = it)) }) { setText(step.copy(location = it)) }
+            TextInput(model, Texts.OPTIONAL_TEXT, step.text.orEmpty(), "$key.text", "$p.text") { v -> setText(step.copy(text = v.ifEmpty { null })) }
+        }
+        is EventStep.RemoveMarker -> {
+            ChoiceInput(model, Texts.MARKER, step.marker.name, Texts.MARKERS.map { Choice(it.first, it.second) }, null) { v ->
+                set(step.copy(marker = io.github.aljadvb.worldbuilder.model.FieldMarker.valueOf(v!!)))
+            }
+            MarkerLocationInput(model, s, step.location, key, "$p.location", { set(step.copy(location = it)) }) { setText(step.copy(location = it)) }
+        }
         is EventStep.GainCondition -> {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 ChoiceInput(model, Texts.HERO_CONDITION, step.condition.name, Texts.HERO_CONDITIONS.map { Choice(it.first, it.second) }, null, modifier = Modifier.weight(1f)) { v ->
@@ -348,4 +395,30 @@ private fun FlagInput(model: EditorModel, flag: String, path: String, onSelect: 
 /** Alcarin Tengwar (OFL), bundled with the editor for previews of inscriptions. */
 internal val TengwarFont: androidx.compose.ui.text.font.FontFamily by lazy {
     androidx.compose.ui.text.font.FontFamily(androidx.compose.ui.text.platform.Font("fonts/alcarin_tengwar.ttf"))
+}
+
+/** Field of a marker: tile and hex field on travel maps, column/row on battle maps. */
+@Composable
+private fun MarkerLocationInput(
+    model: io.github.aljadvb.worldbuilder.editor.EditorModel,
+    s: Scenario,
+    location: io.github.aljadvb.worldbuilder.model.Location,
+    key: String,
+    path: String,
+    set: (io.github.aljadvb.worldbuilder.model.Location) -> Unit,
+    setText: (io.github.aljadvb.worldbuilder.model.Location) -> (io.github.aljadvb.worldbuilder.model.Campaign) -> io.github.aljadvb.worldbuilder.model.Campaign,
+) {
+    when (location) {
+        is io.github.aljadvb.worldbuilder.model.SquareLocation -> Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            IntInput(model, "Spalte", location.square.x, "$key.x", path) { v -> setText(location.copy(square = location.square.copy(x = v))) }
+            IntInput(model, "Zeile", location.square.y, "$key.y", null) { v -> setText(location.copy(square = location.square.copy(y = v))) }
+        }
+        is io.github.aljadvb.worldbuilder.model.TileLocation -> Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            ChoiceInput(model, Texts.MARKER_TILE, location.placement, s.placements.map { Choice(it.id, it.id) }, path, modifier = Modifier.weight(1f)) { v ->
+                set(location.copy(placement = v.orEmpty()))
+            }
+            IntInput(model, "q", location.cell.q, "$key.q", null, width = 90.dp) { v -> setText(location.copy(cell = location.cell.copy(q = v))) }
+            IntInput(model, "r", location.cell.r, "$key.r", null, width = 90.dp) { v -> setText(location.copy(cell = location.cell.copy(r = v))) }
+        }
+    }
 }

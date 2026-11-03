@@ -564,6 +564,13 @@
                   },
                   "event": {
                     "$ref": "#/$defs/id"
+                  },
+                  "corruption": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 2,
+                    "default": 0,
+                    "description": "Verderbnis für den handelnden Helden, wenn diese Option gewählt wird. Die App zeigt sie auf dem Knopf an – Verderbnis gibt es nur so, nie überraschend."
                   }
                 }
               }
@@ -910,6 +917,60 @@
               "$ref": "#/$defs/id",
               "description": "Rätsel: optionales Event nach misslungener Probe."
             }
+          }
+        },
+        {
+          "description": "Helden verlieren Verderbnis (z. B. Läuterung); die App fragt nach dem Helden, außer bei jeder Held.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type"],
+          "properties": {
+            "type": { "const": "loseCorruption" },
+            "amount": { "type": "integer", "minimum": 1, "maximum": 3, "default": 1 },
+            "who": {
+              "enum": [
+                "active",
+                "each",
+                "chosen"
+              ],
+              "default": "active"
+            },
+            "text": { "type": "string", "minLength": 1 }
+          }
+        },
+        {
+          "description": "Verzweigung: Ist der handelnde Held verdorben (mindestens 1 Verderbnis)? Die App fragt nach dem Helden. Nur als letzter Schritt.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "ifCorrupted"],
+          "properties": {
+            "type": { "const": "checkCorruption" },
+            "ifCorrupted": { "$ref": "#/$defs/id" },
+            "ifNotCorrupted": { "$ref": "#/$defs/id" },
+            "text": { "type": "string", "minLength": 1 }
+          }
+        },
+        {
+          "description": "Legt einen Marker auf ein Feld: rough = unwegsamer Untergrund, fortified = befestigt.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "marker", "location"],
+          "properties": {
+            "type": { "const": "placeMarker" },
+            "marker": { "enum": ["rough", "fortified"] },
+            "location": { "$ref": "#/$defs/location" },
+            "text": { "type": "string", "minLength": 1 }
+          }
+        },
+        {
+          "description": "Entfernt einen zuvor gelegten Marker.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "marker", "location"],
+          "properties": {
+            "type": { "const": "removeMarker" },
+            "marker": { "enum": ["rough", "fortified"] },
+            "location": { "$ref": "#/$defs/location" }
           }
         },
         {

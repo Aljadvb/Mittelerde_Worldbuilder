@@ -92,6 +92,42 @@ sealed interface EventStep {
         val text: String? = null,
     ) : EventStep
 
+    /** Heroes lose corruption (e.g. purification); the app asks which hero unless it is everyone. */
+    @Serializable
+    @SerialName("loseCorruption")
+    data class LoseCorruption(
+        val amount: Int = 1,
+        val who: HeroTarget = HeroTarget.ACTIVE,
+        val text: String? = null,
+    ) : EventStep
+
+    /** Branch on whether the acting hero is corrupted (1 or more corruption); the app asks which hero acts. */
+    @Serializable
+    @SerialName("checkCorruption")
+    data class CheckCorruption(
+        val ifCorrupted: String,
+        val ifNotCorrupted: String? = null,
+        val text: String? = null,
+    ) : EventStep {
+        override val isTerminal get() = true
+    }
+
+    /** A rough-ground or fortified marker is laid on a field. */
+    @Serializable
+    @SerialName("placeMarker")
+    data class PlaceMarker(
+        val marker: FieldMarker,
+        val location: Location,
+        val text: String? = null,
+    ) : EventStep
+
+    @Serializable
+    @SerialName("removeMarker")
+    data class RemoveMarker(
+        val marker: FieldMarker,
+        val location: Location,
+    ) : EventStep
+
     /** Darkness: in each shadow phase heroes in darkness suffer [fear] (0 switches it off). */
     @Serializable
     @SerialName("setDarkness")
@@ -206,6 +242,11 @@ enum class HeroTarget {
 data class ChoiceOption(
     val label: String,
     val event: String,
+    /**
+     * Corruption the acting hero takes for this choice. Corruption only ever comes from such an
+     * option, so the players always see it on the button before they decide.
+     */
+    val corruption: Int = 0,
 )
 
 /** Conditions a hero can receive as a card: boons help, curses hinder. A hero never holds the same one twice. */
@@ -218,4 +259,11 @@ enum class Condition(val isCurse: Boolean) {
     @SerialName("captured") CAPTURED(true),
     @SerialName("disheartened") DISHEARTENED(true),
     @SerialName("frightened") FRIGHTENED(true),
+}
+
+/** Markers that change a field: rough ground (moving in costs a card or ends the move) and fortified (holding the field). */
+@Serializable
+enum class FieldMarker {
+    @SerialName("rough") ROUGH,
+    @SerialName("fortified") FORTIFIED,
 }

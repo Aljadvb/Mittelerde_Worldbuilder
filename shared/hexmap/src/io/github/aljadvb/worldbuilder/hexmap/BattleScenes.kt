@@ -92,7 +92,8 @@ fun battlePlayScene(
     }
     val cellMm = boards.firstNotNullOfOrNull { catalog.battleBoard(it.board)?.sides?.get(it.side)?.cellSizeMm } ?: 95.0
     val start = if (state.round == 1) (scenario.effectiveHeroStart as? SquareLocation)?.square else null
-    return BattleScene(boardViews, pieces, tokens, enemies, cellMm, highlightSquares = highlight.squares, heroStart = start)
+    val markers = state.fieldMarkers.mapNotNull { m -> (m.location as? SquareLocation)?.let { it.square to m.marker } }
+    return BattleScene(boardViews, pieces, tokens, enemies, cellMm, highlightSquares = highlight.squares, heroStart = start, markers = markers)
 }
 
 /** What the players see when they tap a terrain piece. */

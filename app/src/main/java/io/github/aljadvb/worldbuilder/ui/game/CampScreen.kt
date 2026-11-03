@@ -169,6 +169,10 @@ private fun HeroCard(hero: Hero, panel: androidx.compose.ui.graphics.Color, gold
                 Text(stringResource(R.string.camp_xp_label), color = androidx.compose.ui.graphics.Color(0xFF3A2E22), fontWeight = FontWeight.Bold)
                 Text("${hero.xpFor(hero.role).available}", color = androidx.compose.ui.graphics.Color(0xFF3A2E22), fontWeight = FontWeight.Bold)
             }
+            if (hero.corruption > 0) {
+                Text(stringResource(R.string.camp_corruption, hero.corruption), color = androidx.compose.ui.graphics.Color(0xFFE57373),
+                    style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 6.dp))
+            }
         }
     }
 }
@@ -256,6 +260,7 @@ fun HeroesSection(progress: CampaignProgress, editable: Boolean, onAction: ((Cam
             Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(h.name + if (h.role.isNotBlank()) " – ${h.role}" else "", fontWeight = FontWeight.Bold)
                 Text(stringResource(R.string.camp_xp_current, h.xpFor(h.role).available, h.xpFor(h.role).earned), style = MaterialTheme.typography.bodyMedium)
+                if (h.corruption > 0) Text(stringResource(R.string.camp_corruption, h.corruption), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
                 h.xp.filterKeys { it != h.role }.filterValues { it.earned > 0 }.forEach { (role, xp) ->
                     Text(stringResource(R.string.camp_xp_other, role.ifBlank { "–" }, xp.available), style = MaterialTheme.typography.bodySmall)
                 }

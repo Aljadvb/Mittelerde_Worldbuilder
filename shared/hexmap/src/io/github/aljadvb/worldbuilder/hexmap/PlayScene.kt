@@ -58,7 +58,8 @@ fun playScene(
     }
     // The start field is shown during the first round, while the heroes set up.
     val start = if (state.round == 1) scenario.effectiveHeroStart?.let { scenario.mapCell(it) } else null
-    return MapScene(catalog.hexOrientation, tiles, tokens, enemies, highlightCells = highlight.cells, heroStart = start)
+    val markers = state.fieldMarkers.mapNotNull { m -> scenario.mapCell(m.location)?.let { it to m.marker } }
+    return MapScene(catalog.hexOrientation, tiles, tokens, enemies, highlightCells = highlight.cells, heroStart = start, markers = markers)
 }
 
 /** What to emphasise on the map for a prompt. */

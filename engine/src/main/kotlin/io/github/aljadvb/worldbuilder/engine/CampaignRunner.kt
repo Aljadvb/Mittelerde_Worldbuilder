@@ -37,6 +37,8 @@ data class Hero(
     val role: String,
     val xp: Map<String, RoleXp> = emptyMap(),
     val skills: List<SkillPurchase> = emptyList(),
+    /** Corruption (Dark Paths); it lasts for the whole campaign. */
+    val corruption: Int = 0,
 ) {
     fun xpFor(role: String): RoleXp = xp[role] ?: RoleXp()
     val available: Int get() = xp.values.sumOf { it.available }
@@ -58,14 +60,14 @@ class CampaignRunner(val campaign: Campaign, catalog: io.github.aljadvb.worldbui
 
 
     /** A fresh game for the progress' current scenario (after the group chose another next adventure). */
-    fun startCurrent(p: CampaignProgress): GameState? = p.currentScenario?.let { engineFor(it, p.flags, p.inventory).start(p.heroCount) }
+    fun startCurrent(p: CampaignProgress): GameState? = p.currentScenario?.let { engineFor(it, p.flags, p.inventory).start(p.heroCount, p.party.map { h -> h.corruption }) }
 
     fun engineFor(scenarioId: String, flags: Set<String> = emptySet(), owned: List<String> = emptyList()): GameEngine =
         GameEngine(campaign.scenario(scenarioId) ?: throw EngineException("Szenario '$scenarioId' fehlt in der Kampagne."), flags, enemyTypes, items, owned)
 
     fun start(heroCount: Int, heroes: List<Hero> = emptyList()): Pair<CampaignProgress, GameState> {
         val progress = CampaignProgress(heroCount, campaign.startScenario, heroes = heroes.take(heroCount))
-        return progress to engineFor(campaign.startScenario).start(heroCount)
+        return progress to engineFor(campaign.startScenario).start(heroCount, progress.party.map { it.corruption })
     }
 
     /**
@@ -79,7 +81,12 @@ class CampaignRunner(val campaign: Campaign, catalog: io.github.aljadvb.worldbui
         val xp = resolution?.xp ?: 0
         val lore = finished.loreGained + (resolution?.lore ?: 0)
         val flags = progress.flags + finished.flags + resolution?.setFlags.orEmpty()
-        val heroes = progress.party.map { h -> h.copy(xp = h.xp + (h.role to h.xpFor(h.role).let { it.copy(earned = it.earned + xp) })) }
+        val heroes = progress.party.mapIndexed { i, h ->
+            h.copy(
+                xp = h.xp + (h.role to h.xpFor(h.role).let { it.copy(earned = it.earned + xp) }),
+                corruption = finished.corruption.getOrElse(i) { h.corruption },
+            )
+        }
         val options = campaign.nextScenarios(finished.scenarioId, resolutionId, flags)
         val next = options.firstOrNull()
         val updated = progress.copy(
@@ -92,7 +99,7 @@ class CampaignRunner(val campaign: Campaign, catalog: io.github.aljadvb.worldbui
             nextOptions = options,
             inCamp = true,
         )
-        return updated to next?.let { engineFor(it, flags, updated.inventory).start(progress.heroCount) }
+        return updated to next?.let { engineFor(it, flags, updated.inventory).start(progress.heroCount, heroes.map { h -> h.corruption }) }
     }
 }
 

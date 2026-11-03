@@ -67,6 +67,8 @@ data class MapScene(
     val showGrid: Boolean = false,
     /** Start field of the heroes' figures. */
     val heroStart: HexCoord? = null,
+    /** Rough-ground and fortified markers laid by events. */
+    val markers: List<Pair<HexCoord, io.github.aljadvb.worldbuilder.model.FieldMarker>> = emptyList(),
 )
 
 object MapColors {
@@ -74,6 +76,8 @@ object MapColors {
     val Label = Color(0xFF3E3324)
     val Enemy = Color(0xFFB3261E)
     val Elite = Color(0xFF6E0F0A)
+    val Rough = Color(0xFF7A5230)
+    val Fortified = Color(0xFF5F6670)
     val HeroStart = Color(0xFF2E7D32)
     val Error = Color(0xFFD32F2F)
     val Grid = Color(0x22000000)
@@ -167,6 +171,11 @@ fun HexCanvas(
             drawText(measured, topLeft = topLeft)
         }
 
+        for ((cell, marker) in scene.markers) {
+            val c = proj.center(cell)
+            drawFieldMarker(textMeasurer, marker, c, proj.size * 0.34f, Offset(0f, proj.size * 0.5f))
+        }
+
         scene.heroStart?.let { cell ->
             val c = proj.center(cell)
             drawPath(hexPath(proj.corners(cell).map { c + (it - c) * 0.9f }), MapColors.HeroStart, style = Stroke(4.dp.toPx()))
@@ -258,6 +267,19 @@ internal fun androidx.compose.ui.graphics.drawscope.DrawScope.drawEnemyMarker(c:
     val diamond = Path().apply { moveTo(c.x, c.y - r); lineTo(c.x + r, c.y); lineTo(c.x, c.y + r); lineTo(c.x - r, c.y); close() }
     drawPath(diamond, MapColors.Enemy)
     if (elite) drawPath(diamond, Color.White, style = Stroke(r * 0.12f))
+}
+
+/** Field marker: brown square "U" for rough ground, grey square "B" for fortified, placed at [c] + [offset]. */
+internal fun androidx.compose.ui.graphics.drawscope.DrawScope.drawFieldMarker(
+    textMeasurer: androidx.compose.ui.text.TextMeasurer, marker: io.github.aljadvb.worldbuilder.model.FieldMarker, c: Offset, r: Float, offset: Offset,
+) {
+    val p = c + offset
+    val color = if (marker == io.github.aljadvb.worldbuilder.model.FieldMarker.ROUGH) MapColors.Rough else MapColors.Fortified
+    drawRect(color, topLeft = p - Offset(r, r * 0.6f), size = Size(r * 2, r * 1.2f))
+    drawRect(Color.White, topLeft = p - Offset(r, r * 0.6f), size = Size(r * 2, r * 1.2f), style = Stroke(r * 0.12f))
+    val letter = if (marker == io.github.aljadvb.worldbuilder.model.FieldMarker.ROUGH) "U" else "B"
+    val m = textMeasurer.measure(letter, TextStyle(fontSize = (r * 0.9f).toSp(), color = Color.White, fontWeight = FontWeight.Bold))
+    drawText(m, topLeft = Offset(p.x - m.size.width / 2f, p.y - m.size.height / 2f))
 }
 
 /** Small disc with the banner number next to an enemy marker: white for normal, red for elite banners. */

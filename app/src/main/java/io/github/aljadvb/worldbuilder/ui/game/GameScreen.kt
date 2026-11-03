@@ -232,7 +232,7 @@ internal fun PlayContent(
         Spacer(Modifier.weight(1f))
         Box(Modifier.onSizeChanged { bottomHeight = with(density) { it.height.toDp() } }) {
         if (prompt != null) {
-            PromptPanel(prompt, scenario, catalog, game.heroCount, onCommand, Modifier.padding(start = 12.dp, end = 12.dp, bottom = 12.dp), heroNames, images)
+            PromptPanel(prompt, scenario, catalog, game.heroCount, onCommand, Modifier.padding(start = 12.dp, end = 12.dp, bottom = 12.dp), heroNames, images, game.corruption)
         } else {
             androidx.compose.material3.Surface(color = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f), modifier = Modifier.fillMaxWidth()) {
             Column(Modifier.padding(horizontal = 12.dp, vertical = 6.dp)) {
@@ -586,6 +586,10 @@ private fun historyText(prompt: Prompt, scenario: Scenario): String = when (prom
     is Prompt.TestProgress -> stringResource(R.string.test_progress_title)
     is Prompt.Recover -> recoverText(prompt)
     is Prompt.Condition -> conditionText(prompt)
+    is Prompt.ChooseHero -> stringResource(R.string.choose_hero_check)
+    is Prompt.Corruption -> corruptionText(prompt, emptyList())
+    is Prompt.CorruptionSetup -> stringResource(R.string.corruption_setup_title)
+    is Prompt.FieldMarker -> stringResource(if (prompt.placed) R.string.marker_place_title else R.string.marker_remove_title, markerName(prompt.marker))
     is Prompt.Inscription -> if (prompt.translationHidden) "„${prompt.elvish}“" else "„${prompt.elvish}“ – ${prompt.translation}"
     is Prompt.ItemFound -> stringResource(R.string.item_found_title) + ": " + (prompt.itemId ?: "–")
     is Prompt.Harm -> harmText(prompt)

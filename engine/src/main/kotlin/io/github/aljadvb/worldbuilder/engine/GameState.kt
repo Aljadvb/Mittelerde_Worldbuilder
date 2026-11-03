@@ -36,6 +36,10 @@ data class GameState(
     val exhaustedGroups: Set<String> = emptySet(),
     /** Stunned groups (also exhausted): not even elite groups counterattack. */
     val stunnedGroups: Set<String> = emptySet(),
+    /** Corruption of each hero (index = hero); it lasts for the whole campaign. */
+    val corruption: List<Int> = emptyList(),
+    /** Rough-ground and fortified markers laid by events. */
+    val fieldMarkers: List<PlacedMarker> = emptyList(),
     /** Fear in darkness per shadow phase (0 = no darkness). */
     val darknessFear: Int = 0,
     /** State of the deterministic random generator (targets, attacks, shadow events). */
@@ -169,6 +173,22 @@ sealed interface Prompt {
     @Serializable @SerialName("recover")
     data class Recover(val damage: Int, val fear: Int, val who: io.github.aljadvb.worldbuilder.model.HeroTarget, val text: String? = null) : Notice
 
+    /** The group says which hero acts (corruption is tracked per hero). */
+    @Serializable @SerialName("chooseHero")
+    data class ChooseHero(val question: HeroQuestion, val text: String? = null) : Prompt
+
+    /** Corruption of [hero] changed by [delta] to [total]. */
+    @Serializable @SerialName("corruption")
+    data class Corruption(val hero: Int, val delta: Int, val total: Int, val text: String? = null) : Notice
+
+    /** Scenario start: lay out corruption markers ([values] per hero). */
+    @Serializable @SerialName("corruptionSetup")
+    data class CorruptionSetup(val values: List<Int>) : Notice
+
+    /** A rough-ground or fortified marker is laid ([placed]) or removed. */
+    @Serializable @SerialName("fieldMarker")
+    data class FieldMarker(val marker: io.github.aljadvb.worldbuilder.model.FieldMarker, val location: io.github.aljadvb.worldbuilder.model.Location, val placed: Boolean, val text: String? = null) : Notice
+
     /** Heroes take the boon or curse card [condition]. */
     @Serializable @SerialName("condition")
     data class Condition(val condition: io.github.aljadvb.worldbuilder.model.Condition, val who: io.github.aljadvb.worldbuilder.model.HeroTarget, val text: String? = null) : Notice
@@ -238,7 +258,21 @@ enum class AttackReason { @SerialName("provoked") PROVOKED, @SerialName("counter
 
 /** Which limit a hero reached. */
 @Serializable
-enum class LimitKind { @SerialName("damage") DAMAGE, @SerialName("fear") FEAR }
+enum class LimitKind { @SerialName("damage") DAMAGE, @SerialName("fear") FEAR, @SerialName("corruption") CORRUPTION }
+
+@Serializable
+data class PlacedMarker(val marker: io.github.aljadvb.worldbuilder.model.FieldMarker, val location: io.github.aljadvb.worldbuilder.model.Location)
+
+/** Why the app asks which hero acts. */
+@Serializable
+sealed interface HeroQuestion {
+    @Serializable @SerialName("gainCorruption")
+    data class GainCorruption(val amount: Int) : HeroQuestion
+    @Serializable @SerialName("loseCorruption")
+    data class LoseCorruption(val amount: Int) : HeroQuestion
+    @Serializable @SerialName("checkCorruption")
+    data class CheckCorruption(val ifCorrupted: String, val ifNotCorrupted: String?) : HeroQuestion
+}
 
 @Serializable
 data class HistoryEntry(val round: Int, val prompt: Prompt, val answer: String? = null)
@@ -247,6 +281,9 @@ data class HistoryEntry(val round: Int, val prompt: Prompt, val answer: String? 
 sealed interface Command {
     /** Dismiss the current [Prompt.Notice]. */
     data object Acknowledge : Command
+
+    /** Answer to [Prompt.ChooseHero]. */
+    data class ChooseHero(val hero: Int) : Command
 
     /** Pick option [index] of the current [Prompt.Choice]. */
     data class Choose(val index: Int) : Command

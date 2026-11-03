@@ -27,8 +27,9 @@ class GameEngine(
     private val ownedItems: List<String> = emptyList(),
 ) {
 
-    fun start(heroCount: Int): GameState {
+    fun start(heroCount: Int, corruption: List<Int> = emptyList()): GameState {
         require(heroCount in 1..5) { "heroCount must be 1–5" }
+        val heroCorruption = List(heroCount) { corruption.getOrElse(it) { 0 }.coerceAtLeast(0) }
         val initial = GameState(
             scenarioId = scenario.id,
             heroCount = heroCount,
@@ -40,7 +41,8 @@ class GameEngine(
                     listOf(EventStep.UnlockChapter(scenario.startChapter), EventStep.SetObjective(scenario.startObjective)),
                 ),
             ),
-            prompts = listOf(Prompt.Intro),
+            prompts = listOf(Prompt.Intro) + if (heroCorruption.any { it > 0 }) listOf(Prompt.CorruptionSetup(heroCorruption)) else emptyList(),
+            corruption = heroCorruption,
         )
         return initial
     }
@@ -59,6 +61,14 @@ class GameEngine(
                 val option = prompt.step.options.getOrNull(command.index) ?: throw EngineException("Ungültige Option ${command.index}.")
                 run.popPrompt(answer = option.label)
                 run.replaceCurrent(option.event)
+                // The option said so on its button: the acting hero takes corruption.
+                if (option.corruption > 0) run.askHero(Prompt.ChooseHero(HeroQuestion.GainCorruption(option.corruption)), first = true)
+            }
+            is Command.ChooseHero -> {
+                val prompt = state.currentPrompt as? Prompt.ChooseHero ?: throw EngineException("Keine Heldenwahl offen.")
+                if (command.hero !in 0 until state.heroCount) throw EngineException("Unbekannter Held ${command.hero}.")
+                run.popPrompt(answer = command.hero.toString())
+                run.answerHero(prompt.question, command.hero)
             }
             is Command.ReportTest -> {
                 if (command.successes < 0) throw EngineException("Erfolge dürfen nicht negativ sein.")
@@ -177,6 +187,8 @@ class GameEngine(
         val armorLoss = s.armorLoss.toMutableMap()
         val exhausted = s.exhaustedGroups.toMutableSet()
         val stunned = s.stunnedGroups.toMutableSet()
+        val corruption = List(heroCount) { s.corruption.getOrElse(it) { 0 } }.toMutableList()
+        val fieldMarkers = s.fieldMarkers.toMutableList()
         var darknessFear = s.darknessFear
         var rng = s.rng
         val defeatedHeroes = s.defeatedHeroes.toMutableSet()
@@ -202,7 +214,7 @@ class GameEngine(
             interactedTokens = interactedTokens.toSet(), activeEnemyGroups = activeGroups.toSet(),
             defeatedEnemyGroups = defeatedGroups.toSet(), activeObjectives = activeObjectives.toList(),
             completedObjectives = completedObjectives.toSet(), firedTriggers = firedTriggers.toSet(), exploredPlacements = explored.toSet(), pendingTokens = pendingTokens.toSet(), flags = flags.toSet(), loreGained = loreGained,
-            enemyHealth = enemyHealth.toMap(), armorLoss = armorLoss.toMap(), exhaustedGroups = exhausted.toSet(), stunnedGroups = stunned.toSet(),
+            enemyHealth = enemyHealth.toMap(), armorLoss = armorLoss.toMap(), exhaustedGroups = exhausted.toSet(), stunnedGroups = stunned.toSet(), corruption = corruption.toList(), fieldMarkers = fieldMarkers.toList(),
             darknessFear = darknessFear, rng = rng,
             defeatedHeroes = defeatedHeroes.toSet(), lastStandUsed = lastStandUsed.toSet(),
             ownedItems = ownedItemsAtStart, itemsFound = itemsFound.toList(), testProgress = testProgress.toMap(), enemyBanners = enemyBanners.toMap(),
@@ -299,13 +311,49 @@ class GameEngine(
             if (first) prompts.add(0, p) else prompts += p
         }
 
+        /** Asks which hero acts; with a single hero the answer is obvious. */
+        fun askHero(prompt: Prompt.ChooseHero, first: Boolean = false) {
+            if (heroCount == 1) answerHero(prompt.question, 0)
+            else if (first) prompts.add(0, prompt) else prompts += prompt
+        }
+
+        fun answerHero(question: HeroQuestion, hero: Int) {
+            when (question) {
+                is HeroQuestion.GainCorruption -> prompts.addAll(0, gainCorruption(hero, question.amount))
+                is HeroQuestion.LoseCorruption -> loseCorruption(hero, question.amount, null)?.let { prompts.add(0, it) }
+                is HeroQuestion.CheckCorruption -> replaceCurrent(if (corruption[hero] > 0) question.ifCorrupted else question.ifNotCorrupted)
+            }
+        }
+
+        /** Adds corruption; a hero with 3 who would take a fourth makes a last stand instead (Dark Paths rules). */
+        private fun gainCorruption(hero: Int, amount: Int): List<Prompt> {
+            var gained = 0
+            var lastStand = false
+            repeat(amount) {
+                if (lastStand) return@repeat
+                if (corruption[hero] >= MAX_CORRUPTION) lastStand = true
+                else { corruption[hero] += 1; gained++ }
+            }
+            return listOfNotNull(
+                gained.takeIf { it > 0 }?.let { Prompt.Corruption(hero, it, corruption[hero]) },
+                if (lastStand) Prompt.LastStandTest(hero, LimitKind.CORRUPTION) else null,
+            )
+        }
+
+        private fun loseCorruption(hero: Int, amount: Int, text: String?): Prompt? {
+            val before = corruption[hero]
+            corruption[hero] = (before - amount).coerceAtLeast(0)
+            return if (before > corruption[hero]) Prompt.Corruption(hero, corruption[hero] - before, corruption[hero], text) else null
+        }
+
         fun limitReached(hero: Int, kind: LimitKind) {
             if (hero in lastStandUsed) defeatHero(hero, kind, secondTime = true)
             else prompts += Prompt.LastStandTest(hero, kind)
         }
 
         fun lastStandResult(test: Prompt.LastStandTest, passed: Boolean) {
-            lastStandUsed += test.hero
+            // The corruption last stand does not use up the one last stand against damage or fear.
+            if (test.kind != LimitKind.CORRUPTION) lastStandUsed += test.hero
             if (passed) prompts.add(0, Prompt.HeroSurvives(test.hero, test.kind))
             else defeatHero(test.hero, test.kind, secondTime = false, first = true)
         }
@@ -468,6 +516,19 @@ class GameEngine(
                         prompts += Prompt.Test(eventId, test, reveal = Prompt.Inscription(step.elvish, step.translation))
                     }
                 }
+                is EventStep.LoseCorruption -> if (step.who == io.github.aljadvb.worldbuilder.model.HeroTarget.EACH) {
+                    (0 until heroCount).mapNotNull { loseCorruption(it, step.amount, step.text) }.forEach { prompts += it }
+                } else {
+                    askHero(Prompt.ChooseHero(HeroQuestion.LoseCorruption(step.amount), step.text))
+                }
+                is EventStep.CheckCorruption -> askHero(Prompt.ChooseHero(HeroQuestion.CheckCorruption(step.ifCorrupted, step.ifNotCorrupted), step.text))
+                is EventStep.PlaceMarker -> {
+                    val m = PlacedMarker(step.marker, step.location)
+                    if (m !in fieldMarkers) { fieldMarkers += m; prompts += Prompt.FieldMarker(step.marker, step.location, placed = true, text = step.text) }
+                }
+                is EventStep.RemoveMarker -> {
+                    if (fieldMarkers.remove(PlacedMarker(step.marker, step.location))) prompts += Prompt.FieldMarker(step.marker, step.location, placed = false)
+                }
                 is EventStep.GainCondition -> prompts += Prompt.Condition(step.condition, step.who, step.text)
                 is EventStep.Recover -> if (step.damage > 0 || step.fear > 0) prompts += Prompt.Recover(step.damage, step.fear, step.who, step.text)
                 is EventStep.GainItem -> {
@@ -552,6 +613,8 @@ class GameEngine(
 
     companion object {
         const val MAX_STEPS_PER_COMMAND = 10_000
+        /** A hero with this much corruption makes a last stand instead of taking more. */
+        const val MAX_CORRUPTION = 3
         const val DEFEAT_TEXT = "Die Gegnergruppe ist besiegt!"
     }
 }
