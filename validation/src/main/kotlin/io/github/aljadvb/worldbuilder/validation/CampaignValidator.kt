@@ -348,6 +348,13 @@ private class CampaignChecks(
             }
             checkLocation(s, si, g.location, "$gp.location", g.id, ownerChapter = null)
         }
+        // Start field of the heroes: on the start chapter, on an explored tile.
+        // Without one the app uses the anchor field of the start chapter's first tile.
+        val start = s.heroStart
+        if (start != null) {
+            checkLocation(s, si, start, "$sp.heroStart", s.id, ownerChapter = s.startChapter)
+            start.placementId?.let { pl -> if (s.placement(pl)?.unexplored == true) c.error(IssueCode.LOCATION_ON_LATER_CHAPTER, "$sp.heroStart", s.id, "Das Startfeld der Helden liegt auf einer unerforschten Kachel.") }
+        }
     }
 
     private fun checkEvent(s: Scenario, si: Int, ep: String, eventId: String, steps: List<EventStep>) {

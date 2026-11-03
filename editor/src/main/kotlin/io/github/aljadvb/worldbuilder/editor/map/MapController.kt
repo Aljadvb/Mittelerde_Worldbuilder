@@ -34,6 +34,7 @@ sealed interface MapTool {
     data class PlaceTile(val tile: String, val side: TileSide, val rotation: Int = 0) : MapTool
     data class PlaceToken(val type: TokenType) : MapTool
     data object PlaceEnemy : MapTool
+    data object HeroStart : MapTool
 }
 
 /** What is being dragged with the select tool. */
@@ -131,6 +132,12 @@ class MapController(private val model: EditorModel) {
                 val loc = s.locate(cell, model.catalog, visibleChapters.map { it.id }.toSet()) ?: return true.also { model.message = Texts.MAP_NO_TILE }
                 val type = model.catalog.enemyTypes.firstOrNull()?.id.orEmpty()
                 create { it.addEnemyGroup(s.id, Texts.NEW_ENEMY_GROUP, type, loc) }
+                tool = MapTool.Select
+                return true
+            }
+            MapTool.HeroStart -> {
+                val loc = s.locate(cell, model.catalog, setOf(s.startChapter)) ?: return true.also { model.message = Texts.MAP_NO_TILE }
+                model.edit { c -> c.copy(scenarios = c.scenarios.map { if (it.id == s.id) it.copy(heroStart = loc) else it }) }
                 tool = MapTool.Select
                 return true
             }

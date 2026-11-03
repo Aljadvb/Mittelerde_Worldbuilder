@@ -107,7 +107,7 @@ fun editorScene(model: EditorModel, c: MapController, highlight: Color): MapScen
             ?: s.mapCell(g.location) ?: return@mapNotNull null
         MapEnemy(g.id, cell, g.count[2] ?: 0, selected = g.id == model.selection)
     }
-    val placing = c.tool is MapTool.PlaceToken || c.tool == MapTool.PlaceEnemy
+    val placing = c.tool is MapTool.PlaceToken || c.tool == MapTool.PlaceEnemy || c.tool == MapTool.HeroStart
     return MapScene(
         orientation = catalog.hexOrientation,
         tiles = tiles,
@@ -116,6 +116,7 @@ fun editorScene(model: EditorModel, c: MapController, highlight: Color): MapScen
         highlightCells = if (placing) setOfNotNull(c.hover) else emptySet(),
         errorCells = c.ghostConflicts,
         showGrid = true,
+        heroStart = s.effectiveHeroStart?.takeIf { s.startChapter in visibleIds }?.let { s.mapCell(it) },
     )
 }
 
@@ -263,6 +264,7 @@ private fun Toolbar(model: EditorModel, controller: MapController, onFit: () -> 
             }
         }
         FilterChip(selected = controller.tool == MapTool.PlaceEnemy, onClick = { controller.tool = MapTool.PlaceEnemy }, label = { Text(Texts.MAP_ADD_ENEMY) })
+        FilterChip(selected = controller.tool == MapTool.HeroStart, onClick = { controller.tool = MapTool.HeroStart; model.message = Texts.MAP_HERO_START_HINT }, label = { Text(Texts.MAP_HERO_START) })
         AssistChip(onClick = { controller.rotate() }, label = { Text(Texts.MAP_ROTATE) })
         AssistChip(onClick = { controller.flip() }, label = { Text(Texts.MAP_FLIP) })
         AssistChip(onClick = onFit, label = { Text(Texts.MAP_FIT) })

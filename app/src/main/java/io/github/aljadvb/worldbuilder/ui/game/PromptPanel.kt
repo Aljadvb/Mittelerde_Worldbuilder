@@ -154,6 +154,9 @@ private fun NoticeContent(prompt: Prompt.Notice, scenario: Scenario, catalog: Ma
                         else stringResource(R.string.prompt_setup_token_line, t.label, tokenTypeLabel(t), tileLabel(t.location.placementId.orEmpty())))
                 }
             }
+            if (chapter.id == scenario.startChapter && scenario.effectiveHeroStart != null) {
+                Text(stringResource(R.string.prompt_setup_heroes), fontWeight = FontWeight.Bold, color = androidx.compose.ui.graphics.Color(0xFF2E7D32))
+            }
             Hint(stringResource(if (chapter.isBattle) R.string.prompt_setup_hint_battle else R.string.prompt_setup_hint))
         }
         is Prompt.SpawnEnemies -> {

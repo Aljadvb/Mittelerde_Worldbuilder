@@ -56,7 +56,9 @@ fun playScene(
         val alive = state.enemyHealth[g.id]?.count { it > 0 } ?: (g.count[state.heroCount] ?: 0)
         scenario.mapCell(g.location)?.let { MapEnemy(g.id, it, alive, banner = state.enemyBanners[g.id]) }
     }
-    return MapScene(catalog.hexOrientation, tiles, tokens, enemies, highlightCells = highlight.cells)
+    // The start field is shown during the first round, while the heroes set up.
+    val start = if (state.round == 1) scenario.effectiveHeroStart?.let { scenario.mapCell(it) } else null
+    return MapScene(catalog.hexOrientation, tiles, tokens, enemies, highlightCells = highlight.cells, heroStart = start)
 }
 
 /** What to emphasise on the map for a prompt. */

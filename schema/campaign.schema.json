@@ -211,6 +211,10 @@
             "$ref": "#/$defs/id"
           },
           "description": "Events, aus denen die App am Ende jeder Runde eines zieht (auch harmlose)."
+        },
+        "heroStart": {
+          "$ref": "#/$defs/location",
+          "description": "Startfeld der Heldenfiguren auf der Karte des Startkapitels (Reise: placement + cell auf einer erforschten Kachel; Schlacht: square)."
         }
       }
     },

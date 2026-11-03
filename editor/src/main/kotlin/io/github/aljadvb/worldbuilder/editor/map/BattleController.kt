@@ -42,6 +42,7 @@ sealed interface BattleTool {
     data class PlacePiece(val piece: String, val side: TileSide) : BattleTool
     data class PlaceToken(val type: TokenType) : BattleTool
     data object PlaceEnemy : BattleTool
+    data object HeroStart : BattleTool
 }
 
 /** What is being dragged on the battle map. */
@@ -138,6 +139,12 @@ class BattleController(private val model: EditorModel) {
                 if (map().field(square) == null) return true.also { model.message = Texts.BATTLE_NEED_BOARD }
                 val type = model.catalog.enemyTypes.firstOrNull()?.id.orEmpty()
                 create { it.addEnemyGroup(s.id, Texts.NEW_ENEMY_GROUP, type, SquareLocation(square)) }
+                tool = BattleTool.Select
+                return true
+            }
+            BattleTool.HeroStart -> {
+                if (map().field(square) == null) return true.also { model.message = Texts.BATTLE_NEED_BOARD }
+                model.edit { c -> c.copy(scenarios = c.scenarios.map { if (it.id == s.id) it.copy(heroStart = SquareLocation(square)) else it }) }
                 tool = BattleTool.Select
                 return true
             }

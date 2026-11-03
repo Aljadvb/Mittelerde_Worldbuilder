@@ -317,6 +317,7 @@ private fun PromptCard(game: PlaytestModel, scenario: Scenario, catalog: Materia
                 is Prompt.Notice -> {
                     Text(describe(prompt, scenario, catalog), style = MaterialTheme.typography.bodyLarge)
                     if (prompt is Prompt.Setup) {
+                        if (prompt.chapterId == scenario.startChapter && scenario.effectiveHeroStart != null) Text(Texts.SETUP_HEROES, fontWeight = FontWeight.Bold)
                         scenario.chapter(prompt.chapterId)?.tiles?.forEach { Text(Texts.tileLine(catalog.tile(it.tile)?.label ?: it.tile, it.side.name)) }
                         scenario.battleSetup(prompt.chapterId, catalog)?.let { setup ->
                             if (setup.clearFirst) Text(Texts.CLEAR_BATTLEFIELD_SETUP, fontWeight = FontWeight.Bold)

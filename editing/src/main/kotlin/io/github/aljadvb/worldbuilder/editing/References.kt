@@ -108,6 +108,7 @@ private fun Scenario.mapReferences(sp: String, ref: RefFn): Scenario {
             )
         },
         enemyGroups = enemyGroups.mapIndexed { i, g -> g.copy(location = loc(g.location, "$sp.enemyGroups[$i].location", g.id)) },
+        heroStart = heroStart?.let { loc(it, "$sp.heroStart", id) },
         events = events.mapIndexed { i, e -> e.mapReferences("$sp.events[$i]", ref) },
         triggers = triggers.mapIndexed { i, t -> t.mapReferences("$sp.triggers[$i]", ref) },
         objectives = objectives.mapIndexed { i, o ->

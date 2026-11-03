@@ -1,6 +1,6 @@
 # Testliste – was noch von Hand zu prüfen ist
 
-Stand: 2026-11-02 · Version 1.15.0 · Abhaken mit `[x]`. Rückmeldungen (Screenshots, Dateien) einfach im Chat schicken.
+Stand: 2026-11-02 · Version 1.16.0 · Abhaken mit `[x]`. Rückmeldungen (Screenshots, Dateien) einfach im Chat schicken.
 
 Alles hier ist automatisch getestet (Unit-Tests, simulierte Maus, gerenderte Screenshots), aber **noch nie auf echter
 Hardware bzw. mit einer echten KI gelaufen**. Die wichtigsten Punkte stehen oben.
@@ -122,6 +122,7 @@ Hardware bzw. mit einer echten KI gelaufen**. Die wichtigsten Punkte stehen oben
 - [ ] KI-Reiseszenario: deutlich mehr Kacheln (Tisch gut gefüllt) und auf jeder Kachel etwas zu tun, mit optionalen Nebenaktionen
 - [ ] Prüfung warnt bei Kacheln ohne Token oder Gegner
 - [ ] Editor-Probespiel: nach einem Szenario erscheint ein einfaches Lager
+- [ ] Startfeld der Helden: in Runde 1 grün markiert, Aufbau-Anweisung nennt es; im Editor über „Startfeld der Helden“ setzbar (Reise und Schlacht) (neu in 1.16.0)
 
 ## 1k. Proben, Stimmungs-Marker, Gegnermenü und Banner (neu in 1.12.0)
 

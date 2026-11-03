@@ -87,6 +87,8 @@ data class BattleScene(
     val errorSquares: Set<GridCoord> = emptySet(),
     /** Draw a faint square grid around the boards (editor). */
     val showGrid: Boolean = false,
+    /** Start square of the heroes' figures. */
+    val heroStart: GridCoord? = null,
 ) {
     val squares: Set<GridCoord> get() = boards.flatMap { it.fields.flatten() }.toSet()
 }
@@ -237,6 +239,14 @@ fun BattleCanvas(
             if (piece.special) drawSpecialMarker(c + Offset(minOf(s.width, proj.cell * 0.5f) / 2, -minOf(s.height, proj.cell * 0.5f) / 2), proj.cell * 0.07f)
         }
 
+        scene.heroStart?.let { sq ->
+            val r = proj.rect(sq)
+            drawRect(MapColors.HeroStart, topLeft = r.topLeft + Offset(3f, 3f), size = Size(r.width - 6f, r.height - 6f), style = Stroke(4.dp.toPx()))
+            val m = textMeasurer.measure("Start", TextStyle(fontSize = (proj.cell * 0.11f).toSp(), color = Color.White, fontWeight = FontWeight.Bold))
+            val tl = Offset(r.center.x - m.size.width / 2f, r.bottom - m.size.height - 8f)
+            drawRect(MapColors.HeroStart, topLeft = tl - Offset(4f, 1f), size = Size(m.size.width + 8f, m.size.height + 2f))
+            drawText(m, topLeft = tl)
+        }
         for ((enemy, c) in squareEnemyCenters(proj, scene.enemies)) {
             val r = proj.cell * 0.12f
             val diamond = Path().apply { moveTo(c.x, c.y - r); lineTo(c.x + r, c.y); lineTo(c.x, c.y + r); lineTo(c.x - r, c.y); close() }

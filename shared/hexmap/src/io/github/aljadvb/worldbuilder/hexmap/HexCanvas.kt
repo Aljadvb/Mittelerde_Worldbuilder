@@ -65,12 +65,15 @@ data class MapScene(
     val errorCells: Set<HexCoord> = emptySet(),
     /** Draw a faint background grid (editor). */
     val showGrid: Boolean = false,
+    /** Start field of the heroes' figures. */
+    val heroStart: HexCoord? = null,
 )
 
 object MapColors {
     val TileBorder = Color(0xFF5D4E37)
     val Label = Color(0xFF3E3324)
     val Enemy = Color(0xFFB3261E)
+    val HeroStart = Color(0xFF2E7D32)
     val Error = Color(0xFFD32F2F)
     val Grid = Color(0x22000000)
     val Piece = Color(0xFFBCAA88)
@@ -161,6 +164,15 @@ fun HexCanvas(
                 cornerRadius = CornerRadius(pad * 2),
             )
             drawText(measured, topLeft = topLeft)
+        }
+
+        scene.heroStart?.let { cell ->
+            val c = proj.center(cell)
+            drawPath(hexPath(proj.corners(cell).map { c + (it - c) * 0.9f }), MapColors.HeroStart, style = Stroke(4.dp.toPx()))
+            val m = textMeasurer.measure("Start", TextStyle(fontSize = (proj.size * 0.28f).toSp(), color = Color.White, fontWeight = FontWeight.Bold))
+            val tl = Offset(c.x - m.size.width / 2f, c.y - proj.size * 0.78f)
+            drawRoundRect(MapColors.HeroStart, topLeft = tl - Offset(4f, 1f), size = Size(m.size.width + 8f, m.size.height + 2f), cornerRadius = CornerRadius(6f))
+            drawText(m, topLeft = tl)
         }
 
         for ((enemy, c) in enemyCenters(proj, scene.enemies)) {

@@ -80,7 +80,16 @@ data class Scenario(
     val place: String? = null,
     /** Events the app draws from at the end of every round (also harmless ones). */
     val shadowEvents: List<String> = emptyList(),
+    /** Field where the heroes' figures start (on the start chapter's map). */
+    val heroStart: Location? = null,
 ) {
+    /** The heroes' start field; without an explicit one, the anchor field of the start chapter's first tile. */
+    val effectiveHeroStart: Location?
+        get() = heroStart ?: chapter(startChapter)?.let { ch ->
+            ch.tiles.firstOrNull { !it.unexplored }?.let { TileLocation(it.id, HexCoord.ORIGIN) }
+                ?: ch.battlefield?.boards?.firstOrNull()?.let { SquareLocation(GridCoord(0, 0)) }
+        }
+
     val tokens: List<Token> get() = chapters.flatMap { it.tokens }
     val placements: List<TilePlacement> get() = chapters.flatMap { it.tiles }
     val boardPlacements: List<BoardPlacement> get() = chapters.flatMap { it.battlefield?.boards.orEmpty() }

@@ -110,12 +110,13 @@ fun editorBattleScene(model: EditorModel, c: BattleController): BattleScene? {
         if (map.field(sq) == null && drag !is BattleDrag.Enemy) return@mapNotNull null
         SquareEnemy(g.id, sq, g.count[2] ?: 0, selected = g.id == model.selection)
     }
-    val placingFigure = tool is BattleTool.PlaceToken || tool == BattleTool.PlaceEnemy
+    val placingFigure = tool is BattleTool.PlaceToken || tool == BattleTool.PlaceEnemy || tool == BattleTool.HeroStart
     val cellMm = boardPlacements.firstNotNullOfOrNull { (b, _) -> catalog.battleBoard(b.board)?.sides?.get(b.side)?.cellSizeMm } ?: 95.0
     return BattleScene(
         boards = boards, pieces = pieces, tokens = tokens, enemies = enemies, cellSizeMm = cellMm,
         highlightSquares = if (placingFigure) setOfNotNull(c.hoverSquare) else emptySet(),
         showGrid = true,
+        heroStart = (s.effectiveHeroStart as? SquareLocation)?.square,
     )
 }
 
@@ -264,6 +265,7 @@ private fun BattleToolbar(model: EditorModel, controller: BattleController, onFi
             }
         }
         FilterChip(selected = controller.tool == BattleTool.PlaceEnemy, onClick = { controller.tool = BattleTool.PlaceEnemy }, label = { Text(Texts.MAP_ADD_ENEMY) })
+        FilterChip(selected = controller.tool == BattleTool.HeroStart, onClick = { controller.tool = BattleTool.HeroStart; model.message = Texts.MAP_HERO_START_HINT }, label = { Text(Texts.MAP_HERO_START) })
         AssistChip(onClick = { controller.rotate() }, label = { Text(Texts.MAP_ROTATE) })
         AssistChip(onClick = { controller.flip() }, label = { Text(Texts.MAP_FLIP) })
         AssistChip(onClick = onFit, label = { Text(Texts.MAP_FIT) })
