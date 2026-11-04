@@ -396,6 +396,10 @@ private class CampaignChecks(
                     if (step.cumulative && step.onFailure != null) {
                         c.warn(IssueCode.CUMULATIVE_FAILURE, "$p.onFailure", eventId, "$what: Eine Sammelprobe scheitert nie – 'onFailure' wird nicht verwendet (für jeden Versuch gibt es 'onAttempt').")
                     }
+                    if (step.corruptionEase !in 0..2) c.error(IssueCode.INVALID_NUMBER, "$p.corruptionEase", eventId, "$what: Erleichterung durch Verderbnis 0–2 Erfolge.")
+                    if (step.corruptionEase > 0 && (step.cumulative || step.successes < 2)) {
+                        c.warn(IssueCode.INVALID_NUMBER, "$p.corruptionEase", eventId, "$what: Erleichterung durch Verderbnis nur bei schweren, nicht gemeinsamen Proben (mindestens 2 Erfolge).")
+                    }
                     if (!step.cumulative && step.onAttempt != null) {
                         c.warn(IssueCode.CUMULATIVE_FAILURE, "$p.onAttempt", eventId, "$what: 'onAttempt' wirkt nur bei Sammelproben.")
                     }
@@ -433,6 +437,10 @@ private class CampaignChecks(
                     step.text?.let { blank(it, "$p.text", eventId, "$what: Text") }
                 }
                 is EventStep.GainCondition -> step.text?.let { blank(it, "$p.text", eventId, "$what: Text") }
+                is EventStep.GainCorruption -> {
+                    if (step.amount !in 1..2) c.error(IssueCode.INVALID_NUMBER, "$p.amount", eventId, "$what: Verderbnis 1–2.")
+                    step.text?.let { blank(it, "$p.text", eventId, "$what: Text") }
+                }
                 is EventStep.LoseCorruption -> {
                     if (step.amount !in 1..3) c.error(IssueCode.INVALID_NUMBER, "$p.amount", eventId, "$what: Verderbnis 1–3.")
                     step.text?.let { blank(it, "$p.text", eventId, "$what: Text") }
@@ -535,6 +543,7 @@ internal fun stepName(step: EventStep): String = when (step) {
     is EventStep.AffectEnemy -> "affectEnemy"
     is EventStep.Inscription -> "inscription"
     is EventStep.GainCondition -> "gainCondition"
+    is EventStep.GainCorruption -> "gainCorruption"
     is EventStep.LoseCorruption -> "loseCorruption"
     is EventStep.CheckCorruption -> "checkCorruption"
     is EventStep.PlaceMarker -> "placeMarker"

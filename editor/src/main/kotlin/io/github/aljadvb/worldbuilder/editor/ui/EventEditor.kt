@@ -114,6 +114,7 @@ private fun stepLabel(step: EventStep): String {
         is EventStep.GainItem -> "gainItem"
         is EventStep.Recover -> "recover"
         is EventStep.GainCondition -> "gainCondition"
+        is EventStep.GainCorruption -> "gainCorruption"
         is EventStep.LoseCorruption -> "loseCorruption"
         is EventStep.CheckCorruption -> "checkCorruption"
         is EventStep.PlaceMarker -> "placeMarker"
@@ -152,6 +153,7 @@ fun newStep(type: String, s: Scenario): EventStep = when (type) {
     "gainItem" -> EventStep.GainItem()
     "recover" -> EventStep.Recover(damage = 1)
     "gainCondition" -> EventStep.GainCondition(io.github.aljadvb.worldbuilder.model.Condition.HIDDEN)
+    "gainCorruption" -> EventStep.GainCorruption()
     "loseCorruption" -> EventStep.LoseCorruption()
     "checkCorruption" -> EventStep.CheckCorruption("")
     "placeMarker" -> EventStep.PlaceMarker(io.github.aljadvb.worldbuilder.model.FieldMarker.ROUGH, defaultLocation(s))
@@ -208,6 +210,7 @@ private fun StepFields(
                     set(step.copy(attribute = Attribute.valueOf(v!!)))
                 }
                 IntInput(model, Texts.SUCCESSES, step.successes, "$key.successes", "$p.successes") { v -> setText(step.copy(successes = v)) }
+                if (!step.cumulative) IntInput(model, Texts.CORRUPTION_EASE, step.corruptionEase, "$key.corruptionEase", "$p.corruptionEase", width = 260.dp) { v -> setText(step.copy(corruptionEase = v.coerceIn(0, 2))) }
             }
             ChoiceInput(model, Texts.ON_SUCCESS, step.onSuccess, events, "$p.onSuccess", onCreate = { newEvent { id -> set(step.copy(onSuccess = id)) } }) { v ->
                 set(step.copy(onSuccess = v.orEmpty()))
@@ -305,6 +308,15 @@ private fun StepFields(
                     set(step.copy(onFailure = v))
                 }
             }
+        }
+        is EventStep.GainCorruption -> {
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                IntInput(model, Texts.AMOUNT, step.amount, "$key.amount", "$p.amount") { v -> setText(step.copy(amount = v)) }
+                ChoiceInput(model, Texts.HARM_WHO, step.who.name, Texts.INSPIRATION_TARGETS.map { Choice(it.first, it.second) }, null, modifier = Modifier.weight(1f)) { v ->
+                    set(step.copy(who = io.github.aljadvb.worldbuilder.model.HeroTarget.valueOf(v!!)))
+                }
+            }
+            TextInput(model, Texts.OPTIONAL_TEXT, step.text.orEmpty(), "$key.text", "$p.text") { v -> setText(step.copy(text = v.ifEmpty { null })) }
         }
         is EventStep.LoseCorruption -> {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {

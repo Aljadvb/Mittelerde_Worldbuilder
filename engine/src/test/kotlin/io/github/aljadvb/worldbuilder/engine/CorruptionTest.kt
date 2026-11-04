@@ -97,6 +97,35 @@ class CorruptionTest {
     }
 
     @Test
+    fun `gainCorruption step for an evil deed asks for the hero`() {
+        val e = engine(EventStep.GainCorruption(1, HeroTarget.ACTIVE, "Die Schattenkrone flüstert in deinem Kopf."))
+        var s = atWell(e)
+        assertEquals("Die Schattenkrone flüstert in deinem Kopf.", (s.currentPrompt as Prompt.ChooseHero).text)
+        s = e.apply(s, Command.ChooseHero(0))
+        assertEquals(Prompt.Corruption(0, 1, 1), s.currentPrompt)
+    }
+
+    @Test
+    fun `hard tests can be eased by taking corruption`() {
+        val test = EventStep.Test(attribute = io.github.aljadvb.worldbuilder.model.Attribute.SPIRIT, successes = 3, onSuccess = "evt_pluendern", onFailure = "evt_lassen", corruptionEase = 1)
+        val e = engine(test)
+        var s = atWell(e)
+        val open = s.currentPrompt as Prompt.Test
+        assertTrue(open.canEase)
+        assertEquals(3, open.required)
+        s = e.apply(s, Command.EaseTest)
+        s = e.apply(s, Command.ChooseHero(1))
+        assertEquals(Prompt.Corruption(1, 1, 1), s.currentPrompt)
+        s = e.apply(s, Command.Acknowledge)
+        val eased = s.currentPrompt as Prompt.Test
+        assertEquals(2, eased.required)
+        assertTrue(!eased.canEase)
+        assertEquals("Ihr nehmt das Gold.", (e.apply(s, Command.ReportTest(2)).currentPrompt as Prompt.Text).text)
+        // Without help 2 successes are not enough.
+        assertEquals("Ihr lasst es liegen.", (e.apply(atWell(e), Command.ReportTest(2)).currentPrompt as Prompt.Text).text)
+    }
+
+    @Test
     fun `darkness markers cause fear in the shadow phase`() {
         val e = engine(EventStep.PlaceMarker(FieldMarker.DARKNESS, spot))
         var s = e.start(2)

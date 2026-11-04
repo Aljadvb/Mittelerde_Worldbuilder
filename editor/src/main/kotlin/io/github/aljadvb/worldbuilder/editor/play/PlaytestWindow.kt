@@ -368,7 +368,9 @@ private fun PromptCard(game: PlaytestModel, scenario: Scenario, catalog: Materia
                 is Prompt.Test -> {
                     var successes by remember(prompt) { mutableIntStateOf(0) }
                     val attr = Texts.ATTRIBUTES.first { it.first == prompt.step.attribute.name }.second
-                    Text(if (prompt.step.hidden) "Verdeckte Probe: $attr" else Texts.test(attr, prompt.step.successes), fontWeight = FontWeight.Bold)
+                    Text(if (prompt.step.hidden) "Verdeckte Probe: $attr" else Texts.test(attr, prompt.required), fontWeight = FontWeight.Bold)
+                    if (prompt.eased) Text("Durch Verderbnis erleichtert.")
+                    if (prompt.canEase) OutlinedButton(onClick = { game.send(Command.EaseTest) }) { Text(Texts.ease(prompt.step.corruptionEase)) }
                     if (prompt.step.cumulative) Text(Texts.testProgress(prompt.progress, prompt.step.successes, prompt.step.hidden))
                     prompt.step.text?.let { Text(it) }
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {

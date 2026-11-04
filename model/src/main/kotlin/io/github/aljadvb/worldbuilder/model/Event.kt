@@ -42,6 +42,11 @@ sealed interface EventStep {
         val cumulative: Boolean = false,
         /** Cumulative tests only: runs after an attempt that is not yet enough. */
         val onAttempt: String? = null,
+        /**
+         * Hard tests may offer help for corruption: if the players ask for it, the acting hero
+         * takes 1 corruption and the test needs this many successes less (never below 1).
+         */
+        val corruptionEase: Int = 0,
     ) : EventStep {
         override val isTerminal get() = true
     }
@@ -88,6 +93,18 @@ sealed interface EventStep {
     @SerialName("gainCondition")
     data class GainCondition(
         val condition: Condition,
+        val who: HeroTarget = HeroTarget.ACTIVE,
+        val text: String? = null,
+    ) : EventStep
+
+    /**
+     * Heroes take corruption for an evil deed or for using a very powerful item (e.g. a cursed crown).
+     * The deed is the players' decision, so the scenario lets them choose it first.
+     */
+    @Serializable
+    @SerialName("gainCorruption")
+    data class GainCorruption(
+        val amount: Int = 1,
         val who: HeroTarget = HeroTarget.ACTIVE,
         val text: String? = null,
     ) : EventStep

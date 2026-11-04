@@ -231,7 +231,14 @@ sealed interface Prompt {
         val progress: Int = 0,
         /** Riddle: inscription shown with its translation when the test succeeds. */
         val reveal: Inscription? = null,
-    ) : Prompt
+        /** The players took corruption to make the test easier. */
+        val eased: Boolean = false,
+    ) : Prompt {
+        /** Successes needed, after the corruption help. */
+        val required: Int get() = if (eased) (step.successes - step.corruptionEase).coerceAtLeast(1) else step.successes
+        /** The players may still ask for help against corruption. */
+        val canEase: Boolean get() = !eased && !step.cumulative && step.corruptionEase > 0 && step.successes > 1
+    }
 
     /** Result of a hidden test (the players do not know the required successes). */
     @Serializable @SerialName("testResult")
@@ -281,6 +288,9 @@ data class HistoryEntry(val round: Int, val prompt: Prompt, val answer: String? 
 sealed interface Command {
     /** Dismiss the current [Prompt.Notice]. */
     data object Acknowledge : Command
+
+    /** The players accept corruption to make the open test easier. */
+    data object EaseTest : Command
 
     /** Answer to [Prompt.ChooseHero]. */
     data class ChooseHero(val hero: Int) : Command

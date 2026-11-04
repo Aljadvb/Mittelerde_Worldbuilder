@@ -424,7 +424,14 @@ private fun TestContent(prompt: Prompt.Test, onCommand: (Command) -> Unit) {
     when {
         prompt.step.hidden -> Text(stringResource(R.string.prompt_test_hidden), fontWeight = FontWeight.Bold)
         prompt.step.cumulative -> Text(stringResource(R.string.prompt_test_cumulative, prompt.step.successes, prompt.progress), fontWeight = FontWeight.Bold)
-        else -> Text(stringResource(R.string.prompt_test_required, prompt.step.successes), fontWeight = FontWeight.Bold)
+        else -> Text(stringResource(R.string.prompt_test_required, prompt.required), fontWeight = FontWeight.Bold)
+    }
+    if (prompt.eased) Hint(stringResource(R.string.test_eased))
+    if (prompt.canEase) {
+        OutlinedButton(onClick = { onCommand(Command.EaseTest) }, modifier = Modifier.fillMaxWidth()) {
+            Text(stringResource(R.string.test_ease_button, prompt.step.corruptionEase))
+        }
+        Hint(stringResource(R.string.test_ease_hint))
     }
     if (prompt.step.cumulative) Hint(stringResource(R.string.prompt_test_cumulative_hint))
     Text(stringResource(R.string.prompt_test_successes))

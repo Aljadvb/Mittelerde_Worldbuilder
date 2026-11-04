@@ -64,6 +64,13 @@ class GameEngine(
                 // The option said so on its button: the acting hero takes corruption.
                 if (option.corruption > 0) run.askHero(Prompt.ChooseHero(HeroQuestion.GainCorruption(option.corruption)), first = true)
             }
+            is Command.EaseTest -> {
+                val prompt = state.currentPrompt as? Prompt.Test ?: throw EngineException("Keine Probe offen.")
+                if (!prompt.canEase) throw EngineException("Diese Probe lässt sich nicht durch Verderbnis erleichtern.")
+                run.prompts[0] = prompt.copy(eased = true)
+                // The acting hero pays with corruption first; the test then waits with fewer successes needed.
+                run.askHero(Prompt.ChooseHero(HeroQuestion.GainCorruption(1)), first = true)
+            }
             is Command.ChooseHero -> {
                 val prompt = state.currentPrompt as? Prompt.ChooseHero ?: throw EngineException("Keine Heldenwahl offen.")
                 if (command.hero !in 0 until state.heroCount) throw EngineException("Unbekannter Held ${command.hero}.")
@@ -79,7 +86,7 @@ class GameEngine(
                         if (step.cumulative) {
                             val key = prompt.key ?: ""
                             val total = (run.testProgress[key] ?: 0) + command.successes
-                            if (total >= step.successes) {
+                            if (total >= prompt.required) {
                                 run.testProgress -= key
                                 if (step.hidden) run.prompts.add(0, Prompt.TestResult(true))
                                 run.replaceCurrent(step.onSuccess)
@@ -89,7 +96,7 @@ class GameEngine(
                                 run.replaceCurrent(step.onAttempt)
                             }
                         } else {
-                            val success = command.successes >= step.successes
+                            val success = command.successes >= prompt.required
                             if (success) prompt.reveal?.let { run.prompts.add(0, it) }
                             if (step.hidden) run.prompts.add(0, Prompt.TestResult(success))
                             run.replaceCurrent((if (success) step.onSuccess else step.onFailure)?.ifEmpty { null })
@@ -517,6 +524,11 @@ class GameEngine(
                         val test = EventStep.Test(attribute = attribute, successes = step.successes, onSuccess = step.onSuccess.orEmpty(), onFailure = step.onFailure)
                         prompts += Prompt.Test(eventId, test, reveal = Prompt.Inscription(step.elvish, step.translation))
                     }
+                }
+                is EventStep.GainCorruption -> if (step.who == io.github.aljadvb.worldbuilder.model.HeroTarget.EACH) {
+                    (0 until heroCount).forEach { prompts.addAll(gainCorruption(it, step.amount)) }
+                } else {
+                    askHero(Prompt.ChooseHero(HeroQuestion.GainCorruption(step.amount), step.text))
                 }
                 is EventStep.LoseCorruption -> if (step.who == io.github.aljadvb.worldbuilder.model.HeroTarget.EACH) {
                     (0 until heroCount).mapNotNull { loseCorruption(it, step.amount, step.text) }.forEach { prompts += it }

@@ -239,6 +239,9 @@
     <string name="last_stand_corruption_hint">Dieses Aufbäumen zählt nicht als das Letzte Aufbäumen gegen Schaden oder Furcht.</string>
     <string name="hero_survives_corruption">Er widersteht der Versuchung und erhält keine vierte Verderbnis.</string>
     <string name="corruption_badge">+%1$d Verderbnis</string>
+    <string name="test_ease_button">Mit Verderbnis erleichtern (−%1$d Erfolg/e, +1 Verderbnis)</string>
+    <string name="test_ease_hint">Auf Nachfrage: Der handelnde Held nimmt 1 Verderbnis an, dafür braucht die Probe weniger Erfolge.</string>
+    <string name="test_eased">Durch Verderbnis erleichtert.</string>
     <string name="corruption_option_hint">Verderbnis bleibt die ganze Kampagne. Mit 4 Verderbnis droht ein Letztes Aufbäumen.</string>
     <string name="choose_hero_gain">Welcher Held erhält %1$d Verderbnis?</string>
     <string name="choose_hero_lose">Welcher Held verliert %1$d Verderbnis?</string>

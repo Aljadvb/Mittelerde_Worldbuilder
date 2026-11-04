@@ -627,6 +627,13 @@
             "onAttempt": {
               "$ref": "#/$defs/id",
               "description": "Nur Sammelprobe: Event nach einem Versuch, der noch nicht reicht (optional)."
+            },
+            "corruptionEase": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 2,
+              "default": 0,
+              "description": "Schwere Probe: Auf Nachfrage nimmt der handelnde Held 1 Verderbnis an, dafür braucht die Probe so viele Erfolge weniger (mindestens 1 bleibt). Nicht bei Sammelproben."
             }
           }
         },
@@ -917,6 +924,18 @@
               "$ref": "#/$defs/id",
               "description": "Rätsel: optionales Event nach misslungener Probe."
             }
+          }
+        },
+        {
+          "description": "Helden erhalten Verderbnis für eine böse Tat oder den Einsatz eines sehr mächtigen Gegenstands. Nie überraschend: die Tat ist eine Entscheidung der Spieler.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type"],
+          "properties": {
+            "type": { "const": "gainCorruption" },
+            "amount": { "type": "integer", "minimum": 1, "maximum": 2, "default": 1 },
+            "who": { "enum": ["active", "each", "chosen"], "default": "active" },
+            "text": { "type": "string", "minLength": 1 }
           }
         },
         {

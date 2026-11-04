@@ -178,6 +178,7 @@ object Texts {
         "gainItem" to "Schmuckstück finden",
         "recover" to "Erholung (Schaden/Furcht ablegen)",
         "gainCondition" to "Zustand erhalten (Gunst oder Fluch)",
+        "gainCorruption" to "Verderbnis erhalten (böse Tat, mächtiger Gegenstand)",
         "loseCorruption" to "Verderbnis verlieren",
         "checkCorruption" to "Verdorben? (Verzweigung)",
         "placeMarker" to "Gelände-Marker legen (unwegsam/befestigt/Dunkelheit)",
@@ -294,6 +295,8 @@ object Texts {
         else -> "Held ${hero + 1} hält stand und legt alle " + (if (kind == io.github.aljadvb.worldbuilder.engine.LimitKind.DAMAGE) "Schadenkarten" else "Furchtkarten") + " ab. Beim nächsten Limit ist er besiegt."
     }
     const val OPTION_CORRUPTION = "Verderbnis"
+    const val CORRUPTION_EASE = "Erleichterung durch Verderbnis (Erfolge weniger, 0 = keine)"
+    fun ease(n: Int) = "Mit Verderbnis erleichtern: −$n Erfolg" + (if (n > 1) "e" else "") + ", +1 Verderbnis"
     const val CORRUPTION_IF = "Wenn verdorben"
     const val CORRUPTION_IF_NOT = "Wenn unverdorben"
     const val MARKER = "Marker"
