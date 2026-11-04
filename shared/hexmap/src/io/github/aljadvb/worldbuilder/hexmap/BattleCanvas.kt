@@ -73,7 +73,7 @@ data class BattlePieceView(
 
 data class SquareToken(val id: String, val square: GridCoord, val type: TokenType, val letter: String, val selected: Boolean = false)
 
-data class SquareEnemy(val id: String, val square: GridCoord, val count: Int, val selected: Boolean = false, val elite: Boolean = false, val banner: Int? = null)
+data class SquareEnemy(val id: String, val square: GridCoord, val count: Int, val selected: Boolean = false, val elite: Boolean = false, val banner: Int? = null, val portrait: androidx.compose.ui.graphics.ImageBitmap? = null)
 
 /** Everything a battle map shows. */
 data class BattleScene(
@@ -257,9 +257,8 @@ fun BattleCanvas(
         for ((enemy, c) in squareEnemyCenters(proj, scene.enemies)) {
             val r = proj.cell * 0.12f
             if (enemy.selected) drawCircle(highlight, r * 1.4f, c, style = Stroke(3.dp.toPx()))
-            drawEnemyMarker(c, r, enemy.elite)
-            val m = textMeasurer.measure(enemy.count.toString(), TextStyle(fontSize = (r * 0.9f).toSp(), color = Color.White, fontWeight = FontWeight.Bold))
-            drawText(m, topLeft = Offset(c.x - m.size.width / 2f, c.y - m.size.height / 2f))
+            drawEnemyMarker(c, r, enemy.elite, enemy.portrait)
+            drawEnemyCount(textMeasurer, enemy.count, c, r, enemy.portrait != null)
             enemy.banner?.let { drawBanner(textMeasurer, it, c + Offset(r * 0.9f, r * 0.9f), r * 0.55f, enemy.elite) }
         }
         for ((token, c) in squareTokenCenters(proj, scene.tokens)) {

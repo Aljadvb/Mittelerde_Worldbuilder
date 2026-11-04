@@ -260,14 +260,14 @@ internal fun PlayContent(
         TokenDialog(scenario, id, onDismiss = { tokenInfo = null }) { tokenInfo = null; onCommand(Command.InteractToken(id, showText = false)) }
     }
     enemyMenu?.takeIf { it in game.activeEnemyGroups }?.let { gid ->
-        EnemyMenu(scenario, catalog, game, gid, onDismiss = { enemyMenu = null },
+        EnemyMenu(scenario, catalog, game, gid, images, onDismiss = { enemyMenu = null },
             onAttack = { enemyMenu = null; attackGroup = gid },
             onProvoke = { enemyMenu = null; onCommand(Command.ProvokeEnemy(gid)) },
             onDefeat = { enemyMenu = null; confirmDefeat = gid })
     }
     if (showLimit) LimitDialog(game, heroNames, onDismiss = { showLimit = false }) { hero, kind -> showLimit = false; onCommand(Command.LimitReached(hero, kind)) }
     terrainInfo?.let { TerrainDialog(it, images, onDismiss = { terrainInfo = null }) }
-    attackGroup?.let { gid -> AttackDialog(scenario, catalog, game, gid, onDismiss = { attackGroup = null }) { onCommand(it); attackGroup = null } }
+    attackGroup?.let { gid -> AttackDialog(scenario, catalog, game, gid, images, onDismiss = { attackGroup = null }) { onCommand(it); attackGroup = null } }
     if (confirmEndRound) {
         ConfirmDialog(
             title = stringResource(R.string.game_end_round_confirm_title, game.round),
@@ -443,7 +443,7 @@ internal fun enemyLabel(catalog: MaterialCatalog, game: GameState, groupId: Stri
 
 /** Enemy menu of one group: values, health of each enemy, and the actions. */
 @Composable
-private fun EnemyMenu(scenario: Scenario, catalog: MaterialCatalog, game: GameState, groupId: String, onDismiss: () -> Unit, onAttack: () -> Unit, onProvoke: () -> Unit, onDefeat: () -> Unit) {
+private fun EnemyMenu(scenario: Scenario, catalog: MaterialCatalog, game: GameState, groupId: String, images: io.github.aljadvb.worldbuilder.hexmap.TileImageCache?, onDismiss: () -> Unit, onAttack: () -> Unit, onProvoke: () -> Unit, onDefeat: () -> Unit) {
     val g = scenario.enemyGroup(groupId) ?: return
     val type = catalog.enemyType(g.enemyType)?.let(g::effectiveType)
     val health = game.enemyHealth[groupId]
@@ -454,6 +454,7 @@ private fun EnemyMenu(scenario: Scenario, catalog: MaterialCatalog, game: GameSt
         title = { Text(enemyLabel(catalog, game, groupId, g.enemyType, g.elite)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                EnemyPortrait(catalog, g.enemyType, images)
                 if (type != null) {
                     Text(stringResource(R.string.enemy_menu_values, (type.armor - (game.armorLoss[groupId] ?: 0)).coerceAtLeast(0), type.sorcery, type.movement) +
                         if (type.ranged) " · " + stringResource(R.string.enemy_menu_ranged) else "")
@@ -614,7 +615,7 @@ private fun historyText(prompt: Prompt, scenario: Scenario): String = when (prom
 
 /** Hits and modifiers of an attack on an enemy group. */
 @Composable
-private fun AttackDialog(scenario: Scenario, catalog: MaterialCatalog, game: GameState, groupId: String, onDismiss: () -> Unit, onAttack: (Command) -> Unit) {
+private fun AttackDialog(scenario: Scenario, catalog: MaterialCatalog, game: GameState, groupId: String, images: io.github.aljadvb.worldbuilder.hexmap.TileImageCache?, onDismiss: () -> Unit, onAttack: (Command) -> Unit) {
     val group = scenario.enemyGroup(groupId) ?: return
     var hits by remember { mutableStateOf(0) }
     val mods = remember { androidx.compose.runtime.mutableStateMapOf<String, Boolean>() }
@@ -627,6 +628,7 @@ private fun AttackDialog(scenario: Scenario, catalog: MaterialCatalog, game: Gam
         title = { Text(stringResource(R.string.attack_title, enemyLabel(catalog, game, groupId, group.enemyType, group.elite))) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                EnemyPortrait(catalog, group.enemyType, images, 72)
                 // Current state of the group: health of each enemy, armor (after "Zerfallen") and sorcery.
                 val type = catalog.enemyType(group.enemyType)?.let(group::effectiveType)
                 val health = game.enemyHealth[groupId]?.withIndex()?.filter { it.value > 0 }.orEmpty()

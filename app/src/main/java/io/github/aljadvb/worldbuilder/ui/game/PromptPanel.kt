@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -192,6 +193,7 @@ private fun NoticeContent(prompt: Prompt.Notice, scenario: Scenario, catalog: Ma
                 if (group.location is SquareLocation) stringResource(R.string.prompt_spawn_text_battle, prompt.count, name)
                 else stringResource(R.string.prompt_spawn_text, prompt.count, name, tileLabel(group.location.placementId.orEmpty())),
             )
+            EnemyPortrait(catalog, group.enemyType, images)
             prompt.banner?.let { Text(stringResource(if (prompt.elite) R.string.prompt_spawn_elite else R.string.prompt_spawn_banner, it), fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.error) }
             EliteInfo(group)
         }
@@ -558,3 +560,10 @@ internal fun markerRule(m: io.github.aljadvb.worldbuilder.model.FieldMarker): St
     io.github.aljadvb.worldbuilder.model.FieldMarker.FORTIFIED -> R.string.marker_fortified_rule
     io.github.aljadvb.worldbuilder.model.FieldMarker.DARKNESS -> R.string.marker_darkness_rule
 })
+
+/** Picture of an enemy type from the private catalog, if there is one. */
+@Composable
+internal fun EnemyPortrait(catalog: MaterialCatalog, enemyType: String, images: io.github.aljadvb.worldbuilder.hexmap.TileImageCache?, size: Int = 110) {
+    val bitmap = catalog.enemyType(enemyType)?.image?.let { images?.bitmap(it.file) } ?: return
+    androidx.compose.foundation.Image(bitmap, contentDescription = catalog.enemyType(enemyType)?.name, modifier = Modifier.size(size.dp))
+}

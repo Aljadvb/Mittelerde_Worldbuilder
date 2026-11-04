@@ -7,6 +7,7 @@ import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.clipPath
@@ -51,7 +52,7 @@ data class MapTile(
 
 data class MapToken(val id: String, val cell: HexCoord, val type: TokenType, val letter: String, val selected: Boolean = false)
 
-data class MapEnemy(val id: String, val cell: HexCoord, val count: Int, val selected: Boolean = false, val banner: Int? = null, val elite: Boolean = false)
+data class MapEnemy(val id: String, val cell: HexCoord, val count: Int, val selected: Boolean = false, val banner: Int? = null, val elite: Boolean = false, val portrait: ImageBitmap? = null)
 
 /** Everything the map shows. */
 data class MapScene(
@@ -189,9 +190,8 @@ fun HexCanvas(
         for ((enemy, c) in enemyCenters(proj, scene.enemies)) {
             val r = proj.size * 0.3f
             if (enemy.selected) drawCircle(highlight, r * 1.4f, c, style = Stroke(3.dp.toPx()))
-            drawEnemyMarker(c, r, enemy.elite)
-            val m = textMeasurer.measure(enemy.count.toString(), TextStyle(fontSize = (r * 0.9f).toSp(), color = Color.White, fontWeight = FontWeight.Bold))
-            drawText(m, topLeft = Offset(c.x - m.size.width / 2f, c.y - m.size.height / 2f))
+            drawEnemyMarker(c, r, enemy.elite, enemy.portrait)
+            drawEnemyCount(textMeasurer, enemy.count, c, r, enemy.portrait != null)
             enemy.banner?.let { drawBanner(textMeasurer, it, c + Offset(r * 0.9f, r * 0.9f), r * 0.55f, enemy.elite) }
         }
 
@@ -251,7 +251,7 @@ fun enemyAt(proj: HexProjection, enemies: List<MapEnemy>, p: Offset): MapEnemy? 
         ?.takeIf { (it.second - p).getDistance() <= proj.size * 0.4f }?.first
 
 /** Enemy diamond; elite groups get a jagged dark red frame (like the jagged picture frame in the rules). */
-internal fun androidx.compose.ui.graphics.drawscope.DrawScope.drawEnemyMarker(c: Offset, r: Float, elite: Boolean) {
+internal fun androidx.compose.ui.graphics.drawscope.DrawScope.drawEnemyMarker(c: Offset, r: Float, elite: Boolean, portrait: ImageBitmap? = null) {
     if (elite) {
         val spikes = 12
         val star = Path().apply {
@@ -265,9 +265,30 @@ internal fun androidx.compose.ui.graphics.drawscope.DrawScope.drawEnemyMarker(c:
         }
         drawPath(star, MapColors.Elite)
     }
+    if (portrait != null) {
+        // Picture of the figure in a round frame (red ring, white for elite inside the jagged frame).
+        val pr = r * 1.15f
+        drawCircle(Color.White, pr, c)
+        val clip = Path().apply { addOval(androidx.compose.ui.geometry.Rect(c, pr * 0.92f)) }
+        clipPath(clip) {
+            val scale = (pr * 2f) / maxOf(portrait.width, portrait.height)
+            val w = (portrait.width * scale).toInt(); val h = (portrait.height * scale).toInt()
+            drawImage(portrait, dstOffset = androidx.compose.ui.unit.IntOffset((c.x - w / 2f).toInt(), (c.y - h / 2f).toInt()), dstSize = androidx.compose.ui.unit.IntSize(w, h))
+        }
+        drawCircle(if (elite) Color.White else MapColors.Enemy, pr, c, style = Stroke(r * 0.16f))
+        return
+    }
     val diamond = Path().apply { moveTo(c.x, c.y - r); lineTo(c.x + r, c.y); lineTo(c.x, c.y + r); lineTo(c.x - r, c.y); close() }
     drawPath(diamond, MapColors.Enemy)
     if (elite) drawPath(diamond, Color.White, style = Stroke(r * 0.12f))
+}
+
+/** Number of living enemies: in the diamond, or in a small red disc at the lower left of a portrait. */
+internal fun androidx.compose.ui.graphics.drawscope.DrawScope.drawEnemyCount(textMeasurer: androidx.compose.ui.text.TextMeasurer, count: Int, c: Offset, r: Float, portrait: Boolean) {
+    val at = if (portrait) c + Offset(-r * 0.9f, r * 0.9f) else c
+    if (portrait) { drawCircle(MapColors.Enemy, r * 0.5f, at); drawCircle(Color.White, r * 0.5f, at, style = Stroke(r * 0.1f)) }
+    val m = textMeasurer.measure(count.toString(), TextStyle(fontSize = (r * (if (portrait) 0.6f else 0.9f)).toSp(), color = Color.White, fontWeight = FontWeight.Bold))
+    drawText(m, topLeft = Offset(at.x - m.size.width / 2f, at.y - m.size.height / 2f))
 }
 
 /** Field marker: brown "U" for rough ground, grey "B" for fortified, dark violet "D" for darkness, placed at [c] + [offset]. */

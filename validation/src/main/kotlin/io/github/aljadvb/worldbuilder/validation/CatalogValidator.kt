@@ -89,6 +89,7 @@ object CatalogValidator {
             if (enemy.expansion !in expansionIds) {
                 c.error(IssueCode.UNKNOWN_EXPANSION, "enemyTypes[$i].expansion", enemy.id, "Gegnertyp '${enemy.id}' gehört zu unbekannter Erweiterung '${enemy.expansion}'.")
             }
+            enemy.image?.let { checkImage(it.file, "enemyTypes[$i].image.file", enemy.id) }
         }
         catalog.campaignMap?.let { checkImage(it.file, "campaignMap.file", "campaignMap") }
         catalog.items.forEachIndexed { i, item ->

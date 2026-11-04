@@ -485,6 +485,20 @@
               }
             }
           }
+        },
+        "image": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "file"
+          ],
+          "properties": {
+            "file": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "description": "Bild der Figur, relativ zum Katalog (nur im privaten Katalog)."
         }
       }
     },

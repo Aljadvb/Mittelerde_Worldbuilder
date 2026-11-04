@@ -54,7 +54,7 @@ fun playScene(
     val enemies = state.activeEnemyGroups.mapNotNull { id ->
         val g = scenario.enemyGroup(id) ?: return@mapNotNull null
         val alive = state.enemyHealth[g.id]?.count { it > 0 } ?: (g.count[state.heroCount] ?: 0)
-        scenario.mapCell(g.location)?.let { MapEnemy(g.id, it, alive, banner = state.enemyBanners[g.id], elite = g.elite) }
+        scenario.mapCell(g.location)?.let { MapEnemy(g.id, it, alive, banner = state.enemyBanners[g.id], elite = g.elite, portrait = catalog.enemyType(g.enemyType)?.image?.let { img -> images?.bitmap(img.file) }) }
     }
     // The start field is shown during the first round, while the heroes set up.
     val start = if (state.round == 1) scenario.effectiveHeroStart?.let { scenario.mapCell(it) } else null

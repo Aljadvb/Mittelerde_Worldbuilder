@@ -155,6 +155,8 @@ data class EnemyType(
     val ranged: Boolean = false,
     /** Attacks the app picks from in the shadow phase. */
     val attacks: List<EnemyAttack> = emptyList(),
+    /** Picture of the figure (private catalog only), shown on the map and in the enemy menu. */
+    val image: ItemImage? = null,
 )
 
 @Serializable
