@@ -352,6 +352,7 @@ private fun NoticeContent(prompt: Prompt.Notice, scenario: Scenario, catalog: Ma
             Title(stringResource(if (prompt.condition.isCurse) R.string.condition_curse_title else R.string.condition_boon_title, name))
             prompt.text?.let { Body(it) }
             Body(conditionText(prompt))
+            catalog.condition(prompt.condition)?.let { Text(it.effect, style = MaterialTheme.typography.bodyMedium, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic) }
             Hint(when {
                 prompt.condition == io.github.aljadvb.worldbuilder.model.Condition.CAPTURED -> stringResource(R.string.condition_captured_hint)
                 prompt.condition.isCurse -> stringResource(R.string.condition_curse_hint, name)

@@ -312,7 +312,15 @@ private fun NewGameDialog(title: String, available: List<io.github.aljadvb.world
                         if (available.isNotEmpty()) {
                             // Choose from the catalog's heroes; each hero only once.
                             val taken = (0 until heroes).filter { it != i }.map { names[it] }.toSet()
-                            CatalogPicker(names[i], available.filter { it.name !in taken }.map { (it.name + if (it.folk.isNotBlank()) " (${it.folk})" else "") to it.description }, Modifier.weight(1f), stringResource(R.string.new_game_hero_name, i + 1)) { names[i] = it.substringBefore(" (") }
+                            val statsLabel = heroStatsShort()
+                            CatalogPicker(names[i], available.filter { it.name !in taken }.map { h ->
+                                (h.name + if (h.folk.isNotBlank()) " (${h.folk})" else "") to listOfNotNull(h.description.ifBlank { null }, h.stats?.let { statsLabel(it) }).joinToString("\n")
+                            }, Modifier.weight(1f), stringResource(R.string.new_game_hero_name, i + 1)) { picked ->
+                                names[i] = picked.substringBefore(" (")
+                                // Suggest the hero's own role, if none is chosen yet.
+                                val hero = available.firstOrNull { it.name == names[i] }
+                                if (roles[i].isBlank()) hero?.suggestedRole?.let { id -> roleOptions.firstOrNull { it.id == id }?.let { roles[i] = it.name } }
+                            }
                         } else androidx.compose.material3.OutlinedTextField(names[i], { names[i] = it }, Modifier.weight(1f), singleLine = true,
                             label = { Text(stringResource(R.string.new_game_hero_name, i + 1)) })
                         if (roleOptions.isNotEmpty()) CatalogPicker(roles[i], roleOptions.map { it.name to it.description }, Modifier.weight(1f), stringResource(R.string.new_game_hero_role)) { roles[i] = it }
@@ -369,3 +377,10 @@ fun ConfirmDialog(title: String, text: String, onConfirm: () -> Unit, onDismiss:
     )
 }
 
+
+/** "Körperkraft 4 · Beweglichkeit 2 · … · Schaden 6 · Furcht 4" for a hero card. */
+@Composable
+internal fun heroStatsShort(): (io.github.aljadvb.worldbuilder.model.HeroStats) -> String {
+    val f = stringResource(R.string.hero_stats_short)
+    return { st -> String.format(f, st.might, st.agility, st.wisdom, st.spirit, st.wit, st.inspiration, st.damage, st.fear) }
+}

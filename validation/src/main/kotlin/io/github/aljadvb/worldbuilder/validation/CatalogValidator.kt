@@ -40,6 +40,13 @@ object CatalogValidator {
         catalog.heroes.forEachIndexed { i, h ->
             if (h.expansion !in expansionIds) c.error(IssueCode.UNKNOWN_EXPANSION, "heroes[$i].expansion", h.id, "Held '${h.id}' gehört zu unbekannter Erweiterung '${h.expansion}'.")
             if (h.name.isBlank()) c.error(IssueCode.BLANK_TEXT, "heroes[$i].name", h.id, "Held '${h.id}' hat keinen Namen.")
+            h.stats?.let { st ->
+                val attrs = listOf(st.might, st.agility, st.wisdom, st.spirit, st.wit)
+                if (attrs.any { it !in 1..6 } || st.inspiration !in 1..9 || st.damage !in 1..12 || st.fear !in 1..12) {
+                    c.error(IssueCode.INVALID_NUMBER, "heroes[$i].stats", h.id, "Held '${h.id}': Eigenschaften 1–6, Inspiration 1–9, Limits 1–12.")
+                }
+            }
+            h.suggestedRole?.let { r -> if (catalog.roles.none { it.id == r }) c.warn(IssueCode.UNKNOWN_REFERENCE, "heroes[$i].suggestedRole", h.id, "Held '${h.id}': empfohlene Rolle '$r' ist nicht im Katalog.") }
         }
 
         fun checkImage(file: String, path: String, owner: String) {

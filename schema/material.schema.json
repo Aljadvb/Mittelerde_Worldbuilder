@@ -100,6 +100,34 @@
       "type": "string",
       "minLength": 1,
       "description": "Optional: Bilderschrift für Verzierungen (Ringe a–r, Schriftbänder s–v, Schwerter w/x), relativ zum Katalog. Nur im privaten Katalog."
+    },
+    "conditions": {
+      "type": "array",
+      "description": "Wirkung der Gunst- und Fluchkarten in Kurzform (nur im privaten Katalog).",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "condition",
+          "effect"
+        ],
+        "properties": {
+          "condition": {
+            "enum": [
+              "hidden",
+              "inspired",
+              "determined",
+              "captured",
+              "disheartened",
+              "frightened"
+            ]
+          },
+          "effect": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
     }
   },
   "$defs": {
@@ -786,6 +814,80 @@
         "description": {
           "type": "string",
           "description": "Kurze Beschreibung in eigenen Worten."
+        },
+        "stats": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "might",
+            "agility",
+            "wisdom",
+            "spirit",
+            "wit",
+            "inspiration",
+            "damage",
+            "fear"
+          ],
+          "description": "Werte der Heldenkarte (nur im privaten Katalog).",
+          "properties": {
+            "might": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 6
+            },
+            "agility": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 6
+            },
+            "wisdom": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 6
+            },
+            "spirit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 6
+            },
+            "wit": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 6
+            },
+            "inspiration": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9
+            },
+            "damage": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 12
+            },
+            "fear": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 12
+            }
+          }
+        },
+        "ability": {
+          "type": "string",
+          "description": "Fähigkeit des Helden in Kurzform (nur im privaten Katalog)."
+        },
+        "suggestedRole": {
+          "type": "string",
+          "minLength": 1,
+          "description": "ID der empfohlenen Rolle."
+        },
+        "startingGear": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": "Startausrüstung (Namen)."
         }
       }
     },

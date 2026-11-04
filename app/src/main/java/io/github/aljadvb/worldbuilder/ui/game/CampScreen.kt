@@ -127,7 +127,7 @@ fun CampContent(campaign: Campaign, progress: CampaignProgress, background: andr
         AlertDialog(
             onDismissRequest = { heroOpen = null },
             confirmButton = { TextButton(onClick = { heroOpen = null }) { Text(stringResource(R.string.close)) } },
-            text = { Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) { HeroesSection(progress, editable = true, onAction = onAction, only = i, roles = catalog?.roles.orEmpty()) } },
+            text = { Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) { HeroesSection(progress, editable = true, onAction = onAction, only = i, roles = catalog?.roles.orEmpty(), heroDefs = catalog?.heroes.orEmpty()) } },
         )
     }
     if (inventoryOpen) AlertDialog(
@@ -249,7 +249,8 @@ fun CampaignOverview(campaign: Campaign, progress: CampaignProgress, background:
 }
 
 @Composable
-fun HeroesSection(progress: CampaignProgress, editable: Boolean, onAction: ((CampaignProgress) -> CampaignProgress) -> Unit = {}, onImage: Boolean = false, only: Int? = null, roles: List<io.github.aljadvb.worldbuilder.model.RoleDefinition> = emptyList()) {
+fun HeroesSection(progress: CampaignProgress, editable: Boolean, onAction: ((CampaignProgress) -> CampaignProgress) -> Unit = {}, onImage: Boolean = false, only: Int? = null, roles: List<io.github.aljadvb.worldbuilder.model.RoleDefinition> = emptyList(), heroDefs: List<io.github.aljadvb.worldbuilder.model.HeroDefinition> = emptyList()) {
+    val statsLabel = io.github.aljadvb.worldbuilder.ui.home.heroStatsShort()
     var buyFor by remember { mutableStateOf<Int?>(null) }
     var roleFor by remember { mutableStateOf<Int?>(null) }
     if (only == null) Text(stringResource(R.string.camp_heroes), style = MaterialTheme.typography.titleMedium,
@@ -261,6 +262,11 @@ fun HeroesSection(progress: CampaignProgress, editable: Boolean, onAction: ((Cam
                 Text(h.name + if (h.role.isNotBlank()) " – ${h.role}" else "", fontWeight = FontWeight.Bold)
                 Text(stringResource(R.string.camp_xp_current, h.xpFor(h.role).available, h.xpFor(h.role).earned), style = MaterialTheme.typography.bodyMedium)
                 if (h.corruption > 0) Text(stringResource(R.string.camp_corruption, h.corruption), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
+                heroDefs.firstOrNull { it.name == h.name }?.let { d ->
+                    d.stats?.let { Text(statsLabel(it), style = MaterialTheme.typography.bodySmall) }
+                    if (d.ability.isNotBlank()) Text(stringResource(R.string.hero_ability, d.ability), style = MaterialTheme.typography.bodySmall)
+                    if (d.startingGear.isNotEmpty()) Text(stringResource(R.string.hero_gear, d.startingGear.joinToString(", ")), style = MaterialTheme.typography.bodySmall)
+                }
                 h.xp.filterKeys { it != h.role }.filterValues { it.earned > 0 }.forEach { (role, xp) ->
                     Text(stringResource(R.string.camp_xp_other, role.ifBlank { "–" }, xp.available), style = MaterialTheme.typography.bodySmall)
                 }

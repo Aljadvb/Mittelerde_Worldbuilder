@@ -30,7 +30,10 @@ data class MaterialCatalog(
     val titleFont: String? = null,
     /** Optional picture font for ornaments (rings, inscription bands, swords; private catalog only). */
     val ornamentFont: String? = null,
+    /** Effects of the boon and curse cards (private catalog only); shown when a hero gets the condition. */
+    val conditions: List<ConditionInfo> = emptyList(),
 ) {
+    fun condition(c: Condition): ConditionInfo? = conditions.firstOrNull { it.condition == c }
     fun hero(id: String): HeroDefinition? = heroes.firstOrNull { it.id == id }
     fun item(id: String): Item? = items.firstOrNull { it.id == id }
     fun battleBoard(id: String): BattleBoard? = battleBoards.firstOrNull { it.id == id }
@@ -171,7 +174,41 @@ data class HeroDefinition(
     /** Folk, e.g. "Mensch", "Hobbit", "Zwerg". */
     val folk: String = "",
     val description: String = "",
+    /** Values from the hero card (private catalog only). */
+    val stats: HeroStats? = null,
+    /** The hero's ability in short words (private catalog only). */
+    val ability: String = "",
+    /** Role suggested for this hero (role ID). */
+    val suggestedRole: String? = null,
+    /** Starting equipment (names). */
+    val startingGear: List<String> = emptyList(),
 )
+
+/** Values of a hero card: the five attributes and the limits. */
+@Serializable
+data class HeroStats(
+    val might: Int,
+    val agility: Int,
+    val wisdom: Int,
+    val spirit: Int,
+    val wit: Int,
+    /** Inspiration limit. */
+    val inspiration: Int,
+    val damage: Int,
+    val fear: Int,
+) {
+    fun value(a: Attribute): Int = when (a) {
+        Attribute.MIGHT -> might
+        Attribute.AGILITY -> agility
+        Attribute.WISDOM -> wisdom
+        Attribute.SPIRIT -> spirit
+        Attribute.WIT -> wit
+    }
+}
+
+/** What a boon or curse card does, in short words (private catalog only). */
+@Serializable
+data class ConditionInfo(val condition: Condition, val effect: String)
 
 /** A role a hero can take (e.g. "Hauptmann"); experience is kept per role. */
 @Serializable
