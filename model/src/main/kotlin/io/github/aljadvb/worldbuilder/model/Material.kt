@@ -32,7 +32,11 @@ data class MaterialCatalog(
     val ornamentFont: String? = null,
     /** Effects of the boon and curse cards (private catalog only); shown when a hero gets the condition. */
     val conditions: List<ConditionInfo> = emptyList(),
+    /** Skill cards: role skills to buy in camp, title cards and weaknesses (private catalog only). */
+    val skills: List<SkillDefinition> = emptyList(),
 ) {
+    fun skill(id: String): SkillDefinition? = skills.firstOrNull { it.id == id }
+    val titles: List<SkillDefinition> get() = skills.filter { it.kind == SkillKind.TITLE }
     fun condition(c: Condition): ConditionInfo? = conditions.firstOrNull { it.condition == c }
     fun hero(id: String): HeroDefinition? = heroes.firstOrNull { it.id == id }
     fun item(id: String): Item? = items.firstOrNull { it.id == id }
@@ -204,6 +208,29 @@ data class HeroStats(
         Attribute.SPIRIT -> spirit
         Attribute.WIT -> wit
     }
+}
+
+/** A skill card: a role skill (bought with experience), a title or a weakness. */
+@Serializable
+data class SkillDefinition(
+    val id: String,
+    val name: String,
+    val kind: SkillKind,
+    /** Role ID for role skills. */
+    val role: String? = null,
+    /** Experience cost; null for the role's starting cards. */
+    val xp: Int? = null,
+    /** Copies of the card. */
+    val count: Int = 1,
+    /** Short summary (keywords, traits or effect in own words). */
+    val summary: String = "",
+)
+
+@Serializable
+enum class SkillKind {
+    @SerialName("role") ROLE,
+    @SerialName("title") TITLE,
+    @SerialName("weakness") WEAKNESS,
 }
 
 /** What a boon or curse card does, in short words (private catalog only). */

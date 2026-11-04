@@ -485,6 +485,8 @@ fun describe(prompt: Prompt, scenario: Scenario, catalog: MaterialCatalog): Stri
         is Prompt.ChooseHero -> listOfNotNull(prompt.text, Texts.chooseHero(prompt.question)).joinToString("\n")
         is Prompt.Corruption -> listOfNotNull(prompt.text, Texts.corruption(prompt.hero, prompt.delta, prompt.total)).joinToString("\n")
         is Prompt.CorruptionSetup -> Texts.corruptionSetup(prompt.values)
+        is Prompt.TitleGained -> Texts.titleGained(prompt.hero, catalog.skill(prompt.title)?.name ?: prompt.title) + (catalog.skill(prompt.title)?.summary?.takeIf { it.isNotBlank() }?.let { "\n$it" } ?: "")
+        is Prompt.Weakness -> listOfNotNull(prompt.text, Texts.weakness(prompt.amount, prompt.who)).joinToString("\n")
         is Prompt.FieldMarker -> listOfNotNull(prompt.text, Texts.fieldMarker(prompt.marker, when (val l = prompt.location) {
             is io.github.aljadvb.worldbuilder.model.TileLocation -> "Kachel ${tile(l.placement)}, Feld ${l.cell.q}/${l.cell.r}"
             is io.github.aljadvb.worldbuilder.model.SquareLocation -> "Feld ${l.square.x}/${l.square.y}"

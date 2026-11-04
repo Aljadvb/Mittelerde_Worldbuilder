@@ -109,6 +109,23 @@ sealed interface EventStep {
         val text: String? = null,
     ) : EventStep
 
+    /** A hero earns a title card (catalog skill ID); it stays with the hero for the whole campaign. */
+    @Serializable
+    @SerialName("gainTitle")
+    data class GainTitle(
+        val title: String,
+        val text: String? = null,
+    ) : EventStep
+
+    /** Heroes shuffle weakness cards into their skill deck (removed again between adventures). */
+    @Serializable
+    @SerialName("gainWeakness")
+    data class GainWeakness(
+        val amount: Int = 1,
+        val who: HeroTarget = HeroTarget.ACTIVE,
+        val text: String? = null,
+    ) : EventStep
+
     /** Heroes lose corruption (e.g. purification); the app asks which hero unless it is everyone. */
     @Serializable
     @SerialName("loseCorruption")

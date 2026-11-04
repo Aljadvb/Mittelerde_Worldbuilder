@@ -127,7 +127,7 @@ fun CampContent(campaign: Campaign, progress: CampaignProgress, background: andr
         AlertDialog(
             onDismissRequest = { heroOpen = null },
             confirmButton = { TextButton(onClick = { heroOpen = null }) { Text(stringResource(R.string.close)) } },
-            text = { Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) { HeroesSection(progress, editable = true, onAction = onAction, only = i, roles = catalog?.roles.orEmpty(), heroDefs = catalog?.heroes.orEmpty()) } },
+            text = { Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) { HeroesSection(progress, editable = true, onAction = onAction, only = i, roles = catalog?.roles.orEmpty(), heroDefs = catalog?.heroes.orEmpty(), skills = catalog?.skills.orEmpty()) } },
         )
     }
     if (inventoryOpen) AlertDialog(
@@ -249,7 +249,7 @@ fun CampaignOverview(campaign: Campaign, progress: CampaignProgress, background:
 }
 
 @Composable
-fun HeroesSection(progress: CampaignProgress, editable: Boolean, onAction: ((CampaignProgress) -> CampaignProgress) -> Unit = {}, onImage: Boolean = false, only: Int? = null, roles: List<io.github.aljadvb.worldbuilder.model.RoleDefinition> = emptyList(), heroDefs: List<io.github.aljadvb.worldbuilder.model.HeroDefinition> = emptyList()) {
+fun HeroesSection(progress: CampaignProgress, editable: Boolean, onAction: ((CampaignProgress) -> CampaignProgress) -> Unit = {}, onImage: Boolean = false, only: Int? = null, roles: List<io.github.aljadvb.worldbuilder.model.RoleDefinition> = emptyList(), heroDefs: List<io.github.aljadvb.worldbuilder.model.HeroDefinition> = emptyList(), skills: List<io.github.aljadvb.worldbuilder.model.SkillDefinition> = emptyList()) {
     val statsLabel = io.github.aljadvb.worldbuilder.ui.home.heroStatsShort()
     var buyFor by remember { mutableStateOf<Int?>(null) }
     var roleFor by remember { mutableStateOf<Int?>(null) }
@@ -267,6 +267,8 @@ fun HeroesSection(progress: CampaignProgress, editable: Boolean, onAction: ((Cam
                     if (d.ability.isNotBlank()) Text(stringResource(R.string.hero_ability, d.ability), style = MaterialTheme.typography.bodySmall)
                     if (d.startingGear.isNotEmpty()) Text(stringResource(R.string.hero_gear, d.startingGear.joinToString(", ")), style = MaterialTheme.typography.bodySmall)
                 }
+                if (h.titles.isNotEmpty()) Text(stringResource(R.string.camp_titles, h.titles.joinToString(", ") { t -> skills.firstOrNull { it.id == t }?.name ?: t }),
+                    style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)
                 h.xp.filterKeys { it != h.role }.filterValues { it.earned > 0 }.forEach { (role, xp) ->
                     Text(stringResource(R.string.camp_xp_other, role.ifBlank { "–" }, xp.available), style = MaterialTheme.typography.bodySmall)
                 }
@@ -297,6 +299,17 @@ fun HeroesSection(progress: CampaignProgress, editable: Boolean, onAction: ((Cam
             title = { Text(stringResource(R.string.camp_buy_title, progress.party[i].name)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    // Skills of the hero's current role from the catalog, cheapest first; copies already bought are left out.
+                    val hero = progress.party[i]
+                    val roleId = roles.firstOrNull { it.name == hero.role }?.id
+                    val bought = hero.skills.filter { !it.sold }.groupingBy { it.name }.eachCount()
+                    val offer = skills.filter { it.kind == io.github.aljadvb.worldbuilder.model.SkillKind.ROLE && it.role == roleId && it.xp != null && (bought[it.name] ?: 0) < it.count }
+                        .sortedWith(compareBy({ it.xp }, { it.name }))
+                    if (offer.isNotEmpty()) {
+                        io.github.aljadvb.worldbuilder.ui.home.CatalogPicker(name, offer.map { "${it.name} (${it.xp} EP)" to it.summary }, Modifier.fillMaxWidth(), stringResource(R.string.camp_skill_pick)) { picked ->
+                            offer.firstOrNull { "${it.name} (${it.xp} EP)" == picked }?.let { name = it.name; cost = it.xp.toString() }
+                        }
+                    }
                     OutlinedTextField(name, { name = it }, label = { Text(stringResource(R.string.camp_skill_name)) }, singleLine = true)
                     OutlinedTextField(cost, { cost = it.filter(Char::isDigit).take(2) }, label = { Text(stringResource(R.string.camp_skill_cost)) }, singleLine = true)
                 }

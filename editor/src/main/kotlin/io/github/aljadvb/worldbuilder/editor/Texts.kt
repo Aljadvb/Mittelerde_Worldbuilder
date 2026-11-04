@@ -179,6 +179,8 @@ object Texts {
         "recover" to "Erholung (Schaden/Furcht ablegen)",
         "gainCondition" to "Zustand erhalten (Gunst oder Fluch)",
         "gainCorruption" to "Verderbnis erhalten (böse Tat, mächtiger Gegenstand)",
+        "gainTitle" to "Titel erhalten",
+        "gainWeakness" to "Schwäche erhalten",
         "loseCorruption" to "Verderbnis verlieren",
         "checkCorruption" to "Verdorben? (Verzweigung)",
         "placeMarker" to "Gelände-Marker legen (unwegsam/befestigt/Dunkelheit)",
@@ -295,6 +297,13 @@ object Texts {
         else -> "Held ${hero + 1} hält stand und legt alle " + (if (kind == io.github.aljadvb.worldbuilder.engine.LimitKind.DAMAGE) "Schadenkarten" else "Furchtkarten") + " ab. Beim nächsten Limit ist er besiegt."
     }
     const val OPTION_CORRUPTION = "Verderbnis"
+    const val TITLE_CARD = "Titel"
+    fun titleGained(hero: Int, name: String) = "Held ${hero + 1} erhält den Titel „$name“. Sucht die Titelkarte heraus und bereitet sie vor."
+    fun weakness(amount: Int, who: io.github.aljadvb.worldbuilder.model.HeroTarget) = when (who) {
+        io.github.aljadvb.worldbuilder.model.HeroTarget.ACTIVE -> "Der handelnde Held"
+        io.github.aljadvb.worldbuilder.model.HeroTarget.EACH -> "Jeder Held"
+        io.github.aljadvb.worldbuilder.model.HeroTarget.CHOSEN -> "Ein Held eurer Wahl"
+    } + " mischt $amount Schwäche" + (if (amount > 1) "n" else "") + " in seinen Fertigkeitenstapel."
     const val CORRUPTION_EASE = "Erleichterung durch Verderbnis (Erfolge weniger, 0 = keine)"
     fun ease(n: Int) = "Mit Verderbnis erleichtern: −$n Erfolg" + (if (n > 1) "e" else "") + ", +1 Verderbnis"
     const val CORRUPTION_IF = "Wenn verdorben"
@@ -311,6 +320,7 @@ object Texts {
         is io.github.aljadvb.worldbuilder.engine.HeroQuestion.GainCorruption -> "Welcher Held erhält ${q.amount} Verderbnis?"
         is io.github.aljadvb.worldbuilder.engine.HeroQuestion.LoseCorruption -> "Welcher Held verliert ${q.amount} Verderbnis?"
         is io.github.aljadvb.worldbuilder.engine.HeroQuestion.CheckCorruption -> "Welcher Held handelt?"
+        is io.github.aljadvb.worldbuilder.engine.HeroQuestion.GainTitle -> "Welcher Held erhält den Titel?"
     }
     fun fieldMarker(m: io.github.aljadvb.worldbuilder.model.FieldMarker, where: String, placed: Boolean) =
         if (placed) "Legt einen Marker „${markerName(m)}“ auf $where." else "Entfernt den Marker „${markerName(m)}“ von $where."

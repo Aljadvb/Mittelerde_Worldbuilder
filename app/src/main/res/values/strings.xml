@@ -345,6 +345,16 @@
     <string name="camp_corruption">Verderbnis %1$d</string>
     <string name="hero_stats_short">Kör %1$d · Bew %2$d · Wei %3$d · Wil %4$d · Sch %5$d · Insp %6$d · Schaden %7$d · Furcht %8$d</string>
     <string name="hero_ability">Fähigkeit: %1$s</string>
+    <string name="camp_titles">Titel: %1$s</string>
+    <string name="camp_skill_pick">Fertigkeit der Rolle wählen</string>
+    <string name="title_gained_title">Titel: %1$s</string>
+    <string name="title_gained_text">%1$s erhält den Titel. Sucht die Titelkarte heraus und bereitet sie sofort vor – sie bleibt für die ganze Kampagne.</string>
+    <string name="choose_hero_title">Welcher Held erhält den Titel?</string>
+    <string name="weakness_title">Schwäche</string>
+    <string name="weakness_active">Der handelnde Held mischt %1$d Schwäche(n) in seinen Fertigkeitenstapel.</string>
+    <string name="weakness_each">Jeder Held mischt %1$d Schwäche(n) in seinen Fertigkeitenstapel.</string>
+    <string name="weakness_chosen">Ein Held eurer Wahl mischt %1$d Schwäche(n) in seinen Fertigkeitenstapel.</string>
+    <string name="weakness_hint">Zieht sie oben vom Schwächenstapel. Nach dem Abenteuer kommen alle Schwächen zurück.</string>
     <string name="hero_gear">Startausrüstung: %1$s</string>
     <string name="camp_found_items">Gefunden: %1$s</string>
     <string name="inscription_title">Elbische Inschrift</string>

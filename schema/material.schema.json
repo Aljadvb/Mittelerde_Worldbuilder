@@ -128,6 +128,53 @@
           }
         }
       }
+    },
+    "skills": {
+      "type": "array",
+      "description": "Fertigkeitskarten: Rollen-Fertigkeiten (im Lager mit EP kaufen), Titel und Schwächen (nur im privaten Katalog).",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name",
+          "kind"
+        ],
+        "properties": {
+          "id": {
+            "$ref": "#/$defs/id"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "kind": {
+            "enum": [
+              "role",
+              "title",
+              "weakness"
+            ]
+          },
+          "role": {
+            "$ref": "#/$defs/id",
+            "description": "Rollen-ID bei Rollen-Fertigkeiten."
+          },
+          "xp": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 30,
+            "description": "EP-Kosten; fehlt bei Startkarten der Rolle."
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 1,
+            "default": 1
+          },
+          "summary": {
+            "type": "string"
+          }
+        }
+      }
     }
   },
   "$defs": {

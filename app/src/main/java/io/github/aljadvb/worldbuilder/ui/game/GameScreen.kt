@@ -589,6 +589,8 @@ private fun historyText(prompt: Prompt, scenario: Scenario): String = when (prom
     is Prompt.ChooseHero -> stringResource(R.string.choose_hero_check)
     is Prompt.Corruption -> corruptionText(prompt, emptyList())
     is Prompt.CorruptionSetup -> stringResource(R.string.corruption_setup_title)
+    is Prompt.TitleGained -> stringResource(R.string.title_gained_title, prompt.title)
+    is Prompt.Weakness -> stringResource(R.string.weakness_title)
     is Prompt.FieldMarker -> stringResource(if (prompt.placed) R.string.marker_place_title else R.string.marker_remove_title, markerName(prompt.marker))
     is Prompt.Inscription -> if (prompt.translationHidden) "„${prompt.elvish}“" else "„${prompt.elvish}“ – ${prompt.translation}"
     is Prompt.ItemFound -> stringResource(R.string.item_found_title) + ": " + (prompt.itemId ?: "–")

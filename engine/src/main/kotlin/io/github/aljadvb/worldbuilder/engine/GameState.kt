@@ -40,6 +40,10 @@ data class GameState(
     val corruption: List<Int> = emptyList(),
     /** Rough-ground and fortified markers laid by events. */
     val fieldMarkers: List<PlacedMarker> = emptyList(),
+    /** Titles the group already held when the scenario started (each title card exists once). */
+    val ownedTitles: Set<String> = emptySet(),
+    /** Titles earned in this scenario. */
+    val titlesGained: List<HeroTitle> = emptyList(),
     /** Fear in darkness per shadow phase (0 = no darkness). */
     val darknessFear: Int = 0,
     /** State of the deterministic random generator (targets, attacks, shadow events). */
@@ -181,6 +185,14 @@ sealed interface Prompt {
     @Serializable @SerialName("corruption")
     data class Corruption(val hero: Int, val delta: Int, val total: Int, val text: String? = null) : Notice
 
+    /** [hero] earned title card [title] (catalog skill ID). */
+    @Serializable @SerialName("titleGained")
+    data class TitleGained(val hero: Int, val title: String) : Notice
+
+    /** Heroes take weakness cards into their skill deck. */
+    @Serializable @SerialName("weakness")
+    data class Weakness(val amount: Int, val who: io.github.aljadvb.worldbuilder.model.HeroTarget, val text: String? = null) : Notice
+
     /** Scenario start: lay out corruption markers ([values] per hero). */
     @Serializable @SerialName("corruptionSetup")
     data class CorruptionSetup(val values: List<Int>) : Notice
@@ -268,6 +280,9 @@ enum class AttackReason { @SerialName("provoked") PROVOKED, @SerialName("counter
 enum class LimitKind { @SerialName("damage") DAMAGE, @SerialName("fear") FEAR, @SerialName("corruption") CORRUPTION }
 
 @Serializable
+data class HeroTitle(val hero: Int, val title: String)
+
+@Serializable
 data class PlacedMarker(val marker: io.github.aljadvb.worldbuilder.model.FieldMarker, val location: io.github.aljadvb.worldbuilder.model.Location)
 
 /** Why the app asks which hero acts. */
@@ -279,6 +294,8 @@ sealed interface HeroQuestion {
     data class LoseCorruption(val amount: Int) : HeroQuestion
     @Serializable @SerialName("checkCorruption")
     data class CheckCorruption(val ifCorrupted: String, val ifNotCorrupted: String?) : HeroQuestion
+    @Serializable @SerialName("gainTitle")
+    data class GainTitle(val title: String) : HeroQuestion
 }
 
 @Serializable

@@ -131,6 +131,10 @@ Hardware bzw. mit einer echten KI gelaufen**. Die wichtigsten Punkte stehen oben
 - [ ] Pergament-Design: Titel und Knöpfe in Uncial Antiqua (frei, OFL; eine eigene Titelschrift im Katalog geht weiter vor), Fließtext in EB Garamond; Lesbarkeit am Tisch prüfen (neu in 1.22.0, Uncial ab 1.23.0)
 - [ ] Elbische Inschrift (neu in 1.23.0): Test-Kampagne, Höhle → „Alte Inschrift“ zeigt Tengwar-Zeile, darunter die Umschrift kursiv und die Übersetzung
 - [ ] Editor: Event-Schritt „Elbische Inschrift“ mit Vorschau in Tengwar; Prüfung meldet leere Inschrift oder fehlende Übersetzung
+- [ ] Titel (neu in 1.31.0): Test-Kampagne, „Frische Spuren“ – App fragt, welcher Held „Spurenfinder“ erhält; Lager zeigt den Titel; im nächsten Szenario wird derselbe Titel nicht noch einmal vergeben
+- [ ] Schwäche: Umgestürzte Truhe misslungen → Meldung „mischt 1 Schwäche in seinen Fertigkeitenstapel“
+- [ ] Lager → Fertigkeit kaufen: Auswahlliste mit den Fertigkeiten der aktuellen Rolle (Name, EP, Merkmale/Schlüsselwörter), schon gekaufte Karten fehlen; freie Eingabe geht weiter
+- [ ] Editor: Schritte „Titel erhalten“ (Auswahl aus 33 Titeln) und „Schwäche erhalten“
 - [ ] Heldenwerte (neu in 1.30.0, Daten im privaten Katalog): Neues Spiel – Auswahlliste zeigt Eigenschaften und Limits; beim Wählen wird die empfohlene Rolle eingetragen
 - [ ] Lager → Held antippen: Werte, Fähigkeit und Startausrüstung
 - [ ] Rollen heißen jetzt wie in den Regelheften (Hauptmann, Reisender, Wissenshüter, Wildnisführer, Proviantmeister, Krieger, Spitzbube); neu: Schatzgräber, Tierfreund

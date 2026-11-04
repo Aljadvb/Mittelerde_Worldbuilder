@@ -27,7 +27,7 @@ class GameEngine(
     private val ownedItems: List<String> = emptyList(),
 ) {
 
-    fun start(heroCount: Int, corruption: List<Int> = emptyList()): GameState {
+    fun start(heroCount: Int, corruption: List<Int> = emptyList(), titles: Set<String> = emptySet()): GameState {
         require(heroCount in 1..5) { "heroCount must be 1–5" }
         val heroCorruption = List(heroCount) { corruption.getOrElse(it) { 0 }.coerceAtLeast(0) }
         val initial = GameState(
@@ -43,6 +43,7 @@ class GameEngine(
             ),
             prompts = listOf(Prompt.Intro) + if (heroCorruption.any { it > 0 }) listOf(Prompt.CorruptionSetup(heroCorruption)) else emptyList(),
             corruption = heroCorruption,
+            ownedTitles = titles,
         )
         return initial
     }
@@ -196,6 +197,8 @@ class GameEngine(
         val stunned = s.stunnedGroups.toMutableSet()
         val corruption = List(heroCount) { s.corruption.getOrElse(it) { 0 } }.toMutableList()
         val fieldMarkers = s.fieldMarkers.toMutableList()
+        val titlesGained = s.titlesGained.toMutableList()
+        val ownedTitles = s.ownedTitles
         var darknessFear = s.darknessFear
         var rng = s.rng
         val defeatedHeroes = s.defeatedHeroes.toMutableSet()
@@ -221,7 +224,7 @@ class GameEngine(
             interactedTokens = interactedTokens.toSet(), activeEnemyGroups = activeGroups.toSet(),
             defeatedEnemyGroups = defeatedGroups.toSet(), activeObjectives = activeObjectives.toList(),
             completedObjectives = completedObjectives.toSet(), firedTriggers = firedTriggers.toSet(), exploredPlacements = explored.toSet(), pendingTokens = pendingTokens.toSet(), flags = flags.toSet(), loreGained = loreGained,
-            enemyHealth = enemyHealth.toMap(), armorLoss = armorLoss.toMap(), exhaustedGroups = exhausted.toSet(), stunnedGroups = stunned.toSet(), corruption = corruption.toList(), fieldMarkers = fieldMarkers.toList(),
+            enemyHealth = enemyHealth.toMap(), armorLoss = armorLoss.toMap(), exhaustedGroups = exhausted.toSet(), stunnedGroups = stunned.toSet(), corruption = corruption.toList(), fieldMarkers = fieldMarkers.toList(), ownedTitles = ownedTitles, titlesGained = titlesGained.toList(),
             darknessFear = darknessFear, rng = rng,
             defeatedHeroes = defeatedHeroes.toSet(), lastStandUsed = lastStandUsed.toSet(),
             ownedItems = ownedItemsAtStart, itemsFound = itemsFound.toList(), testProgress = testProgress.toMap(), enemyBanners = enemyBanners.toMap(),
@@ -329,6 +332,10 @@ class GameEngine(
                 is HeroQuestion.GainCorruption -> prompts.addAll(0, gainCorruption(hero, question.amount))
                 is HeroQuestion.LoseCorruption -> loseCorruption(hero, question.amount, null)?.let { prompts.add(0, it) }
                 is HeroQuestion.CheckCorruption -> replaceCurrent(if (corruption[hero] > 0) question.ifCorrupted else question.ifNotCorrupted)
+                is HeroQuestion.GainTitle -> {
+                    titlesGained += HeroTitle(hero, question.title)
+                    prompts.add(0, Prompt.TitleGained(hero, question.title))
+                }
             }
         }
 
@@ -525,6 +532,13 @@ class GameEngine(
                         prompts += Prompt.Test(eventId, test, reveal = Prompt.Inscription(step.elvish, step.translation))
                     }
                 }
+                is EventStep.GainTitle -> {
+                    // Each title card exists once: a title the group already has is not given again.
+                    if (step.title !in ownedTitles && titlesGained.none { it.title == step.title }) {
+                        askHero(Prompt.ChooseHero(HeroQuestion.GainTitle(step.title), step.text))
+                    }
+                }
+                is EventStep.GainWeakness -> if (step.amount > 0) prompts += Prompt.Weakness(step.amount, step.who, step.text)
                 is EventStep.GainCorruption -> if (step.who == io.github.aljadvb.worldbuilder.model.HeroTarget.EACH) {
                     (0 until heroCount).forEach { prompts.addAll(gainCorruption(it, step.amount)) }
                 } else {

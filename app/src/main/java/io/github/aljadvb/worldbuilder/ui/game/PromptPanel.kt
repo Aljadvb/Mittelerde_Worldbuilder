@@ -106,7 +106,11 @@ fun PromptPanel(
                         is io.github.aljadvb.worldbuilder.engine.HeroQuestion.GainCorruption -> stringResource(R.string.choose_hero_gain, q.amount)
                         is io.github.aljadvb.worldbuilder.engine.HeroQuestion.LoseCorruption -> stringResource(R.string.choose_hero_lose, q.amount)
                         is io.github.aljadvb.worldbuilder.engine.HeroQuestion.CheckCorruption -> stringResource(R.string.choose_hero_check)
+                        is io.github.aljadvb.worldbuilder.engine.HeroQuestion.GainTitle -> stringResource(R.string.choose_hero_title)
                     })
+                    (prompt.question as? io.github.aljadvb.worldbuilder.engine.HeroQuestion.GainTitle)?.let { q ->
+                        catalog.skill(q.title)?.let { t -> Text(t.name, fontWeight = FontWeight.Bold); if (t.summary.isNotBlank()) Hint(t.summary) }
+                    }
                     (0 until heroCount).forEach { h ->
                         FilledTonalButton(onClick = { onCommand(Command.ChooseHero(h)) }, modifier = Modifier.fillMaxWidth()) {
                             Text(stringResource(R.string.hero_with_corruption, heroName(heroNames, h), corruption.getOrElse(h) { 0 }))
@@ -332,6 +336,22 @@ private fun NoticeContent(prompt: Prompt.Notice, scenario: Scenario, catalog: Ma
             Title(stringResource(R.string.corruption_title))
             prompt.text?.let { Body(it) }
             Body(corruptionText(prompt, heroNames))
+        }
+        is Prompt.TitleGained -> {
+            val t = catalog.skill(prompt.title)
+            Title(stringResource(R.string.title_gained_title, t?.name ?: prompt.title))
+            Body(stringResource(R.string.title_gained_text, heroName(heroNames, prompt.hero)))
+            t?.summary?.takeIf { it.isNotBlank() }?.let { Text(it, fontStyle = androidx.compose.ui.text.font.FontStyle.Italic) }
+        }
+        is Prompt.Weakness -> {
+            Title(stringResource(R.string.weakness_title))
+            prompt.text?.let { Body(it) }
+            Body(stringResource(when (prompt.who) {
+                io.github.aljadvb.worldbuilder.model.HeroTarget.ACTIVE -> R.string.weakness_active
+                io.github.aljadvb.worldbuilder.model.HeroTarget.EACH -> R.string.weakness_each
+                io.github.aljadvb.worldbuilder.model.HeroTarget.CHOSEN -> R.string.weakness_chosen
+            }, prompt.amount))
+            Hint(stringResource(R.string.weakness_hint))
         }
         is Prompt.CorruptionSetup -> {
             Title(stringResource(R.string.corruption_setup_title))

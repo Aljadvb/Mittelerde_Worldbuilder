@@ -437,6 +437,16 @@ private class CampaignChecks(
                     step.text?.let { blank(it, "$p.text", eventId, "$what: Text") }
                 }
                 is EventStep.GainCondition -> step.text?.let { blank(it, "$p.text", eventId, "$what: Text") }
+                is EventStep.GainTitle -> {
+                    if (catalog.skills.isNotEmpty() && catalog.titles.none { it.id == step.title }) {
+                        c.error(IssueCode.UNKNOWN_REFERENCE, "$p.title", eventId, "$what: Titel '${step.title}' ist nicht im Katalog.")
+                    }
+                    step.text?.let { blank(it, "$p.text", eventId, "$what: Text") }
+                }
+                is EventStep.GainWeakness -> {
+                    if (step.amount !in 1..2) c.error(IssueCode.INVALID_NUMBER, "$p.amount", eventId, "$what: Schwächen 1–2.")
+                    step.text?.let { blank(it, "$p.text", eventId, "$what: Text") }
+                }
                 is EventStep.GainCorruption -> {
                     if (step.amount !in 1..2) c.error(IssueCode.INVALID_NUMBER, "$p.amount", eventId, "$what: Verderbnis 1–2.")
                     step.text?.let { blank(it, "$p.text", eventId, "$what: Text") }
@@ -544,6 +554,8 @@ internal fun stepName(step: EventStep): String = when (step) {
     is EventStep.Inscription -> "inscription"
     is EventStep.GainCondition -> "gainCondition"
     is EventStep.GainCorruption -> "gainCorruption"
+    is EventStep.GainTitle -> "gainTitle"
+    is EventStep.GainWeakness -> "gainWeakness"
     is EventStep.LoseCorruption -> "loseCorruption"
     is EventStep.CheckCorruption -> "checkCorruption"
     is EventStep.PlaceMarker -> "placeMarker"
