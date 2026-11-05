@@ -24,7 +24,8 @@ class PromptBuilder(private val catalog: MaterialCatalog, private val input: Gen
     }.sortedBy { it.name }
 
     // Finds are level-I cards; higher levels come only from upgrading in camp.
-    private val items = catalog.items.filter { catalog.expansion(it.expansion)?.owned != false && it.level == 1 }.sortedBy { it.name }
+    private val items = catalog.items.filter { catalog.expansion(it.expansion)?.owned != false && it.level == 1 && it.kind == io.github.aljadvb.worldbuilder.model.ItemKind.TRINKET }.sortedBy { it.name }
+    private val mounts = catalog.items.filter { catalog.expansion(it.expansion)?.owned != false && it.kind == io.github.aljadvb.worldbuilder.model.ItemKind.MOUNT }.sortedBy { it.name }
 
     val allowedTileIds: Set<String> get() = tiles.map { it.id }.toSet()
 
@@ -88,6 +89,11 @@ class PromptBuilder(private val catalog: MaterialCatalog, private val input: Gen
         if (items.isEmpty()) appendLine("- (keine – verwende keinen Schritt gainItem)")
         for (i in items) appendLine("- Gegenstands-ID `${i.id}`: ${i.name}" + if (i.effect.isNotBlank()) " – ${i.effect}" else "")
         appendLine()
+        if (mounts.isNotEmpty()) {
+            appendLine("## Reittiere (nur gezielt mit gainItem und item = ID, sehr selten)")
+            for (m in mounts) appendLine("- Reittier-ID `${m.id}`: ${m.name}" + if (m.effect.isNotBlank()) " – ${m.effect}" else "")
+            appendLine()
+        }
         appendLine("## Titel")
         if (catalog.titles.isEmpty()) appendLine("- (keine – verwende keinen Schritt gainTitle)")
         for (t in catalog.titles) appendLine("- Titel-ID `${t.id}`: ${t.name}" + if (t.summary.isNotBlank()) " – ${t.summary}" else "")
@@ -166,6 +172,7 @@ class PromptBuilder(private val catalog: MaterialCatalog, private val input: Gen
         appendLine("- Verderbnis: Verderbnis kommt nie überraschend, sondern immer aus einer Entscheidung der Spieler. Drei Wege: (1) eine Auswahl-Option mit \"corruption\": 1 (selten 2) für eine böse oder gierige Tat (Grab plündern, Gefangene zurücklassen, einen Verbündeten verraten) – die Auswahl hat immer eine Alternative ohne Verderbnis; (2) gainCorruption direkt nach einer bewussten Wahl, einen sehr mächtigen Gegenstand einzusetzen (ein Ring der Macht, eine Schattenkrone, ein verfluchtes Schwert); (3) bei sehr schweren Proben (3+ Erfolge, keine Sammelprobe) \"corruptionEase\": 1, damit die Spieler auf Nachfrage Verderbnis annehmen und die Probe erleichtern können. Insgesamt höchstens 1–2 Verderbnis-Gelegenheiten pro Szenario, oft keine. Nie als Folge einer misslungenen Probe. Selten darf ein Ort Verderbnis lindern (loseCorruption, z. B. eine reine Quelle). checkCorruption nur, wenn verdorbene Helden etwas anderes erleben sollen (ein Fluch reagiert, ein Elb misstraut).")
         appendLine("- Gelände-Marker: 0–2 Mal pro Szenario placeMarker, wenn es zur Geschichte passt: rough für Schlamm nach Regen, Geröll, eingestürzte Wege, Spinnennetze; fortified für Barrikaden oder Schanzen, vor allem in Schlachten; darkness für einzelne finstere Stellen (erloschenes Feuer, Schattenzauber, eine dunkle Nische) – für ein ganz dunkles Kapitel nimm weiterhin setDarkness. Lege sie auf Felder, über die die Helden wirklich gehen.")
         if (catalog.titles.isNotEmpty()) appendLine("- Titel: Höchstens 1 Titel (gainTitle) pro Szenario, oft keiner – als Auszeichnung für eine besondere Tat, die zum Titel passt (Zwergenfreund nach Hilfe für Zwerge, Steinsprecher an alten Steinen). Ein Titel geht an einen Helden und bleibt die ganze Kampagne.")
+        if (mounts.isNotEmpty()) appendLine("- Reittiere: höchstens eines in der ganzen Kampagne pro paar Szenarien, als besondere Belohnung (ein Pony vom dankbaren Bauern, ein Pferd aus Rohan) – gainItem mit der Reittier-ID.")
         appendLine("- Schwächen: gainWeakness selten (0–1 pro Szenario) als Folge von Erschöpfung, Verfolgung oder Pech, z. B. nach einer misslungenen Probe auf einer langen Reise.")
         appendLine("- Elite-Gegner: Höchstens 1 Elite-Gruppe pro Reise-Szenario (oft keine), höchstens 2 in Schlachten – für Anführer, Wächter oder besonders gefährliche Gegner. Wähle 1–2 Boni, die zum Gegner und zur Geschichte passen, und erkläre sie in \"eliteReason\" mit einem Satz: Ein Troll ist zäh oder wütend, ein Räuberhauptmann trägt eine erbeutete Rüstung (armored) oder ist flink, ein Wargreiter ist flink, ein Grabunhold oder ein Diener des Feindes schrecklich oder durch Zauber geschützt (warded). Zauberschutz (warded) nur bei Wesen mit Magie oder einem magischen Gegenstand, der in eliteReason genannt wird. Erwähne die Elite-Gruppe auch im Text des Events, in dem sie erscheint.")
         appendLine("- Zustände: Nutze gainCondition 1–3 Mal pro Szenario. Gunst als Belohnung, wo es zur Geschichte passt: hidden nach Anschleichen oder Verbergen, inspired nach einer Rede oder einem Lied, determined nach einem Schwur oder einer bestandenen Mutprobe. Flüche sparsam als Folge misslungener Proben: captured bei einem Hinterhalt oder einer Falle (höchstens 1 Mal pro Szenario), disheartened bei Hoffnungslosigkeit, frightened bei Schrecken. Ein Fluch nie auf \"each\".")

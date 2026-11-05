@@ -489,7 +489,10 @@ private class CampaignChecks(
                     if (item != null) {
                         val def = catalog.item(item)
                         if (def == null) c.error(IssueCode.UNKNOWN_ITEM, "$p.item", eventId, "$what: Gegenstand '$item' ist nicht im Material-Katalog.")
-                        else checkExpansionOwned(def.expansion, "$p.item", eventId, "Gegenstand '${def.name}'")
+                        else {
+                            checkExpansionOwned(def.expansion, "$p.item", eventId, "Gegenstand '${def.name}'")
+                            if (def.isGear) c.error(IssueCode.UNKNOWN_ITEM, "$p.item", eventId, "$what: '${def.name}' ist Heldenausrüstung – finden lassen sich nur Schmuckstücke und Reittiere.")
+                        }
                     } else if (catalog.items.isEmpty()) {
                         c.warn(IssueCode.NO_ITEMS, p, eventId, "$what: Der Katalog enthält keine Schmuckstücke – die Helden finden nichts.")
                     }

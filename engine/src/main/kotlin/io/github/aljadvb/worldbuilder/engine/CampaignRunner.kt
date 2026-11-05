@@ -41,6 +41,8 @@ data class Hero(
     val corruption: Int = 0,
     /** Title cards (catalog skill IDs) the hero earned. */
     val titles: List<String> = emptyList(),
+    /** The hero's equipment (catalog item IDs of weapons, armor and support items). */
+    val gear: List<String> = emptyList(),
 ) {
     fun xpFor(role: String): RoleXp = xp[role] ?: RoleXp()
     val available: Int get() = xp.values.sumOf { it.available }
@@ -59,6 +61,7 @@ data class SkillPurchase(val role: String, val name: String, val cost: Int, val 
 class CampaignRunner(val campaign: Campaign, catalog: io.github.aljadvb.worldbuilder.model.MaterialCatalog? = null) {
     private val enemyTypes = catalog?.enemyTypes.orEmpty().associateBy { it.id }
     private val items = catalog?.items.orEmpty()
+    private val heroDefs = catalog?.heroes.orEmpty()
 
 
     /** A fresh game for the progress' current scenario (after the group chose another next adventure). */
@@ -68,7 +71,14 @@ class CampaignRunner(val campaign: Campaign, catalog: io.github.aljadvb.worldbui
         GameEngine(campaign.scenario(scenarioId) ?: throw EngineException("Szenario '$scenarioId' fehlt in der Kampagne."), flags, enemyTypes, items, owned)
 
     fun start(heroCount: Int, heroes: List<Hero> = emptyList()): Pair<CampaignProgress, GameState> {
-        val progress = CampaignProgress(heroCount, campaign.startScenario, heroes = heroes.take(heroCount))
+        // Heroes from the catalog start with their equipment (level I cards matched by name).
+        val equipped = mutableListOf<String>()
+        val withGear = heroes.take(heroCount).map { h ->
+            if (h.gear.isNotEmpty()) return@map h.also { equipped += it.gear }
+            val names = heroDefs.firstOrNull { it.name == h.name }?.startingGear.orEmpty()
+            h.copy(gear = Camp.startingGear(names, items, equipped).also { equipped += it })
+        }
+        val progress = CampaignProgress(heroCount, campaign.startScenario, heroes = withGear)
         return progress to engineFor(campaign.startScenario).start(heroCount, progress.party.map { it.corruption }, progress.party.flatMap { it.titles }.toSet())
     }
 
@@ -149,6 +159,44 @@ object Camp {
     }
 
     /** Trinkets of the inventory that can be upgraded now. */
+    /**
+     * Upgrades equipment [itemId] of [hero] to [targetId] (a card of the next level). Needs the group's lore,
+     * a free copy of the target card, and a hero may only ever have one level IV item.
+     */
+    fun upgradeGear(p: CampaignProgress, hero: Int, itemId: String, items: List<io.github.aljadvb.worldbuilder.model.Item>, targetId: String? = null): CampaignProgress {
+        val h = p.party.getOrNull(hero) ?: throw EngineException("Unbekannter Held.")
+        if (itemId !in h.gear) throw EngineException("${h.name} hat diesen Gegenstand nicht.")
+        val item = items.firstOrNull { it.id == itemId } ?: throw EngineException("Unbekannter Gegenstand '$itemId'.")
+        val next = gearOptions(p, hero, item, items).let { o -> if (targetId == null) o.firstOrNull() else o.firstOrNull { it.id == targetId } }
+            ?: throw EngineException("„${item.name}“ lässt sich nicht weiter aufwerten.")
+        val needed = item.lore ?: 0
+        if (p.lore < needed) throw EngineException("Dafür braucht die Gruppe $needed Wissen (vorhanden: ${p.lore}).")
+        return updateHero(p, hero) { x -> x.copy(gear = x.gear.toMutableList().also { it[it.indexOf(itemId)] = next.id }) }
+    }
+
+    /** Next-level cards [hero] could get for [item]: a free copy, and no second level IV item. */
+    fun gearOptions(p: CampaignProgress, hero: Int, item: io.github.aljadvb.worldbuilder.model.Item, items: List<io.github.aljadvb.worldbuilder.model.Item>): List<io.github.aljadvb.worldbuilder.model.Item> {
+        val h = p.party.getOrNull(hero) ?: return emptyList()
+        val owned = p.party.flatMap { it.gear }
+        val hasFour = h.gear.any { g -> items.firstOrNull { it.id == g }?.level == 4 }
+        return item.upgrades(items).filter { t -> owned.count { it == t.id } < t.count && !(t.level == 4 && hasFour) }
+    }
+
+    /** Equipment of [hero] that can be upgraded now (lore reached and a card available). */
+    fun upgradableGear(p: CampaignProgress, hero: Int, items: List<io.github.aljadvb.worldbuilder.model.Item>): List<String> =
+        p.party.getOrNull(hero)?.gear.orEmpty().filter { id ->
+            items.firstOrNull { it.id == id }?.let { gearOptions(p, hero, it, items).isNotEmpty() && p.lore >= (it.lore ?: 0) } == true
+        }
+
+    /** Level I cards for a hero's starting equipment, matched by name; copies already handed out are skipped. */
+    fun startingGear(names: List<String>, items: List<io.github.aljadvb.worldbuilder.model.Item>, taken: List<String> = emptyList()): List<String> {
+        val given = taken.toMutableList()
+        return names.mapNotNull { n ->
+            items.firstOrNull { it.isGear && it.level == 1 && it.name.equals(n.trim(), ignoreCase = true) && given.count { g -> g == it.id } < it.count }
+                ?.id?.also { given += it }
+        }
+    }
+
     fun upgradable(p: CampaignProgress, items: List<io.github.aljadvb.worldbuilder.model.Item>): List<String> =
         p.inventory.filter { id -> items.firstOrNull { it.id == id }?.let { it.upgrades(items).isNotEmpty() && p.lore >= (it.lore ?: 0) } == true }
 

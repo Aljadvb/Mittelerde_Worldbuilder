@@ -262,7 +262,7 @@ data class Item(
     val image: ItemImage? = null,
     /** Upgrade line: cards with the same line (same picture) are levels of one item. */
     val line: String? = null,
-    /** Level (roman numeral on the card), 1–3. */
+    /** Level (roman numeral on the card), 1–3 for trinkets, 1–4 for hero equipment. */
     val level: Int = 1,
     /** Lore value on the card: total lore the group needs before this card can be upgraded. */
     val lore: Int? = null,
@@ -270,13 +270,29 @@ data class Item(
     val uses: Int? = null,
     /** Copies of this card in the game (e.g. two "Extrarationen" that start two upgrade paths). */
     val count: Int = 1,
+    /** Equipment: attributes for tests with this item, e.g. "Körperkraft/Wille" (empty if none). */
+    val stat: String = "",
+    /** Weapons and support items: hands needed (1 or 2). */
+    val hands: Int? = null,
+    /** Usable for ranged attacks. */
+    val ranged: Boolean = false,
 ) {
+    /** Hero equipment (weapon, armor, support item); trinkets and mounts belong to the whole group. */
+    val isGear: Boolean get() = kind == ItemKind.WEAPON || kind == ItemKind.ARMOR || kind == ItemKind.SUPPORT
     /** Cards of the next level of the same line (a line may branch, e.g. two kinds of rations). */
     fun upgrades(items: List<Item>): List<Item> = line?.let { l -> items.filter { it.line == l && it.level == level + 1 } }.orEmpty()
 }
 
 @Serializable
-enum class ItemKind { @SerialName("trinket") TRINKET }
+enum class ItemKind {
+    @SerialName("trinket") TRINKET,
+    @SerialName("weapon") WEAPON,
+    @SerialName("armor") ARMOR,
+    /** Banner, harp, horn, shield and similar. */
+    @SerialName("support") SUPPORT,
+    /** Mounts (Spreading War): no levels, managed by the group. */
+    @SerialName("mount") MOUNT,
+}
 
 @Serializable
 data class ItemImage(val file: String)

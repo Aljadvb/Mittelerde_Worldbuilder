@@ -392,7 +392,7 @@ private fun StepFields(
         is EventStep.GainItem -> {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 ChoiceInput(model, Texts.ITEM, step.item.orEmpty(),
-                    listOf(Choice("", Texts.RANDOM_TRINKET)) + model.catalog.items.map { Choice(it.id, it.name) }, "$p.item", modifier = Modifier.weight(1f)) { v ->
+                    listOf(Choice("", Texts.RANDOM_TRINKET)) + model.catalog.items.filter { !it.isGear }.map { Choice(it.id, it.name + if (it.kind == io.github.aljadvb.worldbuilder.model.ItemKind.MOUNT) " (Reittier)" else "") }, "$p.item", modifier = Modifier.weight(1f)) { v ->
                     set(step.copy(item = v?.ifEmpty { null }))
                 }
                 ChoiceInput(model, Texts.ITEM_WHO, step.who.name, Texts.INSPIRATION_TARGETS.filter { it.first != "EACH" }.map { Choice(it.first, it.second) }, null, modifier = Modifier.weight(1f)) { v ->

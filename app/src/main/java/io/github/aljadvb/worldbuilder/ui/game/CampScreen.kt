@@ -127,7 +127,7 @@ fun CampContent(campaign: Campaign, progress: CampaignProgress, background: andr
         AlertDialog(
             onDismissRequest = { heroOpen = null },
             confirmButton = { TextButton(onClick = { heroOpen = null }) { Text(stringResource(R.string.close)) } },
-            text = { Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) { HeroesSection(progress, editable = true, onAction = onAction, only = i, roles = catalog?.roles.orEmpty(), heroDefs = catalog?.heroes.orEmpty(), skills = catalog?.skills.orEmpty()) } },
+            text = { Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) { HeroesSection(progress, editable = true, onAction = onAction, only = i, roles = catalog?.roles.orEmpty(), heroDefs = catalog?.heroes.orEmpty(), skills = catalog?.skills.orEmpty(), items = catalog?.items.orEmpty()) } },
         )
     }
     if (inventoryOpen) AlertDialog(
@@ -187,8 +187,9 @@ fun InventorySection(progress: CampaignProgress, catalog: io.github.aljadvb.worl
             val items = catalog?.items.orEmpty()
             progress.inventory.forEach { id ->
                 val item = catalog?.item(id)
-                val roman = item?.let { listOf("I", "II", "III").getOrNull(it.level - 1) }
-                Text("• " + (item?.name ?: id) + (roman?.let { " ($it)" } ?: ""), fontWeight = FontWeight.Bold)
+                val roman = item?.takeIf { it.kind != io.github.aljadvb.worldbuilder.model.ItemKind.MOUNT }?.let { listOf("I", "II", "III", "IV").getOrNull(it.level - 1) }
+                val mount = item?.kind == io.github.aljadvb.worldbuilder.model.ItemKind.MOUNT
+                Text("• " + (item?.name ?: id) + (roman?.let { " ($it)" } ?: "") + if (mount) " – " + stringResource(R.string.camp_mount) else "", fontWeight = FontWeight.Bold)
                 item?.effect?.takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
                 val options = item?.upgrades(items).orEmpty()
                 if (item != null && options.isNotEmpty()) {
@@ -249,7 +250,7 @@ fun CampaignOverview(campaign: Campaign, progress: CampaignProgress, background:
 }
 
 @Composable
-fun HeroesSection(progress: CampaignProgress, editable: Boolean, onAction: ((CampaignProgress) -> CampaignProgress) -> Unit = {}, onImage: Boolean = false, only: Int? = null, roles: List<io.github.aljadvb.worldbuilder.model.RoleDefinition> = emptyList(), heroDefs: List<io.github.aljadvb.worldbuilder.model.HeroDefinition> = emptyList(), skills: List<io.github.aljadvb.worldbuilder.model.SkillDefinition> = emptyList()) {
+fun HeroesSection(progress: CampaignProgress, editable: Boolean, onAction: ((CampaignProgress) -> CampaignProgress) -> Unit = {}, onImage: Boolean = false, only: Int? = null, roles: List<io.github.aljadvb.worldbuilder.model.RoleDefinition> = emptyList(), heroDefs: List<io.github.aljadvb.worldbuilder.model.HeroDefinition> = emptyList(), skills: List<io.github.aljadvb.worldbuilder.model.SkillDefinition> = emptyList(), items: List<io.github.aljadvb.worldbuilder.model.Item> = emptyList()) {
     val statsLabel = io.github.aljadvb.worldbuilder.ui.home.heroStatsShort()
     var buyFor by remember { mutableStateOf<Int?>(null) }
     var roleFor by remember { mutableStateOf<Int?>(null) }
@@ -266,6 +267,24 @@ fun HeroesSection(progress: CampaignProgress, editable: Boolean, onAction: ((Cam
                     d.stats?.let { Text(statsLabel(it), style = MaterialTheme.typography.bodySmall) }
                     if (d.ability.isNotBlank()) Text(stringResource(R.string.hero_ability, d.ability), style = MaterialTheme.typography.bodySmall)
                     if (d.startingGear.isNotEmpty()) Text(stringResource(R.string.hero_gear, d.startingGear.joinToString(", ")), style = MaterialTheme.typography.bodySmall)
+                }
+                if (h.gear.isNotEmpty()) {
+                    Text(stringResource(R.string.camp_gear), style = MaterialTheme.typography.labelLarge)
+                    h.gear.forEach { gid ->
+                        val item = items.firstOrNull { it.id == gid }
+                        val roman = item?.let { listOf("I", "II", "III", "IV").getOrNull(it.level - 1) }
+                        Text("• " + (item?.name ?: gid) + (roman?.let { " ($it)" } ?: "") + (item?.effect?.takeIf { it.isNotBlank() }?.let { " – $it" } ?: ""), style = MaterialTheme.typography.bodySmall)
+                        if (editable && item != null) {
+                            val needed = item.lore ?: 0
+                            Camp.gearOptions(progress, i, item, items).forEach { next ->
+                                if (progress.lore >= needed) {
+                                    androidx.compose.material3.OutlinedButton(onClick = { onAction { p -> Camp.upgradeGear(p, i, gid, items, next.id) } }) {
+                                        Text(stringResource(R.string.camp_upgrade, next.name + if (next.level == 4) " (IV)" else ""))
+                                    }
+                                } else Text(stringResource(R.string.camp_upgrade_later, next.name, needed), style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+                    }
                 }
                 if (h.titles.isNotEmpty()) Text(stringResource(R.string.camp_titles, h.titles.joinToString(", ") { t -> skills.firstOrNull { it.id == t }?.name ?: t }),
                     style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold)

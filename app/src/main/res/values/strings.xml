@@ -346,6 +346,8 @@
     <string name="hero_stats_short">Kör %1$d · Bew %2$d · Wei %3$d · Wil %4$d · Sch %5$d · Insp %6$d · Schaden %7$d · Furcht %8$d</string>
     <string name="hero_ability">Fähigkeit: %1$s</string>
     <string name="camp_titles">Titel: %1$s</string>
+    <string name="camp_gear">Ausrüstung</string>
+    <string name="camp_mount">Reittier</string>
     <string name="camp_skill_pick">Fertigkeit der Rolle wählen</string>
     <string name="title_gained_title">Titel: %1$s</string>
     <string name="title_gained_text">%1$s erhält den Titel. Sucht die Titelkarte heraus und bereitet sie sofort vor – sie bleibt für die ganze Kampagne.</string>

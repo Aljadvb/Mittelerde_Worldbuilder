@@ -794,10 +794,14 @@
         },
         "kind": {
           "enum": [
-            "trinket"
+            "trinket",
+            "weapon",
+            "armor",
+            "support",
+            "mount"
           ],
           "default": "trinket",
-          "description": "trinket = Schmuckstück"
+          "description": "trinket = Schmuckstück, weapon = Waffe, armor = Rüstung, support = Hilfsgegenstand (Banner, Harfe, Horn, Schild), mount = Reittier"
         },
         "effect": {
           "type": "string",
@@ -827,9 +831,9 @@
         "level": {
           "type": "integer",
           "minimum": 1,
-          "maximum": 3,
+          "maximum": 4,
           "default": 1,
-          "description": "Stufe (römische Ziffer)."
+          "description": "Stufe (römische Zahl auf der Karte): Schmuckstücke I–III, Heldenausrüstung I–IV."
         },
         "lore": {
           "type": "integer",
@@ -846,6 +850,21 @@
           "minimum": 1,
           "default": 1,
           "description": "Anzahl der Karten im Spiel (z. B. zweimal Extrarationen)."
+        },
+        "stat": {
+          "type": "string",
+          "description": "Ausrüstung: Eigenschaften für Proben mit dem Gegenstand, z. B. Körperkraft/Wille."
+        },
+        "hands": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 2,
+          "description": "Waffen und Hilfsgegenstände: benötigte Hände."
+        },
+        "ranged": {
+          "type": "boolean",
+          "default": false,
+          "description": "Für Fernkampf geeignet."
         }
       }
     },
