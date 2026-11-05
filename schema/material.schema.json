@@ -967,7 +967,14 @@
             "type": "string",
             "minLength": 1
           },
-          "description": "Startausrüstung (Namen)."
+          "description": "Vorgeschlagene Startausrüstung (Namen von Stufe-I-Karten); die Spieler wählen frei."
+        },
+        "hands": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 3,
+          "default": 2,
+          "description": "Hände für Waffen und Hilfsgegenstände (meist 2; Bilbo und Calaminth 1, Fréahild 3)."
         }
       }
     },

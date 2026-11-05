@@ -180,6 +180,7 @@ fun HomeScreen(
             title = stored.campaign.title,
             available = state.heroes,
             roleOptions = state.roles,
+            gearOptions = state.gear,
             onDismiss = { newGameFor = null },
             onStart = { heroes ->
                 newGameFor = null
@@ -291,8 +292,10 @@ private fun CampaignCard(
 }
 
 @Composable
-private fun NewGameDialog(title: String, available: List<io.github.aljadvb.worldbuilder.model.HeroDefinition> = emptyList(), roleOptions: List<io.github.aljadvb.worldbuilder.model.RoleDefinition> = emptyList(), onDismiss: () -> Unit, onStart: (List<io.github.aljadvb.worldbuilder.engine.Hero>) -> Unit) {
+private fun NewGameDialog(title: String, available: List<io.github.aljadvb.worldbuilder.model.HeroDefinition> = emptyList(), roleOptions: List<io.github.aljadvb.worldbuilder.model.RoleDefinition> = emptyList(), gearOptions: List<io.github.aljadvb.worldbuilder.model.Item> = emptyList(), onDismiss: () -> Unit, onStart: (List<io.github.aljadvb.worldbuilder.engine.Hero>) -> Unit) {
     var heroes by remember { mutableIntStateOf(2) }
+    val gear = remember { androidx.compose.runtime.mutableStateListOf<List<String>>(emptyList(), emptyList(), emptyList(), emptyList(), emptyList()) }
+    var gearFor by remember { mutableStateOf<Int?>(null) }
     val names = remember { androidx.compose.runtime.mutableStateListOf("", "", "", "", "") }
     val roles = remember { androidx.compose.runtime.mutableStateListOf("", "", "", "", "") }
     AlertDialog(
@@ -320,9 +323,13 @@ private fun NewGameDialog(title: String, available: List<io.github.aljadvb.world
                                 // Suggest the hero's own role, if none is chosen yet.
                                 val hero = available.firstOrNull { it.name == names[i] }
                                 if (roles[i].isBlank()) hero?.suggestedRole?.let { id -> roleOptions.firstOrNull { it.id == id }?.let { roles[i] = it.name } }
+                                // Suggest the hero's starting equipment; copies other heroes took are skipped.
+                                val others = (0 until heroes).filter { it != i }.flatMap { gear[it] }
+                                gear[i] = io.github.aljadvb.worldbuilder.engine.Camp.startingGear(hero?.startingGear.orEmpty(), gearOptions, others)
                             }
                         } else androidx.compose.material3.OutlinedTextField(names[i], { names[i] = it }, Modifier.weight(1f), singleLine = true,
                             label = { Text(stringResource(R.string.new_game_hero_name, i + 1)) })
+                        if (gearOptions.isNotEmpty()) androidx.compose.material3.OutlinedButton(onClick = { gearFor = i }) { Text(stringResource(R.string.new_game_gear_button, gear[i].size)) }
                         if (roleOptions.isNotEmpty()) CatalogPicker(roles[i], roleOptions.map { it.name to it.description }, Modifier.weight(1f), stringResource(R.string.new_game_hero_role)) { roles[i] = it }
                         else androidx.compose.material3.OutlinedTextField(roles[i], { roles[i] = it }, Modifier.weight(1f), singleLine = true,
                             label = { Text(stringResource(R.string.new_game_hero_role)) })
@@ -332,9 +339,51 @@ private fun NewGameDialog(title: String, available: List<io.github.aljadvb.world
         },
         confirmButton = {
             Button(onClick = {
-                onStart((0 until heroes).map { i -> io.github.aljadvb.worldbuilder.engine.Hero(names[i].trim().ifEmpty { "Held ${i + 1}" }, roles[i].trim()) })
+                onStart((0 until heroes).map { i -> io.github.aljadvb.worldbuilder.engine.Hero(names[i].trim().ifEmpty { "Held ${i + 1}" }, roles[i].trim(), gear = gear[i]) })
             }) { Text(stringResource(R.string.new_game_start)) }
         },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
+    )
+    gearFor?.let { i ->
+        val hands = available.firstOrNull { it.name == names[i] }?.hands ?: 2
+        val others = (0 until heroes).filter { it != i }.flatMap { gear[it] }
+        GearDialog(names[i].ifBlank { "Held ${i + 1}" }, gearOptions, gear[i], others, hands, onDismiss = { gearFor = null }) { gear[i] = it; gearFor = null }
+    }
+}
+
+/** Choice of a hero's level I starting equipment: one armor and items for up to [hands] hands (rules 47.1). */
+@Composable
+private fun GearDialog(hero: String, options: List<io.github.aljadvb.worldbuilder.model.Item>, selected: List<String>, takenByOthers: List<String>, hands: Int, onDismiss: () -> Unit, onDone: (List<String>) -> Unit) {
+    val chosen = remember { androidx.compose.runtime.mutableStateListOf<String>().also { it.addAll(selected) } }
+    val problems = io.github.aljadvb.worldbuilder.engine.Camp.gearProblems(chosen, options, hands)
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(stringResource(R.string.new_game_gear_title, hero)) },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text(stringResource(R.string.new_game_gear_hint, hands), style = MaterialTheme.typography.bodySmall)
+                problems.forEach { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
+                listOf(
+                    io.github.aljadvb.worldbuilder.model.ItemKind.WEAPON to R.string.gear_weapons,
+                    io.github.aljadvb.worldbuilder.model.ItemKind.ARMOR to R.string.gear_armor,
+                    io.github.aljadvb.worldbuilder.model.ItemKind.SUPPORT to R.string.gear_support,
+                ).forEach { (kind, label) ->
+                    Text(stringResource(label), style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 8.dp))
+                    options.filter { it.kind == kind }.sortedBy { it.name }.forEach { item ->
+                        val free = item.count - takenByOthers.count { it == item.id }
+                        val on = item.id in chosen
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            androidx.compose.material3.Checkbox(checked = on, enabled = on || free > 0, onCheckedChange = { v -> if (v) chosen += item.id else chosen.remove(item.id) })
+                            Column {
+                                Text(item.name, fontWeight = androidx.compose.ui.text.font.FontWeight.Bold)
+                                Text(item.effect + if (free <= 0 && !on) " · " + stringResource(R.string.gear_taken) else "", style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = { Button(enabled = problems.isEmpty(), onClick = { onDone(chosen.toList()) }) { Text(stringResource(R.string.confirm)) } },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
     )
 }

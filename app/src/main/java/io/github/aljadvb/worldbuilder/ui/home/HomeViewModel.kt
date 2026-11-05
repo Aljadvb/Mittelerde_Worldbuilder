@@ -32,6 +32,8 @@ data class HomeUiState(
     val importResult: ImportOutcome? = null,
     val heroes: List<io.github.aljadvb.worldbuilder.model.HeroDefinition> = emptyList(),
     val roles: List<io.github.aljadvb.worldbuilder.model.RoleDefinition> = emptyList(),
+    /** Level I hero equipment the players choose from at the start of a campaign. */
+    val gear: List<io.github.aljadvb.worldbuilder.model.Item> = emptyList(),
 )
 
 data class ImportOutcome(val isCatalog: Boolean, val result: ImportResult)
@@ -65,6 +67,7 @@ class HomeViewModel(private val container: AppContainer) : ViewModel() {
                     enemyTypeCount = catalog.enemyTypes.size,
                     heroes = catalog.heroes.filter { h -> catalog.expansion(h.expansion)?.owned != false },
                     roles = catalog.roles.filter { r -> catalog.expansion(r.expansion)?.owned != false },
+                    gear = catalog.items.filter { it.isGear && it.level == 1 && catalog.expansion(it.expansion)?.owned != false },
                 )
             }
             _state.update { loaded.copy(importResult = it.importResult) }

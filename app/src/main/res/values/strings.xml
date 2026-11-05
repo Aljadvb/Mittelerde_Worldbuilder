@@ -347,6 +347,13 @@
     <string name="hero_ability">Fähigkeit: %1$s</string>
     <string name="camp_titles">Titel: %1$s</string>
     <string name="camp_gear">Ausrüstung</string>
+    <string name="new_game_gear_button">Ausrüstung (%1$d)</string>
+    <string name="new_game_gear_title">Startausrüstung: %1$s</string>
+    <string name="new_game_gear_hint">Wählt Stufe-I-Karten: 1 Rüstung und Gegenstände für bis zu %1$d Hände. Die Ausrüstung bleibt die ganze Kampagne; im Lager wird sie aufgewertet.</string>
+    <string name="gear_weapons">Waffen</string>
+    <string name="gear_armor">Rüstungen</string>
+    <string name="gear_support">Hilfsgegenstände</string>
+    <string name="gear_taken">schon vergeben</string>
     <string name="camp_mount">Reittier</string>
     <string name="camp_skill_pick">Fertigkeit der Rolle wählen</string>
     <string name="title_gained_title">Titel: %1$s</string>

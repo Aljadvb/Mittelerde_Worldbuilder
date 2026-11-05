@@ -186,8 +186,10 @@ data class HeroDefinition(
     val ability: String = "",
     /** Role suggested for this hero (role ID). */
     val suggestedRole: String? = null,
-    /** Starting equipment (names). */
+    /** Suggested starting equipment (names of level I cards); the players choose freely. */
     val startingGear: List<String> = emptyList(),
+    /** Hands for weapons and support items (2; some heroes only 1, Fréahild 3). */
+    val hands: Int = 2,
 )
 
 /** Values of a hero card: the five attributes and the limits. */

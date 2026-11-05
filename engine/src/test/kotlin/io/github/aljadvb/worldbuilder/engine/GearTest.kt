@@ -40,4 +40,15 @@ class GearTest {
         assertFailsWith<EngineException> { Camp.upgradeGear(p, 0, "dolch_3", items) }
         assertEquals(emptyList(), Camp.upgradableGear(p, 0, items))
     }
+
+    @Test
+    fun `starting equipment allows one armor and limited hands`() {
+        val list = items + listOf(
+            Item("bogen", "Großer Bogen", "x", ItemKind.WEAPON, line = "bogen", hands = 2),
+            Item("ring", "Ringpanzer", "x", ItemKind.ARMOR, line = "ring"), Item("umhang", "Umhang", "x", ItemKind.ARMOR, line = "umhang"),
+        )
+        assertEquals(emptyList(), Camp.gearProblems(listOf("bogen", "ring"), list))
+        assertEquals(2, Camp.gearProblems(listOf("bogen", "dolch", "ring", "umhang"), list).size)
+        assertEquals(1, Camp.gearProblems(listOf("schwert", "dolch"), list, hands = 1).size)
+    }
 }

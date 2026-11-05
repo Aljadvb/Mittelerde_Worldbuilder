@@ -188,6 +188,17 @@ object Camp {
             items.firstOrNull { it.id == id }?.let { gearOptions(p, hero, it, items).isNotEmpty() && p.lore >= (it.lore ?: 0) } == true
         }
 
+    /** What is wrong with a starting equipment: more than one armor, or more hands than the hero has (rules 47.1). */
+    fun gearProblems(gear: List<String>, items: List<io.github.aljadvb.worldbuilder.model.Item>, hands: Int = 2): List<String> {
+        val cards = gear.mapNotNull { id -> items.firstOrNull { it.id == id } }
+        val armor = cards.count { it.kind == io.github.aljadvb.worldbuilder.model.ItemKind.ARMOR }
+        val used = cards.sumOf { it.hands ?: 0 }
+        return listOfNotNull(
+            "Nur 1 Rüstung erlaubt (gewählt: $armor).".takeIf { armor > 1 },
+            "Zu viele Hände: $used von $hands.".takeIf { used > hands },
+        )
+    }
+
     /** Level I cards for a hero's starting equipment, matched by name; copies already handed out are skipped. */
     fun startingGear(names: List<String>, items: List<io.github.aljadvb.worldbuilder.model.Item>, taken: List<String> = emptyList()): List<String> {
         val given = taken.toMutableList()
