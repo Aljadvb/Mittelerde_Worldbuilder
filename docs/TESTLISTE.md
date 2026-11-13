@@ -131,6 +131,9 @@ Hardware bzw. mit einer echten KI gelaufen**. Die wichtigsten Punkte stehen oben
 - [ ] Pergament-Design: Titel und Knöpfe in Uncial Antiqua (frei, OFL; eine eigene Titelschrift im Katalog geht weiter vor), Fließtext in EB Garamond; Lesbarkeit am Tisch prüfen (neu in 1.22.0, Uncial ab 1.23.0)
 - [ ] Elbische Inschrift (neu in 1.23.0): Test-Kampagne, Höhle → „Alte Inschrift“ zeigt Tengwar-Zeile, darunter die Umschrift kursiv und die Übersetzung
 - [ ] Editor: Event-Schritt „Elbische Inschrift“ mit Vorschau in Tengwar; Prüfung meldet leere Inschrift oder fehlende Übersetzung
+- [ ] Ollama im Heimnetz (neu in 1.35.0): KI → Einstellungen – Server-Adresse, Modell, Zeitlimit und Kontext eintragen (Vorgabe http://192.168.178.111:11434, qwen3.6:35b, 300 s, 32768)
+- [ ] KI → Szenario erzeugen: Weg „eigener Ollama-Server (Heimnetz)“ wählen, Idee eintragen, Entwurf und Szenario erzeugen; Ladeanzeige läuft, „Abbrechen“ bricht ab; Ergebnis landet im Editor und ist bearbeitbar
+- [ ] Außerhalb des Heimnetzes (oder Ollama aus): Meldung „… nicht erreichbar. Bist du im Heimnetz?“; falsches Modell: Hinweis auf „ollama pull“; zu langsam: Hinweis auf das Zeitlimit
 - [ ] Startausrüstung wählen (neu in 1.34.0): Neues Spiel – nach der Heldenwahl ist die vorgeschlagene Ausrüstung eingetragen; „Ausrüstung (n)“ öffnet die Auswahl aller Stufe-I-Karten; nur 1 Rüstung und höchstens 2 Hände (Bilbo/Calaminth 1, Fréahild 3); vergebene Karten anderer Helden sind gesperrt
 - [ ] Lager → Held zeigt „Ausrüstung“ mit Stufe
 - [ ] Ausrüstung aufwerten: Knopf „Aufwerten zu …“ erst ab dem Wissenswert der Karte; mehrere Wege zur Auswahl; eine Karte, die schon ein anderer Held hat, wird nicht angeboten; nur ein Stufe-IV-Gegenstand pro Held

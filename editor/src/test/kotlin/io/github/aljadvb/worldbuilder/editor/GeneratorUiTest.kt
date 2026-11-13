@@ -57,6 +57,31 @@ class GeneratorUiTest {
     }
 
     @Test
+    fun ollamaModeUsesTheLocalServerAndNeedsNoKey() = runBlocking {
+        val fake = mutableListOf(Json.encodeToString(StoryDraft.serializer(), draft))
+        val g = GeneratorModel(catalog, scope = this, providerFactory = { null }, worker = Dispatchers.Unconfined, ollamaFactory = { FakeProvider(fake, model = "qwen3.6:35b") })
+        assertTrue(g.hasOllama)
+        g.mode = GeneratorModel.Mode.OLLAMA
+        g.source = "Notizen: verschwundener Müller, Nebel."
+        g.createStory(); g.join()
+        assertNull(g.error)
+        assertEquals(draft, g.draft)
+        // A local model costs nothing.
+        assertEquals(0.0, g.totalCost)
+    }
+
+    @Test
+    fun unreachableOllamaServerAsksAboutTheHomeNetwork() = runBlocking {
+        // Port 9 on localhost: nothing listens there.
+        val g = GeneratorModel(catalog, scope = this, providerFactory = { null }, worker = Dispatchers.Unconfined,
+            ollamaFactory = { io.github.aljadvb.worldbuilder.generator.OllamaProvider("http://127.0.0.1:9") })
+        g.mode = GeneratorModel.Mode.OLLAMA
+        g.source = "Notizen"
+        g.createStory(); g.join()
+        assertTrue("Bist du im Heimnetz?" in g.error.orEmpty(), g.error)
+    }
+
+    @Test
     fun wholeFlowEndsInTheEditor() = runBlocking {
         val fake = mutableListOf(Json.encodeToString(StoryDraft.serializer(), draft), modelOutput(example))
         val g = GeneratorModel(catalog, scope = this, providerFactory = { FakeProvider(fake, model = "claude-opus-5-5") }, worker = Dispatchers.Unconfined)

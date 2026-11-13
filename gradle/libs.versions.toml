@@ -15,6 +15,7 @@ jsonSchemaValidator = "1.5.9"
 robolectric = "4.16"
 composeMultiplatform = "1.9.3"
 anthropic = "3.3.0"
+okhttp = "4.12.0"
 jna = "5.19.1"
 
 [libraries]
@@ -36,6 +37,7 @@ compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
 compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }
 robolectric = { module = "org.robolectric:robolectric", version.ref = "robolectric" }
 anthropic-java = { module = "com.anthropic:anthropic-java", version.ref = "anthropic" }
+okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
 jna-platform = { module = "net.java.dev.jna:jna-platform", version.ref = "jna" }
 junit-bom = { module = "org.junit:junit-bom", version.ref = "junit5" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter" }

@@ -204,7 +204,9 @@ private fun InputStep(model: GeneratorModel, catalog: MaterialCatalog, hasOpenCa
     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         FilterChip(model.mode == GeneratorModel.Mode.CLAUDE_AI, { model.mode = GeneratorModel.Mode.CLAUDE_AI }, label = { Text(Texts.AI_MODE_MANUAL) })
         FilterChip(model.mode == GeneratorModel.Mode.API, { model.mode = GeneratorModel.Mode.API }, label = { Text(Texts.AI_MODE_API) })
+        if (model.hasOllama) FilterChip(model.mode == GeneratorModel.Mode.OLLAMA, { model.mode = GeneratorModel.Mode.OLLAMA }, label = { Text(Texts.AI_MODE_OLLAMA) })
     }
+    if (model.mode == GeneratorModel.Mode.OLLAMA) Text(Texts.AI_OLLAMA_HINT, style = MaterialTheme.typography.bodySmall)
     Heading(Texts.AI_TARGET)
     Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         FilterChip(model.target == GeneratorModel.Target.NEW_CAMPAIGN, { model.target = GeneratorModel.Target.NEW_CAMPAIGN }, label = { Text(Texts.AI_TARGET_NEW) })
@@ -320,11 +322,15 @@ fun AiSettingsDialog(settings: AiSettings, keys: ApiKeyStore, onDismiss: () -> U
     var fallbacks by remember { mutableStateOf(settings.fallbacks) }
     var key by remember { mutableStateOf("") }
     var hasKey by remember { mutableStateOf(keys.load() != null) }
+    var ollamaUrl by remember { mutableStateOf(settings.ollamaUrl) }
+    var ollamaModel by remember { mutableStateOf(settings.ollamaModel) }
+    var ollamaTimeout by remember { mutableStateOf(settings.ollamaTimeoutSeconds.toString()) }
+    var ollamaContext by remember { mutableStateOf(settings.ollamaContextTokens.toString()) }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(Texts.AI_SETTINGS_TITLE) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.width(520.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.width(560.dp).verticalScroll(rememberScrollState())) {
                 Text(Texts.AI_MODEL, fontWeight = FontWeight.Bold)
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     ModelInfo.ALL.forEach { m ->
@@ -343,9 +349,26 @@ fun AiSettingsDialog(settings: AiSettings, keys: ApiKeyStore, onDismiss: () -> U
                     OutlinedButton(onClick = { keys.clear(); hasKey = false }, enabled = hasKey) { Text(Texts.AI_KEY_CLEAR) }
                 }
                 Text(Texts.aiKeyStorage(keys.description), style = MaterialTheme.typography.bodySmall)
+                HorizontalDivider()
+                Text(Texts.AI_OLLAMA, fontWeight = FontWeight.Bold)
+                OutlinedTextField(ollamaUrl, { ollamaUrl = it.trim() }, Modifier.fillMaxWidth(), singleLine = true, label = { Text(Texts.AI_OLLAMA_URL) })
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(ollamaModel, { ollamaModel = it.trim() }, Modifier.weight(1f), singleLine = true, label = { Text(Texts.AI_MODEL) })
+                    OutlinedTextField(ollamaTimeout, { ollamaTimeout = it.filter(Char::isDigit).take(4) }, Modifier.width(130.dp), singleLine = true, label = { Text(Texts.AI_OLLAMA_TIMEOUT) })
+                    OutlinedTextField(ollamaContext, { ollamaContext = it.filter(Char::isDigit).take(6) }, Modifier.width(130.dp), singleLine = true, label = { Text(Texts.AI_OLLAMA_CONTEXT) })
+                }
+                Text(Texts.AI_OLLAMA_SETTINGS_HINT, style = MaterialTheme.typography.bodySmall)
             }
         },
-        confirmButton = { Button(onClick = { settings.model = model; settings.fallbacks = fallbacks; onDismiss() }) { Text(Texts.OK) } },
+        confirmButton = {
+            Button(onClick = {
+                settings.model = model; settings.fallbacks = fallbacks
+                settings.ollamaUrl = ollamaUrl; settings.ollamaModel = ollamaModel
+                ollamaTimeout.toIntOrNull()?.let { settings.ollamaTimeoutSeconds = it }
+                ollamaContext.toIntOrNull()?.let { settings.ollamaContextTokens = it }
+                onDismiss()
+            }) { Text(Texts.OK) }
+        },
         dismissButton = { TextButton(onClick = onDismiss) { Text(Texts.CANCEL) } },
     )
 }

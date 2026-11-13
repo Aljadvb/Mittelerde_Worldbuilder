@@ -33,11 +33,16 @@ class GeneratorModel(
     private val scope: CoroutineScope,
     private val providerFactory: () -> LlmProvider?,
     private val worker: CoroutineDispatcher = Dispatchers.IO,
+    /** The local Ollama server from the settings; null if this editor offers none. */
+    private val ollamaFactory: (() -> LlmProvider)? = null,
 ) {
     enum class Step { INPUT, STORY, SCENARIO }
     enum class Target { NEW_CAMPAIGN, CURRENT_CAMPAIGN }
     /** API: requests go directly to the AI service. CLAUDE_AI: copy & paste via a chat, no API key needed. */
-    enum class Mode { API, CLAUDE_AI }
+    /** OLLAMA: requests go to the user's own Ollama server in the home network. */
+    enum class Mode { API, CLAUDE_AI, OLLAMA }
+
+    val hasOllama get() = ollamaFactory != null
 
     var step by mutableStateOf(Step.INPUT)
     // inputs
@@ -137,7 +142,11 @@ class GeneratorModel(
 
     private fun run(startStatus: String, block: suspend (ScenarioGenerator, CancelSignal) -> Unit) {
         if (busy) return
-        val provider = if (mode == Mode.CLAUDE_AI) manual else providerFactory()
+        val provider = when (mode) {
+            Mode.CLAUDE_AI -> manual
+            Mode.OLLAMA -> ollamaFactory?.invoke()
+            Mode.API -> providerFactory()
+        }
         if (provider == null) {
             error = Texts.AI_NO_KEY
             return

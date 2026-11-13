@@ -17,6 +17,8 @@ kotlin {
 dependencies {
     api(project(":editing"))
     implementation(libs.anthropic.java)
+    // Same version the Anthropic SDK brings; used directly for the local Ollama server.
+    implementation(libs.okhttp)
     testImplementation(kotlin("test"))
     testImplementation(platform(libs.junit.bom))
     testImplementation(libs.junit.jupiter)

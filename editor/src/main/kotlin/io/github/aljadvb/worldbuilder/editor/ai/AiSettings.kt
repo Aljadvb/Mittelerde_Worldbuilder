@@ -2,6 +2,7 @@ package io.github.aljadvb.worldbuilder.editor.ai
 
 import com.sun.jna.platform.win32.Crypt32Util
 import io.github.aljadvb.worldbuilder.generator.ModelInfo
+import io.github.aljadvb.worldbuilder.generator.OllamaProvider
 import java.util.Base64
 import java.util.prefs.Preferences
 
@@ -54,4 +55,26 @@ class AiSettings(private val node: Preferences? = settingsNode()) {
     var fallbacks: Boolean
         get() = node?.getBoolean("fallbacks", true) ?: true
         set(v) { node?.putBoolean("fallbacks", v) }
+
+    // ---- local Ollama server (home network) ----
+    var ollamaUrl: String
+        get() = node?.get("ollamaUrl", null)?.takeIf { it.isNotBlank() } ?: OllamaProvider.DEFAULT_URL
+        set(v) { node?.put("ollamaUrl", v.trim()) }
+    var ollamaModel: String
+        get() = node?.get("ollamaModel", null)?.takeIf { it.isNotBlank() } ?: OllamaProvider.DEFAULT_MODEL
+        set(v) { node?.put("ollamaModel", v.trim()) }
+    /** Read timeout in seconds: local models may need minutes for one answer. */
+    var ollamaTimeoutSeconds: Int
+        get() = (node?.getInt("ollamaTimeout", OllamaProvider.DEFAULT_TIMEOUT_SECONDS) ?: OllamaProvider.DEFAULT_TIMEOUT_SECONDS).coerceIn(30, 3600)
+        set(v) { node?.putInt("ollamaTimeout", v.coerceIn(30, 3600)) }
+    /** Context window sent as num_ctx; the prompt with the catalog is long. */
+    var ollamaContextTokens: Int
+        get() = (node?.getInt("ollamaContext", OllamaProvider.DEFAULT_CONTEXT_TOKENS) ?: OllamaProvider.DEFAULT_CONTEXT_TOKENS).coerceIn(4096, 262144)
+        set(v) { node?.putInt("ollamaContext", v.coerceIn(4096, 262144)) }
+    /** The way the generator was used last ("API", "CLAUDE_AI" or "OLLAMA"). */
+    var lastMode: String?
+        get() = node?.get("lastMode", null)
+        set(v) { if (v == null) node?.remove("lastMode") else node?.put("lastMode", v) }
+
+    fun ollamaProvider() = OllamaProvider(ollamaUrl, ollamaModel, ollamaTimeoutSeconds, ollamaContextTokens)
 }
